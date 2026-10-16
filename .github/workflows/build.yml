@@ -1,0 +1,75 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+    paths: ['packages/**', 'scripts/**', '.github/workflows/**']
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: 'Source package to build (empty = every package in packages/)'
+        required: false
+        default: ''
+
+jobs:
+  matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.m.outputs.packages }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: m
+        env:
+          INPUT_PACKAGE: ${{ inputs.package }}
+        run: |
+          if [ -n "$INPUT_PACKAGE" ]; then
+            pk=$(jq -cn --arg p "$INPUT_PACKAGE" '[$p]')
+          else
+            pk=$(find packages -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort | jq -Rsc 'split("\n") | map(select(. != ""))')
+          fi
+          echo "packages=$pk" | tee -a "$GITHUB_OUTPUT"
+
+  build:
+    needs: matrix
+    if: needs.matrix.outputs.packages != '[]'
+    runs-on: ubuntu-latest
+    container: ubuntu:26.04
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJSON(needs.matrix.outputs.packages) }}
+    steps:
+      - name: Prepare container
+        run: |
+          sed -i 's/^Types: deb$/Types: deb deb-src/' /etc/apt/sources.list.d/ubuntu.sources
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            ca-certificates git build-essential devscripts equivs quilt fakeroot dpkg-dev
+      - uses: actions/checkout@v5
+      - name: Build ${{ matrix.package }}
+        env:
+          DEBIAN_FRONTEND: noninteractive
+          DEBFULLNAME: ${{ github.actor }}
+          DEBEMAIL: ${{ github.actor }}@users.noreply.github.com
+        run: scripts/build-package.sh "${{ matrix.package }}" out
+      - uses: actions/upload-artifact@v5
+        with:
+          name: debs-${{ matrix.package }}
+          path: out/*.deb
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          path: out
+          merge-multiple: true
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${{ github.ref_name }}" out/*.deb --repo "${{ github.repository }}" --generate-notes
