@@ -25,12 +25,12 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01Np2p5AqKgTNgtBXcQRY3bY
 ---
  common/theme-variant.h             |  150 ++++
- dialogs/appearance-settings/main.c | 1124 ++++++++++++++++++++++++++++
+ dialogs/appearance-settings/main.c | 1135 ++++++++++++++++++++++++++++
  xfsettingsd/Makefile.am            |    4 +-
  xfsettingsd/main.c                 |    4 +
  xfsettingsd/theme-schedule.c       |  571 ++++++++++++++
  xfsettingsd/theme-schedule.h       |   31 +
- 6 files changed, 1883 insertions(+), 1 deletion(-)
+ 6 files changed, 1894 insertions(+), 1 deletion(-)
  create mode 100644 common/theme-variant.h
  create mode 100644 xfsettingsd/theme-schedule.c
  create mode 100644 xfsettingsd/theme-schedule.h
@@ -192,7 +192,7 @@ index 00000000..5f55f4c7
 +
 +#endif /* !__THEME_VARIANT_H__ */
 diff --git a/dialogs/appearance-settings/main.c b/dialogs/appearance-settings/main.c
-index 3257b2a9..3e5806b6 100644
+index 3257b2a9..07707900 100644
 --- a/dialogs/appearance-settings/main.c
 +++ b/dialogs/appearance-settings/main.c
 @@ -23,6 +23,8 @@
@@ -266,7 +266,7 @@ index 3257b2a9..3e5806b6 100644
  typedef struct
  {
      GtkListStore *list_store;
-@@ -1662,6 +1712,1079 @@ appearance_settings_dialog_configure_widgets (GtkBuilder *builder)
+@@ -1662,6 +1712,1090 @@ appearance_settings_dialog_configure_widgets (GtkBuilder *builder)
  #endif
  }
  
@@ -842,6 +842,13 @@ index 3257b2a9..3e5806b6 100644
 +    schedule_update_status ();
 +}
 +
++static gint
++schedule_compare_names (gconstpointer a,
++                        gconstpointer b)
++{
++    return g_utf8_collate (*(const gchar **) a, *(const gchar **) b);
++}
++
 +/* the installed cursor themes, sorted */
 +static GPtrArray *
 +schedule_list_cursor_themes (void)
@@ -875,7 +882,7 @@ index 3257b2a9..3e5806b6 100644
 +    }
 +
 +    g_strfreev (dirs);
-+    g_ptr_array_sort_values (themes, (GCompareFunc) g_utf8_collate);
++    g_ptr_array_sort (themes, schedule_compare_names);
 +
 +    return themes;
 +}
@@ -1309,27 +1316,31 @@ index 3257b2a9..3e5806b6 100644
 +    gtk_box_pack_start (GTK_BOX (button_box), button, FALSE, FALSE, 0);
 +    g_signal_connect (selection, "changed", G_CALLBACK (cb_schedule_selection_changed), button);
 +
++    /* on a row of its own, next to the buttons it gets cut off */
 +    schedule.status_label = gtk_label_new (NULL);
 +    gtk_label_set_xalign (GTK_LABEL (schedule.status_label), 0.0);
 +    gtk_label_set_ellipsize (GTK_LABEL (schedule.status_label), PANGO_ELLIPSIZE_END);
-+    gtk_box_pack_end (GTK_BOX (button_box), schedule.status_label, TRUE, TRUE, 0);
++    gtk_box_pack_start (GTK_BOX (rules_box), schedule.status_label, FALSE, FALSE, 0);
 +
-+    /* Explanation */
++    /* Explanation, with a button for the longer help next to it; a "Help"
++     * button would be confused with the one of the dialog */
++    box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
++    gtk_box_pack_start (GTK_BOX (page), box, FALSE, FALSE, 0);
++
 +    label = gtk_label_new (_("The theme is used by Xfce and GTK 3 applications. The color scheme is followed by "
 +                             "GTK 4 and Qt 6 applications, Firefox, Chromium and other web browsers."));
 +    gtk_label_set_xalign (GTK_LABEL (label), 0.0);
 +    gtk_label_set_line_wrap (GTK_LABEL (label), TRUE);
 +    gtk_label_set_max_width_chars (GTK_LABEL (label), 60);
 +    gtk_style_context_add_class (gtk_widget_get_style_context (label), GTK_STYLE_CLASS_DIM_LABEL);
-+    gtk_box_pack_start (GTK_BOX (page), label, FALSE, FALSE, 0);
++    gtk_box_pack_start (GTK_BOX (box), label, TRUE, TRUE, 0);
 +
-+    button_box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
-+    button = gtk_button_new_with_mnemonic (_("_Help"));
-+    gtk_button_set_image (GTK_BUTTON (button), gtk_image_new_from_icon_name ("help-browser", GTK_ICON_SIZE_BUTTON));
-+    gtk_button_set_always_show_image (GTK_BUTTON (button), TRUE);
++    button = gtk_button_new_from_icon_name ("help-browser", GTK_ICON_SIZE_BUTTON);
++    gtk_button_set_relief (GTK_BUTTON (button), GTK_RELIEF_NONE);
++    gtk_widget_set_valign (button, GTK_ALIGN_CENTER);
++    gtk_widget_set_tooltip_text (button, _("Switching the style at set times"));
 +    g_signal_connect (button, "clicked", G_CALLBACK (cb_schedule_help_clicked), NULL);
-+    gtk_box_pack_start (GTK_BOX (button_box), button, FALSE, FALSE, 0);
-+    gtk_box_pack_start (GTK_BOX (page), button_box, FALSE, FALSE, 0);
++    gtk_box_pack_end (GTK_BOX (box), button, FALSE, FALSE, 0);
 +
 +    notebook = gtk_builder_get_object (builder, "plug-child");
 +    gtk_widget_show_all (page);
@@ -1346,7 +1357,7 @@ index 3257b2a9..3e5806b6 100644
  static void
  appearance_settings_dialog_response (GtkWidget *dialog,
                                       gint response_id)
-@@ -1758,6 +2881,7 @@ main (gint argc,
+@@ -1758,6 +2892,7 @@ main (gint argc,
                                G_CALLBACK (appearance_settings_dialog_channel_property_changed), builder);
  
              appearance_settings_dialog_configure_widgets (builder);
