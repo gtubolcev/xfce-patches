@@ -24,22 +24,31 @@ jobs:
         env:
           INPUT_PACKAGE: ${{ inputs.package }}
         run: |
+          # one build per package for 26.04, plus one per port to an older
+          # release in packages/<pkg>/<codename>/
           if [ -n "$INPUT_PACKAGE" ]; then
-            pk=$(jq -cn --arg p "$INPUT_PACKAGE" '[$p]')
+            pkgs=$INPUT_PACKAGE
           else
-            pk=$(find packages -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort | jq -Rsc 'split("\n") | map(select(. != ""))')
+            pkgs=$(find packages -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort)
           fi
+          pk=$(for p in $pkgs; do
+                 echo "$p resolute"
+                 for d in packages/$p/*/BASE; do
+                   [ -f "$d" ] && echo "$p $(basename "$(dirname "$d")")"
+                 done
+               done | jq -Rsc 'split("\n") | map(select(. != "") | split(" ") | {package: .[0], dist: .[1]})')
           echo "packages=$pk" | tee -a "$GITHUB_OUTPUT"
 
   build:
     needs: matrix
     if: needs.matrix.outputs.packages != '[]'
     runs-on: ubuntu-latest
-    container: ubuntu:26.04
+    container: ubuntu:${{ matrix.target.dist }}
+    name: build (${{ matrix.target.package }}, ${{ matrix.target.dist }})
     strategy:
       fail-fast: false
       matrix:
-        package: ${{ fromJSON(needs.matrix.outputs.packages) }}
+        target: ${{ fromJSON(needs.matrix.outputs.packages) }}
     steps:
       - name: Prepare container
         run: |
@@ -48,15 +57,15 @@ jobs:
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
             ca-certificates git build-essential devscripts equivs quilt fakeroot dpkg-dev
       - uses: actions/checkout@v5
-      - name: Build ${{ matrix.package }}
+      - name: Build ${{ matrix.target.package }}
         env:
           DEBIAN_FRONTEND: noninteractive
           DEBFULLNAME: ${{ github.actor }}
           DEBEMAIL: ${{ github.actor }}@users.noreply.github.com
-        run: scripts/build-package.sh "${{ matrix.package }}" out
+        run: scripts/build-package.sh "${{ matrix.target.package }}" out
       - uses: actions/upload-artifact@v5
         with:
-          name: debs-${{ matrix.package }}
+          name: debs-${{ matrix.target.package }}-${{ matrix.target.dist }}
           path: out/*.deb
 
   release:
@@ -72,4 +81,21 @@ jobs:
           merge-multiple: true
       - env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${{ github.ref_name }}" out/*.deb --repo "${{ github.repository }}" --generate-notes
+        run: |
+          cat > notes.md <<'EOF'
+          Packages for Xubuntu, amd64. Pick the files for your release by the version in their names:
+
+          | Xubuntu | Xfce | xfce4-settings files |
+          |---|---|---|
+          | 26.04 (resolute) | 4.20 | `*_4.20.1-*` |
+          | 24.04 (noble) | 4.18 | `*_4.18.4-*` |
+
+          Download all files for your release (e.g. both `xfce4-settings` and `xfce4-helpers`) into an empty folder and install them together:
+
+          ```
+          sudo apt install ./*.deb
+          ```
+
+          Then log out and back in. To go back to the stock Ubuntu packages, reinstall them with `sudo apt install --reinstall --allow-downgrades <package>=<ubuntu version>`.
+          EOF
+          gh release create "${{ github.ref_name }}" out/*.deb --repo "${{ github.repository }}" --notes-file notes.md --generate-notes

@@ -4,11 +4,12 @@
 #   scripts/build-package.sh <source-package> [out-dir]
 #
 # Fetches the source via `apt-get source` (needs deb-src enabled), copies
-# packages/<pkg>/patches/*.patch into debian/patches, bumps the version with a
+# packages/<pkg>/patches/*.patch into debian/patches (on an older Ubuntu
+# release with a port of its own: packages/<pkg>/<codename>/patches), bumps the version with a
 # local suffix (e.g. 4.20.7-1 -> 4.20.7-1+xfcepatches1), installs the build
 # dependencies and runs dpkg-buildpackage. Resulting .deb files land in out-dir.
 #
-# Works both in CI (as root in an ubuntu:26.04 container) and locally
+# Works both in CI (as root in an ubuntu:26.04 or 24.04 container) and locally
 # (set SUDO=sudo, or it is picked automatically when not root).
 set -euo pipefail
 
@@ -16,13 +17,15 @@ PKG=${1:?usage: $0 <source-package> [out-dir]}
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 OUT=$(realpath -m "${2:-$ROOT/out}")
 WORK=${WORK:-$ROOT/_build}/$PKG
-PATCHDIR=$ROOT/packages/$PKG/patches
 SUFFIX=${SUFFIX:-+xfcepatches}
 
 if [ "$(id -u)" -ne 0 ]; then SUDO=${SUDO-sudo}; else SUDO=${SUDO-}; fi
 export DEBFULLNAME=${DEBFULLNAME:-"XFCE-patches CI"}
 export DEBEMAIL=${DEBEMAIL:-"noreply@users.noreply.github.com"}
 . /etc/os-release
+
+PATCHDIR=$ROOT/packages/$PKG/patches
+[ -d "$ROOT/packages/$PKG/$VERSION_CODENAME" ] && PATCHDIR=$ROOT/packages/$PKG/$VERSION_CODENAME/patches
 
 rm -rf "$WORK"
 mkdir -p "$WORK" "$OUT"
