@@ -101,3 +101,9 @@ also in an `ubuntu:<codename>` container; a release gets the `.deb`s of all of t
 
 A manual run (Actions → build → Run workflow) with a package name builds any
 source package, patched or not.
+
+## License
+
+GPL-2.0-or-later, the same as the Xfce components the patches apply to
+(see [LICENSE](LICENSE)). Each patch is a derivative of its upstream project and
+falls under that project's license.
