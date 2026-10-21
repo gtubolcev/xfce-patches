@@ -6,8 +6,10 @@
 # Fetches the source via `apt-get source` (needs deb-src enabled), copies
 # packages/<pkg>/patches/*.patch into debian/patches (on an older Ubuntu
 # release with a port of its own: packages/<pkg>/<codename>/patches), bumps the version with a
-# local suffix (e.g. 4.20.7-1 -> 4.20.7-1+xfcepatches1), installs the build
-# dependencies and runs dpkg-buildpackage. Resulting .deb files land in out-dir.
+# local suffix (e.g. 4.20.7-1 -> 4.20.7-1+xfcepatches1, or with RELEASE=v0.1.2
+# -> 4.20.7-1+xfcepatches1+v0.1.2, so that each release upgrades the previous
+# one), installs the build dependencies and runs dpkg-buildpackage. Resulting
+# .deb files land in out-dir.
 #
 # Works both in CI (as root in an ubuntu:26.04 or 24.04 container) and locally
 # (set SUDO=sudo, or it is picked automatically when not root).
@@ -59,7 +61,12 @@ else
   MSG="Rebuild without changes (XFCE-patches pipeline test)"
 fi
 
-dch --local "$SUFFIX" --distribution "$VERSION_CODENAME" --force-distribution "$MSG"
+if [ -n "${RELEASE:-}" ]; then
+  dch --newversion "$(dpkg-parsechangelog -S Version)${SUFFIX}1+$RELEASE" \
+    --distribution "$VERSION_CODENAME" --force-distribution "$MSG"
+else
+  dch --local "$SUFFIX" --distribution "$VERSION_CODENAME" --force-distribution "$MSG"
+fi
 
 $SUDO mk-build-deps --install --remove \
   --tool 'apt-get -y --no-install-recommends -o Debug::pkgProblemResolver=yes' \

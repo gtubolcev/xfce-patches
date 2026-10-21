@@ -39,7 +39,7 @@ sudo apt install ./*.deb
 ```
 
 and log out and back in. The packages replace the stock ones (version suffix
-`+xfcepatches1`); to go back, reinstall the Ubuntu version with
+`+xfcepatches1+<release>`, e.g. `+xfcepatches1+v0.1.2`); to go back, reinstall the Ubuntu version with
 `sudo apt install --reinstall --allow-downgrades xfce4-settings=<version> xfce4-helpers=<version>`.
 
 The code was written with an AI assistant (Claude) and has not been reviewed by
@@ -79,7 +79,8 @@ git tag v0.1.0 && git push --tags         # CI attaches all .debs to a release
 ```
 
 Packages get the version suffix `+xfcepatches1` (e.g. `4.20.7-1+xfcepatches1`), so they
-sort above the archive version. When Ubuntu ships a newer version, rebase the
+sort above the archive version; release builds append the tag
+(`4.20.7-1+xfcepatches1+v0.1.2`), so each release upgrades the previous one. When Ubuntu ships a newer version, rebase the
 patches (`fetch-upstream.sh` on the new tag, `git rebase`, `export-patches.sh`).
 To pin our build: `sudo apt-mark hold <pkg>`.
 

@@ -62,6 +62,7 @@ jobs:
           DEBIAN_FRONTEND: noninteractive
           DEBFULLNAME: ${{ github.actor }}
           DEBEMAIL: ${{ github.actor }}@users.noreply.github.com
+          RELEASE: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}
         run: scripts/build-package.sh "${{ matrix.target.package }}" out
       - uses: actions/upload-artifact@v5
         with:
