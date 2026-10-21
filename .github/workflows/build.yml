@@ -69,6 +69,33 @@ jobs:
           name: debs-${{ matrix.target.package }}-${{ matrix.target.dist }}
           path: out/*.deb
 
+  # each release also goes to the PPA, signed with a key of its own that is
+  # registered in Launchpad (secret PPA_GPG_KEY, armored private key)
+  ppa:
+    needs: [matrix, build]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    name: ppa (${{ matrix.target.package }}, ${{ matrix.target.dist }})
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ${{ fromJSON(needs.matrix.outputs.packages) }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends devscripts dput dpkg-dev
+      - name: Import the signing key
+        env:
+          PPA_GPG_KEY: ${{ secrets.PPA_GPG_KEY }}
+        run: |
+          [ -n "$PPA_GPG_KEY" ] || { echo "::error::secret PPA_GPG_KEY is not set"; exit 1; }
+          echo "$PPA_GPG_KEY" | gpg --batch --import
+          echo "SIGN_KEY=$(gpg --list-secret-keys --with-colons | awk -F: '/^fpr/ { print $10; exit }')" >> "$GITHUB_ENV"
+      - name: Upload ${{ matrix.target.package }} for ${{ matrix.target.dist }}
+        run: scripts/upload-ppa.sh "${{ matrix.target.package }}" "${{ matrix.target.dist }}"
+
   release:
     needs: build
     if: startsWith(github.ref, 'refs/tags/v')

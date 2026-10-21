@@ -2,31 +2,43 @@
 # Build a signed Ubuntu source package with our patches and upload it to a
 # Launchpad PPA, which then builds the .debs for amd64 and the other arches.
 #
-#   scripts/upload-ppa.sh <source-package> [ppa]      (ppa: ppa:gtubolcev/xfce-patches)
+#   scripts/upload-ppa.sh <source-package> [codename]
+#
+# codename defaults to the running release; an older one (e.g. noble) uses the
+# port in packages/<pkg>/<codename>/patches. PPA=... overrides the target
+# (ppa:gtubolcev/xfce-patches).
 #
 # The version gets a "+xfcepatches<timestamp>" suffix, so every upload is newer
 # than the previous one and than the Ubuntu package it is based on. The orig
 # tarball is not uploaded, Launchpad takes it from the Ubuntu archive.
 #
-# Needs deb-src enabled (apt-get source) and a GPG key known to Launchpad;
-# NO_UPLOAD=1 only builds the source package (unsigned) into _build/ppa/.
+# The Ubuntu source package is taken from Launchpad (the newest version
+# published for that release). Needs a GPG key known to Launchpad;
+# SIGN_KEY=... picks the key (else the one of DEBEMAIL); NO_UPLOAD=1 only
+# builds the source package (unsigned) into _build/ppa/.
 set -euo pipefail
 
-PKG=${1:?usage: $0 <source-package> [ppa]}
-PPA=${2:-ppa:gtubolcev/xfce-patches}
+PKG=${1:?usage: $0 <source-package> [codename]}
+. /etc/os-release
+DIST=${2:-$VERSION_CODENAME}
+PPA=${PPA:-ppa:gtubolcev/xfce-patches}
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
-WORK=$ROOT/_build/ppa/$PKG
+WORK=$ROOT/_build/ppa/$PKG-$DIST
 export DEBFULLNAME=${DEBFULLNAME:-"Grigory Tuboltsev"}
 export DEBEMAIL=${DEBEMAIL:-"gtubolcev@gmail.com"}
-. /etc/os-release
 
 PATCHDIR=$ROOT/packages/$PKG/patches
-[ -d "$ROOT/packages/$PKG/$VERSION_CODENAME" ] && PATCHDIR=$ROOT/packages/$PKG/$VERSION_CODENAME/patches
+[ -d "$ROOT/packages/$PKG/$DIST" ] && PATCHDIR=$ROOT/packages/$PKG/$DIST/patches
 
 rm -rf "$WORK"
 mkdir -p "$WORK"
 cd "$WORK"
-apt-get source --download-only "$PKG"
+UBUNTU_VERSION=$(curl -fsS "https://api.launchpad.net/devel/ubuntu/+archive/primary?ws.op=getPublishedSources&source_name=$PKG&exact_match=true&status=Published&distro_series=https://api.launchpad.net/devel/ubuntu/$DIST" \
+  | python3 -c 'import json, sys; print("\n".join(e["source_package_version"] for e in json.load(sys.stdin)["entries"]))' \
+  | sort -V | tail -1)
+[ -n "$UBUNTU_VERSION" ] || { echo "error: no $PKG in Ubuntu $DIST" >&2; exit 1; }
+dget --download-only --allow-unauthenticated \
+  "https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/$PKG/$UBUNTU_VERSION/${PKG}_${UBUNTU_VERSION#*:}.dsc"
 dpkg-source -x ./*.dsc
 SRCDIR=$(find . -mindepth 1 -maxdepth 1 -type d | head -1)
 cd "$SRCDIR"
@@ -41,7 +53,7 @@ for p in "${PATCHES[@]}"; do
 done
 
 VERSION="$(dpkg-parsechangelog -S Version)+xfcepatches$(date -u +%Y%m%d%H%M)"
-dch --newversion "$VERSION" --distribution "$VERSION_CODENAME" --force-distribution \
+dch --newversion "$VERSION" --distribution "$DIST" --force-distribution \
   "Apply XFCE-patches (https://github.com/gtubolcev/xfce-patches): ${PATCHES[*]}"
 
 if [ -n "${NO_UPLOAD:-}" ]; then
@@ -49,6 +61,6 @@ if [ -n "${NO_UPLOAD:-}" ]; then
   exit 0
 fi
 
-dpkg-buildpackage -S -sd -d
+dpkg-buildpackage -S -sd -d ${SIGN_KEY:+--sign-key="$SIGN_KEY"}
 cd ..
 dput "$PPA" ./*_source.changes
