@@ -25,12 +25,12 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01Np2p5AqKgTNgtBXcQRY3bY
 ---
  common/theme-variant.h             |  150 ++++
- dialogs/appearance-settings/main.c | 1135 ++++++++++++++++++++++++++++
+ dialogs/appearance-settings/main.c | 1268 ++++++++++++++++++++++++++++
  xfsettingsd/Makefile.am            |    4 +-
  xfsettingsd/main.c                 |    4 +
- xfsettingsd/theme-schedule.c       |  571 ++++++++++++++
+ xfsettingsd/theme-schedule.c       |  571 +++++++++++++
  xfsettingsd/theme-schedule.h       |   31 +
- 6 files changed, 1894 insertions(+), 1 deletion(-)
+ 6 files changed, 2027 insertions(+), 1 deletion(-)
  create mode 100644 common/theme-variant.h
  create mode 100644 xfsettingsd/theme-schedule.c
  create mode 100644 xfsettingsd/theme-schedule.h
@@ -192,7 +192,7 @@ index 00000000..5f55f4c7
 +
 +#endif /* !__THEME_VARIANT_H__ */
 diff --git a/dialogs/appearance-settings/main.c b/dialogs/appearance-settings/main.c
-index 3257b2a9..07707900 100644
+index 3257b2a9..cf84825a 100644
 --- a/dialogs/appearance-settings/main.c
 +++ b/dialogs/appearance-settings/main.c
 @@ -23,6 +23,8 @@
@@ -245,7 +245,7 @@ index 3257b2a9..07707900 100644
  enum
  {
      COLOR_FG,
-@@ -98,6 +134,20 @@ static GOptionEntry option_entries[] = {
+@@ -98,6 +134,24 @@ static GOptionEntry option_entries[] = {
  static XfconfChannel *xsettings_channel;
  static GSettings *desktop_interface_gsettings;
  
@@ -261,12 +261,16 @@ index 3257b2a9..07707900 100644
 +    GtkTreeViewColumn *time_column;
 +    GtkTreeViewColumn *more_column;
 +    GtkWidget *status_label;
++    GtkWidget *time_popover;
++    GtkWidget *hour_spin;
++    GtkWidget *minute_spin;
++    gchar *time_path; /* the rule whose time the popover edits */
 +} schedule;
 +
  typedef struct
  {
      GtkListStore *list_store;
-@@ -1662,6 +1712,1090 @@ appearance_settings_dialog_configure_widgets (GtkBuilder *builder)
+@@ -1662,6 +1716,1219 @@ appearance_settings_dialog_configure_widgets (GtkBuilder *builder)
  #endif
  }
  
@@ -622,20 +626,11 @@ index 3257b2a9..07707900 100644
 +}
 +
 +static void
-+cb_schedule_time_edited (GtkCellRendererText *renderer,
-+                         gchar *path,
-+                         gchar *new_text)
++schedule_set_time (const gchar *path,
++                   gint minutes)
 +{
 +    GtkTreeIter iter;
 +    gchar *time_str;
-+    gint minutes;
-+
-+    minutes = schedule_parse_time (g_strstrip (new_text));
-+    if (minutes < 0)
-+    {
-+        gtk_widget_error_bell (schedule.treeview);
-+        return;
-+    }
 +
 +    if (schedule_time_taken (minutes, path))
 +    {
@@ -653,6 +648,135 @@ index 3257b2a9..07707900 100644
 +        g_free (time_str);
 +        schedule_save ();
 +    }
++}
++
++/* two digits also for the hours, like in the list */
++static gboolean
++cb_schedule_time_spin_output (GtkSpinButton *spin)
++{
++    gchar *text = g_strdup_printf ("%02d", gtk_spin_button_get_value_as_int (spin));
++
++    gtk_entry_set_text (GTK_ENTRY (spin), text);
++    g_free (text);
++
++    return TRUE;
++}
++
++static void
++cb_schedule_time_popover_closed (GtkPopover *popover)
++{
++    gchar *time_str, *old_time_str;
++    GtkTreeIter iter;
++
++    if (schedule.time_path == NULL)
++        return;
++
++    /* take digits typed but not confirmed yet */
++    gtk_spin_button_update (GTK_SPIN_BUTTON (schedule.hour_spin));
++    gtk_spin_button_update (GTK_SPIN_BUTTON (schedule.minute_spin));
++
++    if (gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL (schedule.store), &iter, schedule.time_path))
++    {
++        gint minutes = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (schedule.hour_spin)) * 60
++                       + gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (schedule.minute_spin));
++
++        gtk_tree_model_get (GTK_TREE_MODEL (schedule.store), &iter, COLUMN_SCHEDULE_TIME, &old_time_str, -1);
++        time_str = g_strdup_printf ("%02d:%02d", minutes / 60, minutes % 60);
++        if (g_strcmp0 (time_str, old_time_str) != 0)
++            schedule_set_time (schedule.time_path, minutes);
++        g_free (time_str);
++        g_free (old_time_str);
++    }
++
++    g_clear_pointer (&schedule.time_path, g_free);
++    gtk_widget_grab_focus (schedule.treeview);
++}
++
++static GtkWidget *
++schedule_time_spin_new (gint max)
++{
++    GtkWidget *spin = gtk_spin_button_new_with_range (0, max, 1);
++
++    gtk_orientable_set_orientation (GTK_ORIENTABLE (spin), GTK_ORIENTATION_VERTICAL);
++    gtk_spin_button_set_wrap (GTK_SPIN_BUTTON (spin), TRUE);
++    gtk_spin_button_set_numeric (GTK_SPIN_BUTTON (spin), TRUE);
++    gtk_spin_button_set_increments (GTK_SPIN_BUTTON (spin), 1, max == 59 ? 10 : 6);
++    gtk_entry_set_width_chars (GTK_ENTRY (spin), 2);
++    gtk_entry_set_alignment (GTK_ENTRY (spin), 0.5);
++    g_signal_connect (spin, "output", G_CALLBACK (cb_schedule_time_spin_output), NULL);
++    g_signal_connect_swapped (spin, "activate", G_CALLBACK (gtk_popover_popdown), schedule.time_popover);
++
++    return spin;
++}
++
++/* GTK has no time picker: hours and minutes in a popover at the cell */
++static void
++schedule_edit_time (GtkTreePath *path)
++{
++    GtkTreeView *treeview = GTK_TREE_VIEW (schedule.treeview);
++    GtkTreeIter iter;
++    GdkRectangle rect;
++    GtkWidget *box;
++    gchar *time_str;
++    gint minutes;
++
++    if (!gtk_tree_model_get_iter (GTK_TREE_MODEL (schedule.store), &iter, path))
++        return;
++
++    if (schedule.time_popover == NULL)
++    {
++        schedule.time_popover = gtk_popover_new (schedule.treeview);
++        gtk_popover_set_position (GTK_POPOVER (schedule.time_popover), GTK_POS_BOTTOM);
++        g_signal_connect (schedule.time_popover, "closed", G_CALLBACK (cb_schedule_time_popover_closed), NULL);
++
++        box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
++        gtk_container_set_border_width (GTK_CONTAINER (box), 12);
++        gtk_container_add (GTK_CONTAINER (schedule.time_popover), box);
++
++        schedule.hour_spin = schedule_time_spin_new (23);
++        gtk_box_pack_start (GTK_BOX (box), schedule.hour_spin, FALSE, FALSE, 0);
++        gtk_box_pack_start (GTK_BOX (box), gtk_label_new (":"), FALSE, FALSE, 0);
++        schedule.minute_spin = schedule_time_spin_new (59);
++        gtk_box_pack_start (GTK_BOX (box), schedule.minute_spin, FALSE, FALSE, 0);
++
++        gtk_widget_show_all (box);
++    }
++
++    gtk_tree_model_get (GTK_TREE_MODEL (schedule.store), &iter, COLUMN_SCHEDULE_TIME, &time_str, -1);
++    minutes = MAX (schedule_parse_time (time_str), 0);
++    g_free (time_str);
++
++    g_free (schedule.time_path);
++    schedule.time_path = gtk_tree_path_to_string (path);
++    gtk_spin_button_set_value (GTK_SPIN_BUTTON (schedule.hour_spin), minutes / 60);
++    gtk_spin_button_set_value (GTK_SPIN_BUTTON (schedule.minute_spin), minutes % 60);
++
++    gtk_tree_view_get_cell_area (treeview, path, schedule.time_column, &rect);
++    gtk_tree_view_convert_bin_window_to_widget_coords (treeview, rect.x, rect.y, &rect.x, &rect.y);
++    gtk_popover_set_pointing_to (GTK_POPOVER (schedule.time_popover), &rect);
++    gtk_popover_popup (GTK_POPOVER (schedule.time_popover));
++    gtk_widget_grab_focus (schedule.hour_spin);
++}
++
++/* the row has to be laid out to place the popover at it */
++static gboolean
++schedule_edit_time_idle (gpointer data)
++{
++    GtkTreePath *path = gtk_tree_path_new_from_string (data);
++
++    schedule_edit_time (path);
++    gtk_tree_path_free (path);
++
++    return G_SOURCE_REMOVE;
++}
++
++static void
++cb_schedule_row_activated (GtkTreeView *treeview,
++                           GtkTreePath *path,
++                           GtkTreeViewColumn *column)
++{
++    if (column == schedule.time_column)
++        schedule_edit_time (path);
 +}
 +
 +static void
@@ -807,10 +931,12 @@ index 3257b2a9..07707900 100644
 +
 +    schedule_save ();
 +
-+    /* let the user type the time right away */
++    /* let the user pick the time right away */
 +    path = gtk_tree_model_get_path (GTK_TREE_MODEL (schedule.store), &iter);
 +    gtk_widget_grab_focus (schedule.treeview);
-+    gtk_tree_view_set_cursor (GTK_TREE_VIEW (schedule.treeview), path, schedule.time_column, TRUE);
++    gtk_tree_view_set_cursor (GTK_TREE_VIEW (schedule.treeview), path, schedule.time_column, FALSE);
++    g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, schedule_edit_time_idle,
++                     gtk_tree_path_to_string (path), g_free);
 +    gtk_tree_path_free (path);
 +}
 +
@@ -1094,7 +1220,8 @@ index 3257b2a9..07707900 100644
 +    g_free (command);
 +}
 +
-+/* a click into the More column opens the dialog of that rule */
++/* a click into the Time column opens the time picker, into the More column
++ * the dialog of that rule */
 +static gboolean
 +cb_schedule_treeview_button_press (GtkWidget *treeview,
 +                                   GdkEventButton *event)
@@ -1107,7 +1234,14 @@ index 3257b2a9..07707900 100644
 +        || !gtk_tree_view_get_path_at_pos (GTK_TREE_VIEW (treeview), event->x, event->y, &path, &column, NULL, NULL))
 +        return FALSE;
 +
-+    if (column == schedule.more_column)
++    if (column == schedule.time_column)
++    {
++        gtk_widget_grab_focus (treeview);
++        gtk_tree_view_set_cursor (GTK_TREE_VIEW (treeview), path, column, FALSE);
++        g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, schedule_edit_time_idle,
++                         gtk_tree_path_to_string (path), g_free);
++    }
++    else if (column == schedule.more_column)
 +    {
 +        gtk_tree_view_set_cursor (GTK_TREE_VIEW (treeview), path, NULL, FALSE);
 +        g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, schedule_edit_more_idle,
@@ -1116,7 +1250,7 @@ index 3257b2a9..07707900 100644
 +
 +    gtk_tree_path_free (path);
 +
-+    return column == schedule.more_column;
++    return column == schedule.time_column || column == schedule.more_column;
 +}
 +
 +static void
@@ -1243,8 +1377,6 @@ index 3257b2a9..07707900 100644
 +    gtk_container_add (GTK_CONTAINER (scrolled), schedule.treeview);
 +
 +    renderer = gtk_cell_renderer_text_new ();
-+    g_object_set (renderer, "editable", TRUE, NULL);
-+    g_signal_connect (renderer, "edited", G_CALLBACK (cb_schedule_time_edited), NULL);
 +    schedule.time_column = gtk_tree_view_column_new_with_attributes (_("Time"), renderer,
 +                                                                     "text", COLUMN_SCHEDULE_TIME, NULL);
 +    gtk_tree_view_append_column (GTK_TREE_VIEW (schedule.treeview), schedule.time_column);
@@ -1288,6 +1420,7 @@ index 3257b2a9..07707900 100644
 +    gtk_tree_view_column_set_cell_data_func (schedule.more_column, renderer, schedule_more_cell_data, NULL, NULL);
 +    gtk_tree_view_append_column (GTK_TREE_VIEW (schedule.treeview), schedule.more_column);
 +    g_signal_connect (schedule.treeview, "button-press-event", G_CALLBACK (cb_schedule_treeview_button_press), NULL);
++    g_signal_connect (schedule.treeview, "row-activated", G_CALLBACK (cb_schedule_row_activated), NULL);
 +
 +    /* Add and remove buttons */
 +    button_box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
@@ -1357,7 +1490,7 @@ index 3257b2a9..07707900 100644
  static void
  appearance_settings_dialog_response (GtkWidget *dialog,
                                       gint response_id)
-@@ -1758,6 +2892,7 @@ main (gint argc,
+@@ -1758,6 +3025,7 @@ main (gint argc,
                                G_CALLBACK (appearance_settings_dialog_channel_property_changed), builder);
  
              appearance_settings_dialog_configure_widgets (builder);
