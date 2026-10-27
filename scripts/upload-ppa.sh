@@ -8,9 +8,10 @@
 # port in packages/<pkg>/<codename>/patches. PPA=... overrides the target
 # (ppa:gtubolcev/xfce-patches).
 #
-# The version gets a "+xfcepatches<timestamp>" suffix, so every upload is newer
-# than the previous one and than the Ubuntu package it is based on. The orig
-# tarball is not uploaded, Launchpad takes it from the Ubuntu archive.
+# The version is that of the release debs plus an upload number, e.g.
+# 4.20.1-1ubuntu2+xfcepatches1+v0.2.1~ppa1; RELEASE=... sets the release
+# (else the newest tag). The orig tarball is not uploaded, Launchpad takes it
+# from the Ubuntu archive.
 #
 # The Ubuntu source package is the newest version published for that
 # release, taken from archive.ubuntu.com. Needs a GPG key known to Launchpad;
@@ -22,7 +23,9 @@ PKG=${1:?usage: $0 <source-package> [codename]}
 . /etc/os-release
 DIST=${2:-$VERSION_CODENAME}
 PPA=${PPA:-ppa:gtubolcev/xfce-patches}
+PPA_ARCHIVE=$(sed -E 's|^ppa:([^/]+)/(.+)$|~\1/+archive/ubuntu/\2|' <<< "$PPA")
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
+RELEASE=${RELEASE:-$(git -C "$ROOT" describe --tags --abbrev=0)}
 WORK=$ROOT/_build/ppa/$PKG-$DIST
 export DEBFULLNAME=${DEBFULLNAME:-"Grigory Tuboltsev"}
 export DEBEMAIL=${DEBEMAIL:-"gtubolcev@gmail.com"}
@@ -62,7 +65,16 @@ for p in "${PATCHES[@]}"; do
     || { echo "error: $p does not apply" >&2; exit 1; }
 done
 
-VERSION="$(dpkg-parsechangelog -S Version)+xfcepatches$(date -u +%Y%m%d%H%M)"
+# the version of the release debs plus an upload number: a version can be
+# uploaded to the PPA only once, even after it was deleted there
+VERSION="$(dpkg-parsechangelog -S Version)+xfcepatches1+$RELEASE~ppa"
+UPLOAD=$(curl -fsS --retry 5 --retry-all-errors "https://api.launchpad.net/devel/${PPA_ARCHIVE}?ws.op=getPublishedSources&source_name=$PKG&exact_match=true" \
+  | python3 -c 'import json, sys
+prefix = sys.argv[1]
+nums = [e["source_package_version"][len(prefix):] for e in json.load(sys.stdin)["entries"]
+        if e["source_package_version"].startswith(prefix)]
+print(max((int(n) for n in nums if n.isdigit()), default=0) + 1)' "$VERSION")
+VERSION=$VERSION$UPLOAD
 dch --newversion "$VERSION" --distribution "$DIST" --force-distribution \
   "Apply XFCE-patches (https://github.com/gtubolcev/xfce-patches): ${PATCHES[*]}"
 
