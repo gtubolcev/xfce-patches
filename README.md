@@ -17,7 +17,8 @@ Any number of rules "at HH:MM switch the style"; each rule can change:
 - **Color scheme** — the dark/light preference that GTK 4/libadwaita, Qt 6, Firefox,
   Chromium and Electron apps read through the settings portal.
 - **More…** — the matching xfwm4 theme (follows "Set matching Xfwm4 theme" by default),
-  the icon theme, the cursor theme, or a shell command to run.
+  the icon theme, the cursor theme, the screen brightness of a laptop (in percent,
+  set through logind, no root needed), or a shell command to run.
 
 ![Schedule tab](docs/theme-schedule.png)
 

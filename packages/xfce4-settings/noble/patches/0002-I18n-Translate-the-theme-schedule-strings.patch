@@ -9,77 +9,77 @@ translation teams.
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01Np2p5AqKgTNgtBXcQRY3bY
 ---
- po/am.po        | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/ar.po        | 117 ++++++++++++++++++++++++++++++++++++++++++++++++
- po/ast.po       | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/be.po        | 115 +++++++++++++++++++++++++++++++++++++++++++++++
- po/be@tarask.po | 115 +++++++++++++++++++++++++++++++++++++++++++++++
- po/bg.po        | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/bn.po        | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/ca.po        | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/cs.po        | 115 +++++++++++++++++++++++++++++++++++++++++++++++
- po/da.po        | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/de.po        | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/el.po        | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/en_AU.po     | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/en_CA.po     | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/en_GB.po     | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/es.po        | 114 ++++++++++++++++++++++++++++++++++++++++++++++
- po/et.po        | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/eu.po        | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/fi.po        | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/fr.po        | 114 ++++++++++++++++++++++++++++++++++++++++++++++
- po/gl.po        | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/he.po        | 115 +++++++++++++++++++++++++++++++++++++++++++++++
- po/hr.po        | 114 ++++++++++++++++++++++++++++++++++++++++++++++
- po/hu.po        | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/hy_AM.po     | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/hye.po       | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/id.po        | 112 +++++++++++++++++++++++++++++++++++++++++++++
- po/ie.po        | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/is.po        | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/it.po        | 114 ++++++++++++++++++++++++++++++++++++++++++++++
- po/ja.po        | 112 +++++++++++++++++++++++++++++++++++++++++++++
- po/ka.po        | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/kab.po       | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/kk.po        | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/ko.po        | 112 +++++++++++++++++++++++++++++++++++++++++++++
- po/lt.po        | 115 +++++++++++++++++++++++++++++++++++++++++++++++
- po/lv.po        | 114 ++++++++++++++++++++++++++++++++++++++++++++++
- po/ms.po        | 112 +++++++++++++++++++++++++++++++++++++++++++++
- po/nb.po        | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/nl.po        | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/nn.po        | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/oc.po        | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/pa.po        | 114 ++++++++++++++++++++++++++++++++++++++++++++++
- po/pl.po        | 115 +++++++++++++++++++++++++++++++++++++++++++++++
- po/pt.po        | 114 ++++++++++++++++++++++++++++++++++++++++++++++
- po/pt_BR.po     | 114 ++++++++++++++++++++++++++++++++++++++++++++++
- po/ro.po        | 114 ++++++++++++++++++++++++++++++++++++++++++++++
- po/ru.po        | 115 +++++++++++++++++++++++++++++++++++++++++++++++
- po/si.po        | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/sk.po        | 115 +++++++++++++++++++++++++++++++++++++++++++++++
- po/sl.po        | 115 +++++++++++++++++++++++++++++++++++++++++++++++
- po/sq.po        | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/sr.po        | 114 ++++++++++++++++++++++++++++++++++++++++++++++
- po/sv.po        | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/te.po        | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/th.po        | 112 +++++++++++++++++++++++++++++++++++++++++++++
- po/tr.po        | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/ug.po        | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/uk.po        | 115 +++++++++++++++++++++++++++++++++++++++++++++++
- po/ur.po        | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/ur_PK.po     | 113 ++++++++++++++++++++++++++++++++++++++++++++++
- po/zh_CN.po     | 112 +++++++++++++++++++++++++++++++++++++++++++++
- po/zh_HK.po     | 112 +++++++++++++++++++++++++++++++++++++++++++++
- po/zh_TW.po     | 112 +++++++++++++++++++++++++++++++++++++++++++++
- 64 files changed, 7258 insertions(+)
+ po/am.po        | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/ar.po        | 127 ++++++++++++++++++++++++++++++++++++++++++++++++
+ po/ast.po       | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/be.po        | 125 +++++++++++++++++++++++++++++++++++++++++++++++
+ po/be@tarask.po | 125 +++++++++++++++++++++++++++++++++++++++++++++++
+ po/bg.po        | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/bn.po        | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/ca.po        | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/cs.po        | 125 +++++++++++++++++++++++++++++++++++++++++++++++
+ po/da.po        | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/de.po        | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/el.po        | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/en_AU.po     | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/en_CA.po     | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/en_GB.po     | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/es.po        | 124 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/et.po        | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/eu.po        | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/fi.po        | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/fr.po        | 124 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/gl.po        | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/he.po        | 125 +++++++++++++++++++++++++++++++++++++++++++++++
+ po/hr.po        | 124 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/hu.po        | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/hy_AM.po     | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/hye.po       | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/id.po        | 122 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/ie.po        | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/is.po        | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/it.po        | 124 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/ja.po        | 122 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/ka.po        | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/kab.po       | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/kk.po        | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/ko.po        | 122 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/lt.po        | 125 +++++++++++++++++++++++++++++++++++++++++++++++
+ po/lv.po        | 124 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/ms.po        | 122 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/nb.po        | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/nl.po        | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/nn.po        | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/oc.po        | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/pa.po        | 124 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/pl.po        | 125 +++++++++++++++++++++++++++++++++++++++++++++++
+ po/pt.po        | 124 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/pt_BR.po     | 124 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/ro.po        | 124 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/ru.po        | 125 +++++++++++++++++++++++++++++++++++++++++++++++
+ po/si.po        | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/sk.po        | 125 +++++++++++++++++++++++++++++++++++++++++++++++
+ po/sl.po        | 125 +++++++++++++++++++++++++++++++++++++++++++++++
+ po/sq.po        | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/sr.po        | 124 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/sv.po        | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/te.po        | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/th.po        | 122 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/tr.po        | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/ug.po        | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/uk.po        | 125 +++++++++++++++++++++++++++++++++++++++++++++++
+ po/ur.po        | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/ur_PK.po     | 123 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/zh_CN.po     | 122 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/zh_HK.po     | 122 ++++++++++++++++++++++++++++++++++++++++++++++
+ po/zh_TW.po     | 122 ++++++++++++++++++++++++++++++++++++++++++++++
+ 64 files changed, 7898 insertions(+)
 
 diff --git a/po/am.po b/po/am.po
-index 29135fdf..846666d6 100644
+index 29135fdf..24f03dff 100644
 --- a/po/am.po
 +++ b/po/am.po
-@@ -1744,3 +1744,116 @@ msgstr "የ ማሰናጃዎች አስተዳዳሪ"
+@@ -1744,3 +1744,126 @@ msgstr "የ ማሰናጃዎች አስተዳዳሪ"
  #: ../xfce4-settings-manager/xfce-settings-manager.desktop.in.h:2
  msgid "Graphical Settings Manager for Xfce 4"
  msgstr "የ ንድፍ ማሰናጃዎች አስተዳዳሪ ለ Xfce 4"
@@ -164,8 +164,18 @@ index 29135fdf..846666d6 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "የቀለም ገጽታ: የዴስክቶፑ የጨለማ ወይም የብሩህ ምርጫ፣ በGTK 4 እና libadwaita፣ Qt 6፣ Firefox፣ Chromium እና Electron መተግበሪያዎች ይነበባል። Firefox «የድር ጣቢያ ገጽታ» «ራስ-ሰር» ከሆነ፣ Chromium «ሁነታ» «መሣሪያ» ከሆነ ይከተሉታል።"
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "ተጨማሪ: የመስኮት አስተዳዳሪ ገጽታን፣ የምልክት ገጽታን ወይም የአይጥ መጠቆሚያ ገጽታን ደግሞ ማሰናጃ፣ ወይም የራስዎን ትእዛዝ ማስኬጃ።"
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "ተጨማሪ: የመስኮት አስተዳዳሪ ገጽታን፣ የምልክት ገጽታን፣ የአይጥ መጠቆሚያ ገጽታን ወይም የላፕቶፕ ማያ ብሩህነትን ደግሞ ማሰናጃ፣ ወይም የራስዎን ትእዛዝ ማስኬጃ።"
++
++msgid "Set the screen _brightness to:"
++msgstr "የማያ _ብሩህነት ማሰናጃ ወደ:"
++
++msgid "No screen backlight was found."
++msgstr "የማያ የጀርባ ብርሃን አልተገኘም።"
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "ብሩህነት %s%%"
 +
 +msgid "Dark"
 +msgstr "ጨለማ"
@@ -197,10 +207,10 @@ index 29135fdf..846666d6 100644
 +msgid "Time"
 +msgstr "ሰዓት"
 diff --git a/po/ar.po b/po/ar.po
-index 08466bce..8fd7aed5 100644
+index 08466bce..5b380c73 100644
 --- a/po/ar.po
 +++ b/po/ar.po
-@@ -2790,3 +2790,120 @@ msgstr "عفريت إعدادات Xfce"
+@@ -2790,3 +2790,130 @@ msgstr "عفريت إعدادات Xfce"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "بريمج إعدادات إكسفس"
@@ -289,8 +299,18 @@ index 08466bce..8fd7aed5 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "نظام الألوان: تفضيل سطح المكتب للمظهر الداكن أو الفاتح، وتقرؤه GTK 4 وlibadwaita وQt 6 وFirefox وChromium وتطبيقات Electron. يتبعه Firefox إذا كان «مظهر المواقع» مضبوطًا على «تلقائي»، وChromium إذا كان «الوضع» مضبوطًا على «الجهاز»."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "المزيد: تعيين سمة مدير النوافذ أو سمة الأيقونات أو سمة مؤشر الفأرة أيضًا، أو تشغيل أمر خاص بك."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "المزيد: تعيين سمة مدير النوافذ أو سمة الأيقونات أو سمة مؤشر الفأرة أو سطوع شاشة الحاسوب المحمول أيضًا، أو تشغيل أمر خاص بك."
++
++msgid "Set the screen _brightness to:"
++msgstr "تعيين _سطوع الشاشة إلى:"
++
++msgid "No screen backlight was found."
++msgstr "لم يُعثر على إضاءة خلفية للشاشة."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "السطوع %s%%"
 +
 +msgid "Dark"
 +msgstr "داكن"
@@ -322,10 +342,10 @@ index 08466bce..8fd7aed5 100644
 +msgid "Time"
 +msgstr "الوقت"
 diff --git a/po/ast.po b/po/ast.po
-index fe7e85be..bd37acf0 100644
+index fe7e85be..e1e9d22e 100644
 --- a/po/ast.po
 +++ b/po/ast.po
-@@ -2827,3 +2827,116 @@ msgstr ""
+@@ -2827,3 +2827,126 @@ msgstr ""
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "El degorriu d'axustes Xfce"
@@ -410,8 +430,18 @@ index fe7e85be..bd37acf0 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Esquema de colores: la preferencia escura o clara del escritoriu, que lleen GTK 4 y libadwaita, Qt 6, Firefox, Chromium y les aplicaciones Electron. Firefox síguela si «Aspeutu de los sitios web» ta n'«Automáticu», Chromium si «Mou» ta en «Preséu»."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Más: afitar tamién el tema del xestor de ventanes, el tema d'iconos o el del cursor del mur, o executar un comandu propiu."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Más: afitar tamién el tema del xestor de ventanes, el tema d'iconos, el del cursor del mur o el brilléu de la pantalla del portátil, o executar un comandu propiu."
++
++msgid "Set the screen _brightness to:"
++msgstr "Afitar el _brilléu de la pantalla a:"
++
++msgid "No screen backlight was found."
++msgstr "Nun s'atopó la retroiluminación de la pantalla."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "brilléu %s%%"
 +
 +msgid "Dark"
 +msgstr "Escuru"
@@ -443,10 +473,10 @@ index fe7e85be..bd37acf0 100644
 +msgid "Time"
 +msgstr "Hora"
 diff --git a/po/be.po b/po/be.po
-index 8e6706cb..6e43046e 100644
+index 8e6706cb..20589be1 100644
 --- a/po/be.po
 +++ b/po/be.po
-@@ -2845,3 +2845,118 @@ msgstr "Дэман налад Xfce"
+@@ -2845,3 +2845,128 @@ msgstr "Дэман налад Xfce"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Дэман налад Xfce"
@@ -533,8 +563,18 @@ index 8e6706cb..6e43046e 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Каляровая схема: перавага цёмнага ці светлага афармлення працоўнага стала, якую ўлічваюць GTK 4 і libadwaita, Qt 6, Firefox, Chromium і праграмы Electron. Firefox прытрымліваецца яе, калі «Выгляд вэб-сайтаў» усталяваны ў «Аўтаматычна», Chromium — калі «Рэжым» усталяваны ў «Як на прыладзе»."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Яшчэ: таксама ўсталяваць тэму кіраўніка акон, тэму значак ці курсора мышы або выканаць уласны загад."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Яшчэ: таксама ўсталяваць тэму кіраўніка акон, тэму значак, курсора мышы ці яркасць экрана ноўтбука або выканаць уласны загад."
++
++msgid "Set the screen _brightness to:"
++msgstr "Усталяваць _яркасць экрана:"
++
++msgid "No screen backlight was found."
++msgstr "Падсвятленне экрана не знойдзена."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "яркасць %s%%"
 +
 +msgid "Dark"
 +msgstr "Цёмная"
@@ -566,10 +606,10 @@ index 8e6706cb..6e43046e 100644
 +msgid "Time"
 +msgstr "Час"
 diff --git a/po/be@tarask.po b/po/be@tarask.po
-index 02d4db1e..4f90c478 100644
+index 02d4db1e..1db2c5b1 100644
 --- a/po/be@tarask.po
 +++ b/po/be@tarask.po
-@@ -2846,3 +2846,118 @@ msgstr "Сэрвіс наладаў Xfce"
+@@ -2846,3 +2846,128 @@ msgstr "Сэрвіс наладаў Xfce"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Сэрвіс наладаў Xfce"
@@ -656,8 +696,18 @@ index 02d4db1e..4f90c478 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Колеравая схема: перавага цёмнага ці сьветлага афармленьня працоўнага стала, якую ўлічваюць GTK 4 і libadwaita, Qt 6, Firefox, Chromium і праграмы Electron. Firefox трымаецца яе, калі «Выгляд вэб-сайтаў» усталяваны ў «Аўтаматычна», Chromium — калі «Рэжым» усталяваны ў «Як на прыладзе»."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Яшчэ: таксама ўсталяваць тэму кіраўніка вокнаў, тэму значак ці курсора мышы або выканаць уласны загад."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Яшчэ: таксама ўсталяваць тэму кіраўніка вокнаў, тэму значак, курсора мышы ці яркасьць экрана ноўтбука або выканаць уласны загад."
++
++msgid "Set the screen _brightness to:"
++msgstr "Усталяваць _яркасьць экрана:"
++
++msgid "No screen backlight was found."
++msgstr "Падсьвятленьне экрана ня знойдзена."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "яркасьць %s%%"
 +
 +msgid "Dark"
 +msgstr "Цёмная"
@@ -689,10 +739,10 @@ index 02d4db1e..4f90c478 100644
 +msgid "Time"
 +msgstr "Час"
 diff --git a/po/bg.po b/po/bg.po
-index f85fdca4..280b861b 100644
+index f85fdca4..9c680d64 100644
 --- a/po/bg.po
 +++ b/po/bg.po
-@@ -2881,3 +2881,116 @@ msgstr "Демон за настройките на Xfce"
+@@ -2881,3 +2881,126 @@ msgstr "Демон за настройките на Xfce"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Управлението на настройките на Xfce"
@@ -777,8 +827,18 @@ index f85fdca4..280b861b 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Цветова схема: предпочитанието за тъмен или светъл вид на работния плот, което се чете от GTK 4 и libadwaita, Qt 6, Firefox, Chromium и приложенията на Electron. Firefox я следва, ако „Изглед на уебсайтовете“ е „Автоматично“, Chromium — ако „Режим“ е „Устройство“."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Още: задаване и на темата на мениджъра на прозорци, темата на иконите или на курсора на мишката или изпълнение на собствена команда."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Още: задаване и на темата на мениджъра на прозорци, темата на иконите, на курсора на мишката или яркостта на екрана на лаптопа, или изпълнение на собствена команда."
++
++msgid "Set the screen _brightness to:"
++msgstr "Задаване на _яркостта на екрана на:"
++
++msgid "No screen backlight was found."
++msgstr "Не е открита подсветка на екрана."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "яркост %s%%"
 +
 +msgid "Dark"
 +msgstr "Тъмна"
@@ -810,10 +870,10 @@ index f85fdca4..280b861b 100644
 +msgid "Time"
 +msgstr "Час"
 diff --git a/po/bn.po b/po/bn.po
-index adac2af3..eaef24b0 100644
+index adac2af3..312ff72a 100644
 --- a/po/bn.po
 +++ b/po/bn.po
-@@ -2674,3 +2674,116 @@ msgstr ""
+@@ -2674,3 +2674,126 @@ msgstr ""
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr ""
@@ -898,8 +958,18 @@ index adac2af3..eaef24b0 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "রঙের স্কিম: ডেস্কটপের গাঢ় বা হালকা পছন্দ, যা GTK 4 ও libadwaita, Qt 6, Firefox, Chromium এবং Electron অ্যাপ্লিকেশন পড়ে। “ওয়েবসাইটের চেহারা” “স্বয়ংক্রিয়” হলে Firefox, আর “মোড” “ডিভাইস” হলে Chromium এটি অনুসরণ করে।"
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "আরও: উইন্ডো ম্যানেজার থিম, আইকন থিম বা মাউস কার্সর থিমও সেট করুন, অথবা নিজের কমান্ড চালান।"
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "আরও: উইন্ডো ম্যানেজার থিম, আইকন থিম, মাউস কার্সর থিম বা ল্যাপটপ স্ক্রিনের উজ্জ্বলতাও সেট করুন, অথবা নিজের কমান্ড চালান।"
++
++msgid "Set the screen _brightness to:"
++msgstr "স্ক্রিনের _উজ্জ্বলতা সেট করুন:"
++
++msgid "No screen backlight was found."
++msgstr "কোনো স্ক্রিন ব্যাকলাইট পাওয়া যায়নি।"
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "উজ্জ্বলতা %s%%"
 +
 +msgid "Dark"
 +msgstr "গাঢ়"
@@ -931,10 +1001,10 @@ index adac2af3..eaef24b0 100644
 +msgid "Time"
 +msgstr "সময়"
 diff --git a/po/ca.po b/po/ca.po
-index feacdb6a..147b0d38 100644
+index feacdb6a..957fd360 100644
 --- a/po/ca.po
 +++ b/po/ca.po
-@@ -2881,3 +2881,116 @@ msgstr "Dimoni del gestor d'ajusts de Xfce"
+@@ -2881,3 +2881,126 @@ msgstr "Dimoni del gestor d'ajusts de Xfce"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "El dimoni del gestor d'ajusts de Xfce"
@@ -1019,8 +1089,18 @@ index feacdb6a..147b0d38 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Esquema de colors: la preferència fosca o clara de l'escriptori, que llegeixen GTK 4 i libadwaita, Qt 6, Firefox, Chromium i les aplicacions Electron. Firefox la segueix si «Aparença dels llocs web» està en «Automàtic», Chromium si «Mode» està en «Dispositiu»."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Més: estableix també el tema del gestor de finestres, el tema d'icones o el del cursor del ratolí, o executa una ordre pròpia."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Més: estableix també el tema del gestor de finestres, el tema d'icones, el del cursor del ratolí o la brillantor de la pantalla del portàtil, o executa una ordre pròpia."
++
++msgid "Set the screen _brightness to:"
++msgstr "Estableix la _brillantor de la pantalla a:"
++
++msgid "No screen backlight was found."
++msgstr "No s'ha trobat la retroil·luminació de la pantalla."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "brillantor %s%%"
 +
 +msgid "Dark"
 +msgstr "Fosc"
@@ -1052,10 +1132,10 @@ index feacdb6a..147b0d38 100644
 +msgid "Time"
 +msgstr "Hora"
 diff --git a/po/cs.po b/po/cs.po
-index 442e1525..e3516018 100644
+index 442e1525..50ee9976 100644
 --- a/po/cs.po
 +++ b/po/cs.po
-@@ -2848,3 +2848,118 @@ msgstr "Démon nastavení prostředí Xfce"
+@@ -2848,3 +2848,128 @@ msgstr "Démon nastavení prostředí Xfce"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Démon nastavení prostředí Xfce"
@@ -1142,8 +1222,18 @@ index 442e1525..e3516018 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Barevné schéma: preference tmavého nebo světlého vzhledu pracovního prostředí, kterou čtou GTK 4 a libadwaita, Qt 6, Firefox, Chromium a aplikace Electron. Firefox se jí řídí, pokud je „Vzhled webových stránek“ nastaven na „Automatický“, Chromium, pokud je „Režim“ nastaven na „Zařízení“."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Více: nastavit také motiv správce oken, motiv ikon nebo ukazatele myši, případně spustit vlastní příkaz."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Více: nastavit také motiv správce oken, motiv ikon, ukazatele myši nebo jas obrazovky notebooku, případně spustit vlastní příkaz."
++
++msgid "Set the screen _brightness to:"
++msgstr "Nastavit _jas obrazovky na:"
++
++msgid "No screen backlight was found."
++msgstr "Nebylo nalezeno podsvícení obrazovky."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "jas %s %%"
 +
 +msgid "Dark"
 +msgstr "Tmavé"
@@ -1175,10 +1265,10 @@ index 442e1525..e3516018 100644
 +msgid "Time"
 +msgstr "Čas"
 diff --git a/po/da.po b/po/da.po
-index f8608eee..4a63bfcb 100644
+index f8608eee..fcf7db6d 100644
 --- a/po/da.po
 +++ b/po/da.po
-@@ -2859,3 +2859,116 @@ msgstr "Xfce-indstillingsdæmon"
+@@ -2859,3 +2859,126 @@ msgstr "Xfce-indstillingsdæmon"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Xfce-indstillingsdæmonen"
@@ -1263,8 +1353,18 @@ index f8608eee..4a63bfcb 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Farveskema: skrivebordets præference for mørkt eller lyst, som læses af GTK 4 og libadwaita, Qt 6, Firefox, Chromium og Electron-programmer. Firefox følger det, hvis “Websiders udseende” er sat til “Automatisk”, Chromium, hvis “Tilstand” er sat til “Enhed”."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Mere: indstil også vindueshåndteringstemaet, ikontemaet eller musemarkørtemaet, eller kør din egen kommando."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Mere: indstil også vindueshåndteringstemaet, ikontemaet, musemarkørtemaet eller lysstyrken på en bærbar computers skærm, eller kør din egen kommando."
++
++msgid "Set the screen _brightness to:"
++msgstr "Indstil skærmens _lysstyrke til:"
++
++msgid "No screen backlight was found."
++msgstr "Der blev ikke fundet nogen baggrundsbelysning til skærmen."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "lysstyrke %s %%"
 +
 +msgid "Dark"
 +msgstr "Mørkt"
@@ -1296,10 +1396,10 @@ index f8608eee..4a63bfcb 100644
 +msgid "Time"
 +msgstr "Tidspunkt"
 diff --git a/po/de.po b/po/de.po
-index 2f96c204..5d98acf3 100644
+index 2f96c204..c637b747 100644
 --- a/po/de.po
 +++ b/po/de.po
-@@ -2895,3 +2895,116 @@ msgstr "Xfce-Einstellungsdienst"
+@@ -2895,3 +2895,126 @@ msgstr "Xfce-Einstellungsdienst"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Der Xfce-Einstellungsdienst"
@@ -1384,8 +1484,18 @@ index 2f96c204..5d98acf3 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Farbschema: die dunkle oder helle Vorgabe der Arbeitsumgebung, die von GTK 4 und libadwaita, Qt 6, Firefox, Chromium und Electron-Anwendungen gelesen wird. Firefox folgt ihr, wenn „Erscheinungsbild von Websites“ auf „Automatisch“ steht, Chromium, wenn „Modus“ auf „Gerät“ steht."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Mehr: zusätzlich das Fensterverwaltungsthema, das Symbolthema oder das Mauszeigerthema setzen oder einen eigenen Befehl ausführen."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Mehr: zusätzlich das Fensterverwaltungsthema, das Symbolthema, das Mauszeigerthema oder die Helligkeit eines Laptop-Bildschirms setzen oder einen eigenen Befehl ausführen."
++
++msgid "Set the screen _brightness to:"
++msgstr "Bildschirm_helligkeit setzen auf:"
++
++msgid "No screen backlight was found."
++msgstr "Keine Bildschirmhintergrundbeleuchtung gefunden."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "Helligkeit %s %%"
 +
 +msgid "Dark"
 +msgstr "Dunkel"
@@ -1417,10 +1527,10 @@ index 2f96c204..5d98acf3 100644
 +msgid "Time"
 +msgstr "Zeit"
 diff --git a/po/el.po b/po/el.po
-index f40674d3..c5274eb5 100644
+index f40674d3..8ed45d90 100644
 --- a/po/el.po
 +++ b/po/el.po
-@@ -2889,3 +2889,116 @@ msgstr "Διαχειριστής ρυθμίσεων Xfce"
+@@ -2889,3 +2889,126 @@ msgstr "Διαχειριστής ρυθμίσεων Xfce"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Διαχειριστής ρυθμίσεων Xfce"
@@ -1505,8 +1615,18 @@ index f40674d3..c5274eb5 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Χρωματικό σχήμα: η προτίμηση σκούρου ή ανοιχτόχρωμου της επιφάνειας εργασίας, που διαβάζεται από τα GTK 4 και libadwaita, Qt 6, Firefox, Chromium και τις εφαρμογές Electron. Το Firefox την ακολουθεί αν η «Εμφάνιση ιστοτόπων» είναι «Αυτόματη», το Chromium αν η «Λειτουργία» είναι «Συσκευή»."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Περισσότερα: ορισμός επίσης του θέματος του διαχειριστή παραθύρων, του θέματος εικονιδίων ή του δείκτη ποντικιού, ή εκτέλεση δικής σας εντολής."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Περισσότερα: ορισμός επίσης του θέματος του διαχειριστή παραθύρων, του θέματος εικονιδίων, του δείκτη ποντικιού ή της φωτεινότητας της οθόνης φορητού, ή εκτέλεση δικής σας εντολής."
++
++msgid "Set the screen _brightness to:"
++msgstr "Ορισμός _φωτεινότητας οθόνης σε:"
++
++msgid "No screen backlight was found."
++msgstr "Δεν βρέθηκε οπίσθιος φωτισμός οθόνης."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "φωτεινότητα %s%%"
 +
 +msgid "Dark"
 +msgstr "Σκούρο"
@@ -1538,10 +1658,10 @@ index f40674d3..c5274eb5 100644
 +msgid "Time"
 +msgstr "Ώρα"
 diff --git a/po/en_AU.po b/po/en_AU.po
-index 756a878b..86536a21 100644
+index 756a878b..4ca91c3c 100644
 --- a/po/en_AU.po
 +++ b/po/en_AU.po
-@@ -2826,3 +2826,116 @@ msgstr ""
+@@ -2826,3 +2826,126 @@ msgstr ""
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "The Xfce Settings Daemon"
@@ -1626,8 +1746,18 @@ index 756a878b..86536a21 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Colour scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++
++msgid "Set the screen _brightness to:"
++msgstr "Set the screen _brightness to:"
++
++msgid "No screen backlight was found."
++msgstr "No screen backlight was found."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "brightness %s%%"
 +
 +msgid "Dark"
 +msgstr "Dark"
@@ -1659,10 +1789,10 @@ index 756a878b..86536a21 100644
 +msgid "Time"
 +msgstr "Time"
 diff --git a/po/en_CA.po b/po/en_CA.po
-index 3fe8a757..95c76304 100644
+index 3fe8a757..4c391912 100644
 --- a/po/en_CA.po
 +++ b/po/en_CA.po
-@@ -2851,3 +2851,116 @@ msgstr "Xfce Settings Daemon"
+@@ -2851,3 +2851,126 @@ msgstr "Xfce Settings Daemon"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "The Xfce Settings Daemon"
@@ -1747,8 +1877,18 @@ index 3fe8a757..95c76304 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++
++msgid "Set the screen _brightness to:"
++msgstr "Set the screen _brightness to:"
++
++msgid "No screen backlight was found."
++msgstr "No screen backlight was found."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "brightness %s%%"
 +
 +msgid "Dark"
 +msgstr "Dark"
@@ -1780,10 +1920,10 @@ index 3fe8a757..95c76304 100644
 +msgid "Time"
 +msgstr "Time"
 diff --git a/po/en_GB.po b/po/en_GB.po
-index ec0307a9..9f3fc5cf 100644
+index ec0307a9..6ad0d0b6 100644
 --- a/po/en_GB.po
 +++ b/po/en_GB.po
-@@ -2851,3 +2851,116 @@ msgstr "Xfce Settings Daemon"
+@@ -2851,3 +2851,126 @@ msgstr "Xfce Settings Daemon"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "The Xfce Settings Daemon"
@@ -1868,8 +2008,18 @@ index ec0307a9..9f3fc5cf 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Colour scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++
++msgid "Set the screen _brightness to:"
++msgstr "Set the screen _brightness to:"
++
++msgid "No screen backlight was found."
++msgstr "No screen backlight was found."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "brightness %s%%"
 +
 +msgid "Dark"
 +msgstr "Dark"
@@ -1901,10 +2051,10 @@ index ec0307a9..9f3fc5cf 100644
 +msgid "Time"
 +msgstr "Time"
 diff --git a/po/es.po b/po/es.po
-index dd833b8d..12964f3d 100644
+index dd833b8d..2133f090 100644
 --- a/po/es.po
 +++ b/po/es.po
-@@ -2884,3 +2884,117 @@ msgstr "Servicio de configuración de Xfce"
+@@ -2884,3 +2884,127 @@ msgstr "Servicio de configuración de Xfce"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "El servicio de configuración de Xfce"
@@ -1990,8 +2140,18 @@ index dd833b8d..12964f3d 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Esquema de color: la preferencia oscura o clara del escritorio, que leen GTK 4 y libadwaita, Qt 6, Firefox, Chromium y las aplicaciones Electron. Firefox la sigue si «Apariencia de los sitios web» está en «Automático», Chromium si «Modo» está en «Dispositivo»."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Más: establecer también el tema del gestor de ventanas, el tema de iconos o el del cursor del ratón, o ejecutar una orden propia."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Más: establecer también el tema del gestor de ventanas, el tema de iconos, el del cursor del ratón o el brillo de la pantalla del portátil, o ejecutar una orden propia."
++
++msgid "Set the screen _brightness to:"
++msgstr "Establecer el _brillo de la pantalla en:"
++
++msgid "No screen backlight was found."
++msgstr "No se encontró la retroiluminación de la pantalla."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "brillo %s %%"
 +
 +msgid "Dark"
 +msgstr "Oscuro"
@@ -2023,10 +2183,10 @@ index dd833b8d..12964f3d 100644
 +msgid "Time"
 +msgstr "Hora"
 diff --git a/po/et.po b/po/et.po
-index 54ec1e04..01dcc8b4 100644
+index 54ec1e04..200197f7 100644
 --- a/po/et.po
 +++ b/po/et.po
-@@ -2855,3 +2855,116 @@ msgstr "Xfce seadete taustaprotsess"
+@@ -2855,3 +2855,126 @@ msgstr "Xfce seadete taustaprotsess"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Xfce seadete taustaprotsess"
@@ -2111,8 +2271,18 @@ index 54ec1e04..01dcc8b4 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Värviskeem: töölaua tume või hele eelistus, mida loevad GTK 4 ja libadwaita, Qt 6, Firefox, Chromium ja Electroni rakendused. Firefox järgib seda, kui „Veebisaitide välimus“ on „Automaatne“, Chromium, kui „Režiim“ on „Seade“."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Veel: määra ka aknahalduri teema, ikooniteema või hiirekursori teema või käivita oma käsk."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Veel: määra ka aknahalduri teema, ikooniteema, hiirekursori teema või sülearvuti ekraani heledus või käivita oma käsk."
++
++msgid "Set the screen _brightness to:"
++msgstr "Määra ekraani _heledus:"
++
++msgid "No screen backlight was found."
++msgstr "Ekraani taustvalgustust ei leitud."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "heledus %s%%"
 +
 +msgid "Dark"
 +msgstr "Tume"
@@ -2144,10 +2314,10 @@ index 54ec1e04..01dcc8b4 100644
 +msgid "Time"
 +msgstr "Aeg"
 diff --git a/po/eu.po b/po/eu.po
-index 5c4da911..2238ed0f 100644
+index 5c4da911..1351f856 100644
 --- a/po/eu.po
 +++ b/po/eu.po
-@@ -2865,3 +2865,116 @@ msgstr "Xfce ezarpen deabrua"
+@@ -2865,3 +2865,126 @@ msgstr "Xfce ezarpen deabrua"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Xfce ezarpen deabrua"
@@ -2232,8 +2402,18 @@ index 5c4da911..2238ed0f 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Kolore-eskema: mahaigainaren hobespen iluna edo argia, GTK 4 eta libadwaita, Qt 6, Firefox, Chromium eta Electron aplikazioek irakurtzen dutena. Firefox-ek jarraitzen dio «Webguneen itxura» «Automatikoa» badago, Chromium-ek «Modua» «Gailua» badago."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Gehiago: ezarri leiho-kudeatzailearen gaia, ikono-gaia edo saguaren kurtsore-gaia ere, edo exekutatu zure komando bat."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Gehiago: ezarri leiho-kudeatzailearen gaia, ikono-gaia, saguaren kurtsore-gaia edo eramangarriaren pantailaren distira ere, edo exekutatu zure komando bat."
++
++msgid "Set the screen _brightness to:"
++msgstr "Ezarri pantailaren _distira:"
++
++msgid "No screen backlight was found."
++msgstr "Ez da pantailaren atzeko argirik aurkitu."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "distira %%%s"
 +
 +msgid "Dark"
 +msgstr "Iluna"
@@ -2265,10 +2445,10 @@ index 5c4da911..2238ed0f 100644
 +msgid "Time"
 +msgstr "Ordua"
 diff --git a/po/fi.po b/po/fi.po
-index 6bcc704e..cede6d6b 100644
+index 6bcc704e..54f6d9ab 100644
 --- a/po/fi.po
 +++ b/po/fi.po
-@@ -2813,3 +2813,116 @@ msgstr "Xfce:n asetustaustaprosessi"
+@@ -2813,3 +2813,126 @@ msgstr "Xfce:n asetustaustaprosessi"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Xfce:n asetustaustaprosessi"
@@ -2353,8 +2533,18 @@ index 6bcc704e..cede6d6b 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Värimaailma: työpöydän tumma tai vaalea valinta, jonka lukevat GTK 4 ja libadwaita, Qt 6, Firefox, Chromium ja Electron-sovellukset. Firefox noudattaa sitä, jos ”Verkkosivustojen ulkoasu” on ”Automaattinen”, Chromium, jos ”Tila” on ”Laite”."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Lisää: aseta myös ikkunointiohjelman teema, kuvaketeema tai hiiren osoittimen teema tai suorita oma komento."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Lisää: aseta myös ikkunointiohjelman teema, kuvaketeema, hiiren osoittimen teema tai kannettavan näytön kirkkaus tai suorita oma komento."
++
++msgid "Set the screen _brightness to:"
++msgstr "Aseta näytön _kirkkaudeksi:"
++
++msgid "No screen backlight was found."
++msgstr "Näytön taustavaloa ei löytynyt."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "kirkkaus %s %%"
 +
 +msgid "Dark"
 +msgstr "Tumma"
@@ -2386,10 +2576,10 @@ index 6bcc704e..cede6d6b 100644
 +msgid "Time"
 +msgstr "Aika"
 diff --git a/po/fr.po b/po/fr.po
-index 5445e293..f4e63262 100644
+index 5445e293..b2fa6004 100644
 --- a/po/fr.po
 +++ b/po/fr.po
-@@ -2899,3 +2899,117 @@ msgstr "Service des paramètres Xfce"
+@@ -2899,3 +2899,127 @@ msgstr "Service des paramètres Xfce"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Le démon des paramètres Xfce"
@@ -2475,8 +2665,18 @@ index 5445e293..f4e63262 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Jeu de couleurs : la préférence sombre ou claire du bureau, lue par GTK 4 et libadwaita, Qt 6, Firefox, Chromium et les applications Electron. Firefox la suit si « Apparence des sites web » est réglé sur « Automatique », Chromium si « Mode » est réglé sur « Appareil »."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Plus : appliquer aussi le thème du gestionnaire de fenêtres, le thème d'icônes ou le thème de curseur de la souris, ou exécuter votre propre commande."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Plus : appliquer aussi le thème du gestionnaire de fenêtres, le thème d'icônes, le thème de curseur de la souris ou la luminosité de l'écran d'un ordinateur portable, ou exécuter votre propre commande."
++
++msgid "Set the screen _brightness to:"
++msgstr "Régler la _luminosité de l'écran à :"
++
++msgid "No screen backlight was found."
++msgstr "Aucun rétroéclairage d'écran n'a été trouvé."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "luminosité %s %%"
 +
 +msgid "Dark"
 +msgstr "Sombre"
@@ -2508,10 +2708,10 @@ index 5445e293..f4e63262 100644
 +msgid "Time"
 +msgstr "Heure"
 diff --git a/po/gl.po b/po/gl.po
-index cd829679..de976ae2 100644
+index cd829679..3340d7b5 100644
 --- a/po/gl.po
 +++ b/po/gl.po
-@@ -2882,3 +2882,116 @@ msgstr "Servizo de configuración do Xfce"
+@@ -2882,3 +2882,126 @@ msgstr "Servizo de configuración do Xfce"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "O daemon de configuración de Xfce"
@@ -2596,8 +2796,18 @@ index cd829679..de976ae2 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Esquema de cores: a preferencia escura ou clara do escritorio, que len GTK 4 e libadwaita, Qt 6, Firefox, Chromium e as aplicacións Electron. Firefox ségueo se «Aparencia dos sitios web» está en «Automático», Chromium se «Modo» está en «Dispositivo»."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Máis: estabelecer tamén o tema do xestor de xanelas, o tema de iconas ou o do cursor do rato, ou executar unha orde propia."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Máis: estabelecer tamén o tema do xestor de xanelas, o tema de iconas, o do cursor do rato ou o brillo da pantalla do portátil, ou executar unha orde propia."
++
++msgid "Set the screen _brightness to:"
++msgstr "Estabelecer o _brillo da pantalla en:"
++
++msgid "No screen backlight was found."
++msgstr "Non se atopou a retroiluminación da pantalla."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "brillo %s %%"
 +
 +msgid "Dark"
 +msgstr "Escuro"
@@ -2629,10 +2839,10 @@ index cd829679..de976ae2 100644
 +msgid "Time"
 +msgstr "Hora"
 diff --git a/po/he.po b/po/he.po
-index f1643ca0..48e0e580 100644
+index f1643ca0..a1718db5 100644
 --- a/po/he.po
 +++ b/po/he.po
-@@ -2803,3 +2803,118 @@ msgstr "שדון ההגדרות של Xfce"
+@@ -2803,3 +2803,128 @@ msgstr "שדון ההגדרות של Xfce"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "תהליך רקע הגדרות של Xfce"
@@ -2719,8 +2929,18 @@ index f1643ca0..48e0e580 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "ערכת צבעים: העדפת המראה הכהה או הבהיר של שולחן העבודה, הנקראת על ידי GTK 4 ו־libadwaita, Qt 6, Firefox, Chromium ויישומי Electron. Firefox פועל לפיה אם “מראה אתרים” מוגדר ל“אוטומטי”, ו־Chromium אם “מצב” מוגדר ל“מכשיר”."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "עוד: להגדיר גם את ערכת הנושא של מנהל החלונות, את ערכת הסמלים או את ערכת סמן העכבר, או להריץ פקודה משלכם."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "עוד: להגדיר גם את ערכת הנושא של מנהל החלונות, את ערכת הסמלים, את ערכת סמן העכבר או את בהירות מסך המחשב הנייד, או להריץ פקודה משלכם."
++
++msgid "Set the screen _brightness to:"
++msgstr "להגדיר את _בהירות המסך ל־:"
++
++msgid "No screen backlight was found."
++msgstr "לא נמצאה תאורה אחורית למסך."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "בהירות %s%%"
 +
 +msgid "Dark"
 +msgstr "כהה"
@@ -2752,10 +2972,10 @@ index f1643ca0..48e0e580 100644
 +msgid "Time"
 +msgstr "שעה"
 diff --git a/po/hr.po b/po/hr.po
-index ac642a3c..bad7fab4 100644
+index ac642a3c..403ed3fb 100644
 --- a/po/hr.po
 +++ b/po/hr.po
-@@ -2843,3 +2843,117 @@ msgstr "Xfce nadglednik postavki"
+@@ -2843,3 +2843,127 @@ msgstr "Xfce nadglednik postavki"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Xfce nadglednik postavki"
@@ -2841,8 +3061,18 @@ index ac642a3c..bad7fab4 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Shema boja: tamna ili svijetla postavka radne površine koju čitaju GTK 4 i libadwaita, Qt 6, Firefox, Chromium i Electron aplikacije. Firefox je slijedi ako je „Izgled web stranica” postavljen na „Automatski”, Chromium ako je „Način” postavljen na „Uređaj”."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Više: postavi i temu upravitelja prozora, temu ikona ili pokazivača miša ili pokreni vlastitu naredbu."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Više: postavi i temu upravitelja prozora, temu ikona, pokazivača miša ili svjetlinu zaslona prijenosnika ili pokreni vlastitu naredbu."
++
++msgid "Set the screen _brightness to:"
++msgstr "Postavi _svjetlinu zaslona na:"
++
++msgid "No screen backlight was found."
++msgstr "Nije pronađeno pozadinsko osvjetljenje zaslona."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "svjetlina %s %%"
 +
 +msgid "Dark"
 +msgstr "Tamna"
@@ -2874,10 +3104,10 @@ index ac642a3c..bad7fab4 100644
 +msgid "Time"
 +msgstr "Vrijeme"
 diff --git a/po/hu.po b/po/hu.po
-index 5eafcdf3..f3e6f002 100644
+index 5eafcdf3..94bc2d93 100644
 --- a/po/hu.po
 +++ b/po/hu.po
-@@ -2851,3 +2851,116 @@ msgstr "Xfce beállításkezelő démon"
+@@ -2851,3 +2851,126 @@ msgstr "Xfce beállításkezelő démon"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Az Xfce beállításkezelő démon"
@@ -2962,8 +3192,18 @@ index 5eafcdf3..f3e6f002 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Színséma: az asztal sötét vagy világos beállítása, amelyet a GTK 4 és a libadwaita, a Qt 6, a Firefox, a Chromium és az Electron alkalmazások olvasnak. A Firefox akkor követi, ha a „Weboldalak megjelenése” „Automatikus”, a Chromium akkor, ha a „Mód” „Eszköz”."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Továbbiak: az ablakkezelő témájának, az ikontémának vagy az egérmutató témájának beállítása, illetve saját parancs futtatása."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Továbbiak: az ablakkezelő témájának, az ikontémának, az egérmutató témájának vagy a laptop kijelzője fényerejének beállítása, illetve saját parancs futtatása."
++
++msgid "Set the screen _brightness to:"
++msgstr "Képernyő-_fényerő beállítása:"
++
++msgid "No screen backlight was found."
++msgstr "Nem található a képernyő háttérvilágítása."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "fényerő %s%%"
 +
 +msgid "Dark"
 +msgstr "Sötét"
@@ -2995,10 +3235,10 @@ index 5eafcdf3..f3e6f002 100644
 +msgid "Time"
 +msgstr "Idő"
 diff --git a/po/hy_AM.po b/po/hy_AM.po
-index 8403a153..79300e17 100644
+index 8403a153..3d615bb0 100644
 --- a/po/hy_AM.po
 +++ b/po/hy_AM.po
-@@ -2842,3 +2842,116 @@ msgstr "Xfce կարգաւորումների դեմոն"
+@@ -2842,3 +2842,126 @@ msgstr "Xfce կարգաւորումների դեմոն"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Xfce֊ի կարգաւորումների աւժանդակ ծրագիր"
@@ -3083,8 +3323,18 @@ index 8403a153..79300e17 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Գունային սխեմա. աշխատասեղանի մուգ կամ բաց նախընտրությունը, որը կարդում են GTK 4-ը և libadwaita-ն, Qt 6-ը, Firefox-ը, Chromium-ը և Electron հավելվածները։ Firefox-ը հետևում է դրան, եթե «Կայքերի տեսքը» «Ինքնաշխատ» է, Chromium-ը՝ եթե «Ռեժիմը» «Սարք» է։"
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Ավելին. սահմանել նաև պատուհանների կառավարչի թեման, պատկերակների կամ մկնիկի կուրսորի թեման, կամ գործարկել ձեր սեփական հրամանը։"
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Ավելին. սահմանել նաև պատուհանների կառավարչի թեման, պատկերակների կամ մկնիկի կուրսորի թեման կամ նոութբուքի էկրանի պայծառությունը, կամ գործարկել ձեր սեփական հրամանը։"
++
++msgid "Set the screen _brightness to:"
++msgstr "Սահմանել էկրանի _պայծառությունը."
++
++msgid "No screen backlight was found."
++msgstr "Էկրանի հետնալույսը չի գտնվել։"
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "պայծառություն %s%%"
 +
 +msgid "Dark"
 +msgstr "Մուգ"
@@ -3116,10 +3366,10 @@ index 8403a153..79300e17 100644
 +msgid "Time"
 +msgstr "Ժամ"
 diff --git a/po/hye.po b/po/hye.po
-index e93c53f3..cf77c3dc 100644
+index e93c53f3..a729de3a 100644
 --- a/po/hye.po
 +++ b/po/hye.po
-@@ -2827,3 +2827,116 @@ msgstr ""
+@@ -2827,3 +2827,126 @@ msgstr ""
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Xfce֊ի կարգաւորումների աւժանդակ ծրագիր"
@@ -3204,8 +3454,18 @@ index e93c53f3..cf77c3dc 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Գունային սխեմա. աշխատասեղանի մուգ կամ բաց նախընտրությունը, որը կարդում են GTK 4-ը և libadwaita-ն, Qt 6-ը, Firefox-ը, Chromium-ը և Electron հավելվածները։ Firefox-ը հետևում է դրան, եթե «Կայքերի տեսքը» «Ինքնաշխատ» է, Chromium-ը՝ եթե «Ռեժիմը» «Սարք» է։"
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Ավելին. սահմանել նաև պատուհանների կառավարչի թեման, պատկերակների կամ մկնիկի կուրսորի թեման, կամ գործարկել ձեր սեփական հրամանը։"
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Ավելին. սահմանել նաև պատուհանների կառավարչի թեման, պատկերակների կամ մկնիկի կուրսորի թեման կամ նոութբուքի էկրանի պայծառությունը, կամ գործարկել ձեր սեփական հրամանը։"
++
++msgid "Set the screen _brightness to:"
++msgstr "Սահմանել էկրանի _պայծառությունը."
++
++msgid "No screen backlight was found."
++msgstr "Էկրանի հետնալույսը չի գտնվել։"
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "պայծառություն %s%%"
 +
 +msgid "Dark"
 +msgstr "Մուգ"
@@ -3237,10 +3497,10 @@ index e93c53f3..cf77c3dc 100644
 +msgid "Time"
 +msgstr "Ժամ"
 diff --git a/po/id.po b/po/id.po
-index a473aae8..690c4a87 100644
+index a473aae8..feab5233 100644
 --- a/po/id.po
 +++ b/po/id.po
-@@ -2852,3 +2852,115 @@ msgstr "Jurik Pengaturan Xfce"
+@@ -2852,3 +2852,125 @@ msgstr "Jurik Pengaturan Xfce"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Jurik Pengaturan Xfce"
@@ -3324,8 +3584,18 @@ index a473aae8..690c4a87 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Skema warna: preferensi gelap atau terang desktop, yang dibaca oleh GTK 4 dan libadwaita, Qt 6, Firefox, Chromium, dan aplikasi Electron. Firefox mengikutinya jika \"Tampilan situs web\" diatur ke \"Otomatis\", Chromium jika \"Mode\" diatur ke \"Perangkat\"."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Lainnya: atur juga tema manajer jendela, tema ikon atau tema kursor tetikus, atau jalankan perintah Anda sendiri."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Lainnya: atur juga tema manajer jendela, tema ikon, tema kursor tetikus atau kecerahan layar laptop, atau jalankan perintah Anda sendiri."
++
++msgid "Set the screen _brightness to:"
++msgstr "Atur _kecerahan layar ke:"
++
++msgid "No screen backlight was found."
++msgstr "Lampu latar layar tidak ditemukan."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "kecerahan %s%%"
 +
 +msgid "Dark"
 +msgstr "Gelap"
@@ -3357,10 +3627,10 @@ index a473aae8..690c4a87 100644
 +msgid "Time"
 +msgstr "Waktu"
 diff --git a/po/ie.po b/po/ie.po
-index 91028fe7..bc4da127 100644
+index 91028fe7..806b75ab 100644
 --- a/po/ie.po
 +++ b/po/ie.po
-@@ -2794,3 +2794,116 @@ msgstr "Daemon de parametres de Xfce"
+@@ -2794,3 +2794,126 @@ msgstr "Daemon de parametres de Xfce"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Dæmon de parametres de Xfce"
@@ -3445,8 +3715,18 @@ index 91028fe7..bc4da127 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Schema de colores: li preferentie obscur o clar del Pupitre, letet per GTK 4 e libadwaita, Qt 6, Firefox, Chromium e applicationes Electron. Firefox seque it si «Aspecte de web-situs» es «Automatic», Chromium si «Mode» es «Aparate»."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Plu: anc assignar li tema del gerente de fenestres, li tema de icones o del cursor, o executer un propri comande."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Plu: anc assignar li tema del gerente de fenestres, li tema de icones, del cursor o li luminositá del ecran de un portabil computator, o executer un propri comande."
++
++msgid "Set the screen _brightness to:"
++msgstr "Assignar li _luminositá del ecran a:"
++
++msgid "No screen backlight was found."
++msgstr "Null retro-illuminatión del ecran esset trovat."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "luminositá %s%%"
 +
 +msgid "Dark"
 +msgstr "Obscur"
@@ -3478,10 +3758,10 @@ index 91028fe7..bc4da127 100644
 +msgid "Time"
 +msgstr "Hora"
 diff --git a/po/is.po b/po/is.po
-index ac43a0c6..0f70c088 100644
+index ac43a0c6..816c0ce5 100644
 --- a/po/is.po
 +++ b/po/is.po
-@@ -2832,3 +2832,116 @@ msgstr ""
+@@ -2832,3 +2832,126 @@ msgstr ""
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "XFCE Stillingamiðlarinn"
@@ -3566,8 +3846,18 @@ index ac43a0c6..0f70c088 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Litastef: val skjáborðsins um dökkt eða ljóst, sem GTK 4 og libadwaita, Qt 6, Firefox, Chromium og Electron forrit lesa. Firefox fylgir því ef „Útlit vefsvæða“ er stillt á „Sjálfvirkt“, Chromium ef „Hamur“ er stilltur á „Tæki“."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Meira: setja líka þema gluggastjóra, táknmyndaþema eða þema músarbendils, eða keyra eigin skipun."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Meira: setja líka þema gluggastjóra, táknmyndaþema, þema músarbendils eða birtustig fartölvuskjás, eða keyra eigin skipun."
++
++msgid "Set the screen _brightness to:"
++msgstr "Setja _birtustig skjás á:"
++
++msgid "No screen backlight was found."
++msgstr "Engin baklýsing skjás fannst."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "birtustig %s%%"
 +
 +msgid "Dark"
 +msgstr "Dökkt"
@@ -3599,10 +3889,10 @@ index ac43a0c6..0f70c088 100644
 +msgid "Time"
 +msgstr "Tími"
 diff --git a/po/it.po b/po/it.po
-index 3b5d2056..0a827463 100644
+index 3b5d2056..48cdb1cc 100644
 --- a/po/it.po
 +++ b/po/it.po
-@@ -2891,3 +2891,117 @@ msgstr "Demone delle impostazioni di Xfce"
+@@ -2891,3 +2891,127 @@ msgstr "Demone delle impostazioni di Xfce"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Demone delle impostazioni di Xfce"
@@ -3688,8 +3978,18 @@ index 3b5d2056..0a827463 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Schema di colori: la preferenza scura o chiara del desktop, letta da GTK 4 e libadwaita, Qt 6, Firefox, Chromium e dalle applicazioni Electron. Firefox la segue se «Aspetto dei siti web» è impostato su «Automatico», Chromium se «Modalità» è impostata su «Dispositivo»."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Altro: impostare anche il tema del gestore delle finestre, il tema delle icone o del puntatore del mouse, oppure eseguire un proprio comando."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Altro: impostare anche il tema del gestore delle finestre, il tema delle icone, del puntatore del mouse o la luminosità dello schermo del portatile, oppure eseguire un proprio comando."
++
++msgid "Set the screen _brightness to:"
++msgstr "Impostare la _luminosità dello schermo a:"
++
++msgid "No screen backlight was found."
++msgstr "Nessuna retroilluminazione dello schermo trovata."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "luminosità %s%%"
 +
 +msgid "Dark"
 +msgstr "Scuro"
@@ -3721,10 +4021,10 @@ index 3b5d2056..0a827463 100644
 +msgid "Time"
 +msgstr "Ora"
 diff --git a/po/ja.po b/po/ja.po
-index 3f863468..2fe1fc69 100644
+index 3f863468..0bf662b2 100644
 --- a/po/ja.po
 +++ b/po/ja.po
-@@ -2763,3 +2763,115 @@ msgstr "Xfce 設定デーモン"
+@@ -2763,3 +2763,125 @@ msgstr "Xfce 設定デーモン"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Xfce 設定デーモン"
@@ -3808,8 +4108,18 @@ index 3f863468..2fe1fc69 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "カラースキーム: デスクトップのダーク/ライトの設定で、GTK 4 と libadwaita、Qt 6、Firefox、Chromium、Electron アプリケーションが読み取ります。Firefox は「ウェブサイトの外観」が「自動」の場合に、Chromium は「モード」が「デバイス」の場合にこれに従います。"
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "その他: ウィンドウマネージャーのテーマ、アイコンテーマ、マウスカーソルのテーマも設定するか、独自のコマンドを実行します。"
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "その他: ウィンドウマネージャーのテーマ、アイコンテーマ、マウスカーソルのテーマ、ノートパソコンの画面の明るさも設定するか、独自のコマンドを実行します。"
++
++msgid "Set the screen _brightness to:"
++msgstr "画面の明るさを設定する(_B):"
++
++msgid "No screen backlight was found."
++msgstr "画面のバックライトが見つかりません。"
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "明るさ %s%%"
 +
 +msgid "Dark"
 +msgstr "ダーク"
@@ -3841,10 +4151,10 @@ index 3f863468..2fe1fc69 100644
 +msgid "Time"
 +msgstr "時刻"
 diff --git a/po/ka.po b/po/ka.po
-index dbd43999..51f792f6 100644
+index dbd43999..0a025892 100644
 --- a/po/ka.po
 +++ b/po/ka.po
-@@ -2717,3 +2717,116 @@ msgstr ""
+@@ -2717,3 +2717,126 @@ msgstr ""
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr ""
@@ -3929,8 +4239,18 @@ index dbd43999..51f792f6 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "ფერთა სქემა: სამუშაო მაგიდის მუქი ან ღია უპირატესობა, რომელსაც კითხულობს GTK 4 და libadwaita, Qt 6, Firefox, Chromium და Electron აპლიკაციები. Firefox მას მიჰყვება, თუ „ვებგვერდების იერსახე“ „ავტომატურზეა“, Chromium — თუ „რეჟიმი“ „მოწყობილობაზეა“."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "მეტი: ასევე დააყენეთ ფანჯრების მმართველის თემა, ხატულების ან თაგუნას კურსორის თემა, ან გაუშვით საკუთარი ბრძანება."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "მეტი: ასევე დააყენეთ ფანჯრების მმართველის თემა, ხატულების ან თაგუნას კურსორის თემა ან ლეპტოპის ეკრანის სიკაშკაშე, ან გაუშვით საკუთარი ბრძანება."
++
++msgid "Set the screen _brightness to:"
++msgstr "ეკრანის _სიკაშკაშის დაყენება:"
++
++msgid "No screen backlight was found."
++msgstr "ეკრანის განათება ვერ მოიძებნა."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "სიკაშკაშე %s%%"
 +
 +msgid "Dark"
 +msgstr "მუქი"
@@ -3962,10 +4282,10 @@ index dbd43999..51f792f6 100644
 +msgid "Time"
 +msgstr "დრო"
 diff --git a/po/kab.po b/po/kab.po
-index 8ad2a564..c8da3070 100644
+index 8ad2a564..7eb761f8 100644
 --- a/po/kab.po
 +++ b/po/kab.po
-@@ -2739,3 +2739,116 @@ msgstr "Daemon n yiɣewwaren n Xfce"
+@@ -2739,3 +2739,126 @@ msgstr "Daemon n yiɣewwaren n Xfce"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Daemon n yiɣewwaren Xfce"
@@ -4050,8 +4370,18 @@ index 8ad2a564..c8da3070 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Azenziɣ n yini: asmenyif aberkan neɣ aceεlal n tnarit, i ɣṛen GTK 4 d libadwaita, Qt 6, Firefox, Chromium d yisnasen Electron. Firefox yeṭṭafar-it ma yella «Udem n yismal web» ɣef «Awurman», Chromium ma yella «Askar» ɣef «Ibenk»."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Ugar: sbadu daɣen asentel n umsefrak n yisfuyla, asentel n tignitin neɣ n teḥnaccaḍt n umumed, neɣ sedu taladna-inek."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Ugar: sbadu daɣen asentel n umsefrak n yisfuyla, asentel n tignitin, n teḥnaccaḍt n umumed neɣ tafat n ugdil n uselkim amudday, neɣ sedu taladna-inek."
++
++msgid "Set the screen _brightness to:"
++msgstr "Sbadu _tafat n ugdil ɣer:"
++
++msgid "No screen backlight was found."
++msgstr "Ulac tafat n deffir n ugdil i yettwafen."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "tafat %s%%"
 +
 +msgid "Dark"
 +msgstr "Aberkan"
@@ -4083,10 +4413,10 @@ index 8ad2a564..c8da3070 100644
 +msgid "Time"
 +msgstr "Akud"
 diff --git a/po/kk.po b/po/kk.po
-index f92dc3b6..cf2764a3 100644
+index f92dc3b6..77555d13 100644
 --- a/po/kk.po
 +++ b/po/kk.po
-@@ -2854,3 +2854,116 @@ msgstr "Xfce баптаулар қызметі"
+@@ -2854,3 +2854,126 @@ msgstr "Xfce баптаулар қызметі"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Xfce баптаулар қызметі"
@@ -4171,8 +4501,18 @@ index f92dc3b6..cf2764a3 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Түстер сұлбасы: жұмыс үстелінің күңгірт не ашық таңдауы, оны GTK 4 және libadwaita, Qt 6, Firefox, Chromium және Electron қолданбалары оқиды. Firefox оны «Веб-сайттардың сыртқы түрі» «Автоматты» болса, Chromium «Режим» «Құрылғы» болса ұстанады."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Көбірек: терезелер басқарушысы темасын, таңбашалар не тышқан курсоры темасын да орнату немесе өз командаңызды орындау."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Көбірек: терезелер басқарушысы темасын, таңбашалар не тышқан курсоры темасын немесе ноутбук экранының жарықтығын да орнату немесе өз командаңызды орындау."
++
++msgid "Set the screen _brightness to:"
++msgstr "Экран _жарықтығын орнату:"
++
++msgid "No screen backlight was found."
++msgstr "Экранның артқы жарығы табылмады."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "жарықтық %s%%"
 +
 +msgid "Dark"
 +msgstr "Күңгірт"
@@ -4204,10 +4544,10 @@ index f92dc3b6..cf2764a3 100644
 +msgid "Time"
 +msgstr "Уақыт"
 diff --git a/po/ko.po b/po/ko.po
-index 23dba995..87c178c9 100644
+index 23dba995..a61d6a26 100644
 --- a/po/ko.po
 +++ b/po/ko.po
-@@ -2782,3 +2782,115 @@ msgstr "Xfce 설정 데몬"
+@@ -2782,3 +2782,125 @@ msgstr "Xfce 설정 데몬"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Xfce 설정 데몬"
@@ -4291,8 +4631,18 @@ index 23dba995..87c178c9 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "색 구성표: 데스크톱의 어두운/밝은 기본 설정으로, GTK 4와 libadwaita, Qt 6, Firefox, Chromium, Electron 프로그램이 읽습니다. Firefox는 “웹 사이트 모양”이 “자동”일 때, Chromium은 “모드”가 “기기”일 때 이를 따릅니다."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "더 보기: 창 관리자 테마, 아이콘 테마 또는 마우스 커서 테마도 설정하거나 사용자 명령을 실행합니다."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "더 보기: 창 관리자 테마, 아이콘 테마, 마우스 커서 테마 또는 노트북 화면 밝기도 설정하거나 사용자 명령을 실행합니다."
++
++msgid "Set the screen _brightness to:"
++msgstr "화면 밝기 설정(_B):"
++
++msgid "No screen backlight was found."
++msgstr "화면 백라이트를 찾을 수 없습니다."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "밝기 %s%%"
 +
 +msgid "Dark"
 +msgstr "어둡게"
@@ -4324,10 +4674,10 @@ index 23dba995..87c178c9 100644
 +msgid "Time"
 +msgstr "시각"
 diff --git a/po/lt.po b/po/lt.po
-index 8369e079..f007b8da 100644
+index 8369e079..376742d2 100644
 --- a/po/lt.po
 +++ b/po/lt.po
-@@ -2877,3 +2877,118 @@ msgstr "Xfce nustatymų tarnyba"
+@@ -2877,3 +2877,128 @@ msgstr "Xfce nustatymų tarnyba"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Xfce nustatymų tarnyba"
@@ -4414,8 +4764,18 @@ index 8369e079..f007b8da 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Spalvų schema: tamsios ar šviesios darbalaukio išvaizdos pasirinkimas, kurį skaito GTK 4 ir libadwaita, Qt 6, Firefox, Chromium ir Electron programos. Firefox jo laikosi, jei „Svetainių išvaizda“ nustatyta į „Automatinė“, Chromium – jei „Režimas“ nustatytas į „Įrenginys“."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Daugiau: taip pat nustatyti langų tvarkytuvės temą, piktogramų ar pelės žymeklio temą arba vykdyti savo komandą."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Daugiau: taip pat nustatyti langų tvarkytuvės temą, piktogramų ar pelės žymeklio temą arba nešiojamojo kompiuterio ekrano ryškumą, arba vykdyti savo komandą."
++
++msgid "Set the screen _brightness to:"
++msgstr "Nustatyti ekrano _ryškumą:"
++
++msgid "No screen backlight was found."
++msgstr "Ekrano foninis apšvietimas nerastas."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "ryškumas %s %%"
 +
 +msgid "Dark"
 +msgstr "Tamsi"
@@ -4447,10 +4807,10 @@ index 8369e079..f007b8da 100644
 +msgid "Time"
 +msgstr "Laikas"
 diff --git a/po/lv.po b/po/lv.po
-index ff9093dd..4124e8dd 100644
+index ff9093dd..0debf053 100644
 --- a/po/lv.po
 +++ b/po/lv.po
-@@ -1747,3 +1747,117 @@ msgstr "Iestatījumu pārvaldnieks"
+@@ -1747,3 +1747,127 @@ msgstr "Iestatījumu pārvaldnieks"
  #: ../xfce4-settings-manager/xfce-settings-manager.desktop.in.h:2
  msgid "Graphical Settings Manager for Xfce 4"
  msgstr "Grafiskais iestatījumu pārvaldnieks priekš Xfce 4"
@@ -4536,8 +4896,18 @@ index ff9093dd..4124e8dd 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Krāsu shēma: darbvirsmas tumšā vai gaišā izvēle, ko nolasa GTK 4 un libadwaita, Qt 6, Firefox, Chromium un Electron lietotnes. Firefox tai seko, ja “Tīmekļa vietņu izskats” ir “Automātisks”, Chromium – ja “Režīms” ir “Ierīce”."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Vairāk: iestatīt arī logu pārvaldnieka motīvu, ikonu vai peles kursora motīvu vai palaist savu komandu."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Vairāk: iestatīt arī logu pārvaldnieka motīvu, ikonu vai peles kursora motīvu vai klēpjdatora ekrāna spilgtumu, vai palaist savu komandu."
++
++msgid "Set the screen _brightness to:"
++msgstr "Iestatīt ekrāna _spilgtumu:"
++
++msgid "No screen backlight was found."
++msgstr "Ekrāna fona apgaismojums netika atrasts."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "spilgtums %s%%"
 +
 +msgid "Dark"
 +msgstr "Tumšā"
@@ -4569,10 +4939,10 @@ index ff9093dd..4124e8dd 100644
 +msgid "Time"
 +msgstr "Laiks"
 diff --git a/po/ms.po b/po/ms.po
-index 0e5cd603..720a67cc 100644
+index 0e5cd603..10bacdfd 100644
 --- a/po/ms.po
 +++ b/po/ms.po
-@@ -2850,3 +2850,115 @@ msgstr "Daemon Tetapan Xfce"
+@@ -2850,3 +2850,125 @@ msgstr "Daemon Tetapan Xfce"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Daemon Tetapan Xfce"
@@ -4656,8 +5026,18 @@ index 0e5cd603..720a67cc 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Skema warna: keutamaan gelap atau cerah desktop, dibaca oleh GTK 4 dan libadwaita, Qt 6, Firefox, Chromium dan aplikasi Electron. Firefox mengikutinya jika \"Penampilan laman web\" ditetapkan kepada \"Automatik\", Chromium jika \"Mod\" ditetapkan kepada \"Peranti\"."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Lagi: tetapkan juga tema pengurus tetingkap, tema ikon atau tema kursor tetikus, atau jalankan perintah anda sendiri."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Lagi: tetapkan juga tema pengurus tetingkap, tema ikon, tema kursor tetikus atau kecerahan skrin komputer riba, atau jalankan perintah anda sendiri."
++
++msgid "Set the screen _brightness to:"
++msgstr "Tetapkan _kecerahan skrin kepada:"
++
++msgid "No screen backlight was found."
++msgstr "Lampu latar skrin tidak ditemui."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "kecerahan %s%%"
 +
 +msgid "Dark"
 +msgstr "Gelap"
@@ -4689,10 +5069,10 @@ index 0e5cd603..720a67cc 100644
 +msgid "Time"
 +msgstr "Masa"
 diff --git a/po/nb.po b/po/nb.po
-index 9401a6ec..081bc861 100644
+index 9401a6ec..5441157e 100644
 --- a/po/nb.po
 +++ b/po/nb.po
-@@ -2838,3 +2838,116 @@ msgstr "Bakgrunnsprosess for Xfce-innstillinger"
+@@ -2838,3 +2838,126 @@ msgstr "Bakgrunnsprosess for Xfce-innstillinger"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Bakgrunnsprosess for Xfce-innstillinger"
@@ -4777,8 +5157,18 @@ index 9401a6ec..081bc861 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Fargeskjema: skrivebordets preferanse for mørkt eller lyst, som leses av GTK 4 og libadwaita, Qt 6, Firefox, Chromium og Electron-programmer. Firefox følger det hvis «Nettstedsutseende» er satt til «Automatisk», Chromium hvis «Modus» er satt til «Enhet»."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Mer: sett også vindusbehandlertemaet, ikontemaet eller musepekertemaet, eller kjør en egen kommando."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Mer: sett også vindusbehandlertemaet, ikontemaet, musepekertemaet eller lysstyrken på en bærbar PC-skjerm, eller kjør en egen kommando."
++
++msgid "Set the screen _brightness to:"
++msgstr "Sett skjermens _lysstyrke til:"
++
++msgid "No screen backlight was found."
++msgstr "Fant ingen bakgrunnsbelysning for skjermen."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "lysstyrke %s %%"
 +
 +msgid "Dark"
 +msgstr "Mørkt"
@@ -4810,10 +5200,10 @@ index 9401a6ec..081bc861 100644
 +msgid "Time"
 +msgstr "Tid"
 diff --git a/po/nl.po b/po/nl.po
-index 8851e174..1aa843e4 100644
+index 8851e174..aba96745 100644
 --- a/po/nl.po
 +++ b/po/nl.po
-@@ -2887,3 +2887,116 @@ msgstr "Achtergronddienst voor Xfce-instellingen"
+@@ -2887,3 +2887,126 @@ msgstr "Achtergronddienst voor Xfce-instellingen"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "De achtergronddienst voor Xfce-Instellingen"
@@ -4898,8 +5288,18 @@ index 8851e174..1aa843e4 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Kleurenschema: de donkere of lichte voorkeur van het bureaublad, gelezen door GTK 4 en libadwaita, Qt 6, Firefox, Chromium en Electron-toepassingen. Firefox volgt deze als ‘Websiteweergave’ op ‘Automatisch’ staat, Chromium als ‘Modus’ op ‘Apparaat’ staat."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Meer: ook het vensterbeheerthema, het pictogramthema of het muisaanwijzerthema instellen, of een eigen opdracht uitvoeren."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Meer: ook het vensterbeheerthema, het pictogramthema, het muisaanwijzerthema of de helderheid van een laptopscherm instellen, of een eigen opdracht uitvoeren."
++
++msgid "Set the screen _brightness to:"
++msgstr "Scherm_helderheid instellen op:"
++
++msgid "No screen backlight was found."
++msgstr "Geen schermverlichting gevonden."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "helderheid %s%%"
 +
 +msgid "Dark"
 +msgstr "Donker"
@@ -4931,10 +5331,10 @@ index 8851e174..1aa843e4 100644
 +msgid "Time"
 +msgstr "Tijd"
 diff --git a/po/nn.po b/po/nn.po
-index 5c56064e..99cb9887 100644
+index 5c56064e..098c5381 100644
 --- a/po/nn.po
 +++ b/po/nn.po
-@@ -2799,3 +2799,116 @@ msgstr ""
+@@ -2799,3 +2799,126 @@ msgstr ""
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Xfce-innstillingsnissen"
@@ -5019,8 +5419,18 @@ index 5c56064e..99cb9887 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Fargeskjema: preferansen til skrivebordet for mørkt eller lyst, som vert lesen av GTK 4 og libadwaita, Qt 6, Firefox, Chromium og Electron-program. Firefox følgjer det viss «Utsjånad på nettstader» er sett til «Automatisk», Chromium viss «Modus» er sett til «Eining»."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Meir: set òg temaet for vindaugshandsamaren, ikontemaet eller musepeikartemaet, eller køyr ein eigen kommando."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Meir: set òg temaet for vindaugshandsamaren, ikontemaet, musepeikartemaet eller lysstyrken på ein berbar PC-skjerm, eller køyr ein eigen kommando."
++
++msgid "Set the screen _brightness to:"
++msgstr "Set _lysstyrken på skjermen til:"
++
++msgid "No screen backlight was found."
++msgstr "Fann inga bakgrunnslys for skjermen."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "lysstyrke %s %%"
 +
 +msgid "Dark"
 +msgstr "Mørkt"
@@ -5052,10 +5462,10 @@ index 5c56064e..99cb9887 100644
 +msgid "Time"
 +msgstr "Tid"
 diff --git a/po/oc.po b/po/oc.po
-index a4ed93f6..4d103110 100644
+index a4ed93f6..d7bccc59 100644
 --- a/po/oc.po
 +++ b/po/oc.po
-@@ -2893,3 +2893,116 @@ msgstr "Los paramètres del demòni Xfce"
+@@ -2893,3 +2893,126 @@ msgstr "Los paramètres del demòni Xfce"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Los paramètres del demòni Xfce"
@@ -5140,8 +5550,18 @@ index a4ed93f6..4d103110 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Esquèma de colors : la preferéncia escura o clara del burèu, legida per GTK 4 e libadwaita, Qt 6, Firefox, Chromium e las aplicacions Electron. Firefox la seguís se « Aparéncia dels sites web » es sus « Automatic », Chromium se « Mòde » es sus « Aparelh »."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Mai : aplicar tanben lo tèma del gestionari de fenèstras, lo tèma d'icònas o lo del cursor de la mirga, o executar vòstra pròpria comanda."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Mai : aplicar tanben lo tèma del gestionari de fenèstras, lo tèma d'icònas, lo del cursor de la mirga o la luminositat de l'ecran d'un ordenador portable, o executar vòstra pròpria comanda."
++
++msgid "Set the screen _brightness to:"
++msgstr "Reglar la _luminositat de l'ecran a :"
++
++msgid "No screen backlight was found."
++msgstr "Cap de retroesclairatge d'ecran pas trobat."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "luminositat %s %%"
 +
 +msgid "Dark"
 +msgstr "Escur"
@@ -5173,10 +5593,10 @@ index a4ed93f6..4d103110 100644
 +msgid "Time"
 +msgstr "Ora"
 diff --git a/po/pa.po b/po/pa.po
-index 37667106..4093060a 100644
+index 37667106..9889d837 100644
 --- a/po/pa.po
 +++ b/po/pa.po
-@@ -1639,6 +1639,120 @@ msgid "Graphical Settings Manager for Xfce 4"
+@@ -1639,6 +1639,130 @@ msgid "Graphical Settings Manager for Xfce 4"
  msgstr "Xfce ੪ ਲਈ ਗਰਾਫਿਕਲ ਸੈਟਿੰਗ ਮੈਨੇਜਰ"
  
  #, fuzzy
@@ -5261,8 +5681,18 @@ index 37667106..4093060a 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "ਰੰਗ ਸਕੀਮ: ਡੈਸਕਟਾਪ ਦੀ ਗੂੜ੍ਹੀ ਜਾਂ ਹਲਕੀ ਪਸੰਦ, ਜਿਸ ਨੂੰ GTK 4 ਅਤੇ libadwaita, Qt 6, Firefox, Chromium ਅਤੇ Electron ਐਪਲੀਕੇਸ਼ਨਾਂ ਪੜ੍ਹਦੀਆਂ ਹਨ। ਜੇ “ਵੈੱਬਸਾਈਟ ਦੀ ਦਿੱਖ” “ਆਟੋਮੈਟਿਕ” ਹੋਵੇ ਤਾਂ Firefox, ਅਤੇ ਜੇ “ਮੋਡ” “ਡਿਵਾਈਸ” ਹੋਵੇ ਤਾਂ Chromium ਇਸ ਦੀ ਪਾਲਣਾ ਕਰਦਾ ਹੈ।"
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "ਹੋਰ: ਵਿੰਡੋ ਮੈਨੇਜਰ ਥੀਮ, ਆਈਕਾਨ ਥੀਮ ਜਾਂ ਮਾਊਸ ਕਰਸਰ ਥੀਮ ਵੀ ਸੈੱਟ ਕਰੋ, ਜਾਂ ਆਪਣੀ ਕਮਾਂਡ ਚਲਾਓ।"
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "ਹੋਰ: ਵਿੰਡੋ ਮੈਨੇਜਰ ਥੀਮ, ਆਈਕਾਨ ਥੀਮ, ਮਾਊਸ ਕਰਸਰ ਥੀਮ ਜਾਂ ਲੈਪਟਾਪ ਸਕਰੀਨ ਦੀ ਚਮਕ ਵੀ ਸੈੱਟ ਕਰੋ, ਜਾਂ ਆਪਣੀ ਕਮਾਂਡ ਚਲਾਓ।"
++
++msgid "Set the screen _brightness to:"
++msgstr "ਸਕਰੀਨ ਦੀ _ਚਮਕ ਸੈੱਟ ਕਰੋ:"
++
++msgid "No screen backlight was found."
++msgstr "ਕੋਈ ਸਕਰੀਨ ਬੈਕਲਾਈਟ ਨਹੀਂ ਲੱਭੀ।"
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "ਚਮਕ %s%%"
 +
 +msgid "Dark"
 +msgstr "ਗੂੜ੍ਹੀ"
@@ -5298,10 +5728,10 @@ index 37667106..4093060a 100644
  #~ msgstr "ਸੈਟਿੰਗ"
  
 diff --git a/po/pl.po b/po/pl.po
-index 4a32af45..d0ebf55b 100644
+index 4a32af45..6c611ef1 100644
 --- a/po/pl.po
 +++ b/po/pl.po
-@@ -2860,3 +2860,118 @@ msgstr "Demon ustawień Xfce"
+@@ -2860,3 +2860,128 @@ msgstr "Demon ustawień Xfce"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Demon ustawień Xfce"
@@ -5388,8 +5818,18 @@ index 4a32af45..d0ebf55b 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Schemat kolorów: preferencja ciemnego lub jasnego wyglądu pulpitu, odczytywana przez GTK 4 i libadwaita, Qt 6, Firefoksa, Chromium i programy Electron. Firefox stosuje ją, jeśli „Wygląd stron internetowych” ustawiono na „Automatyczny”, Chromium – jeśli „Tryb” ustawiono na „Urządzenie”."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Więcej: ustawienie także motywu menedżera okien, motywu ikon lub kursora myszy albo wykonanie własnego polecenia."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Więcej: ustawienie także motywu menedżera okien, motywu ikon, kursora myszy lub jasności ekranu laptopa albo wykonanie własnego polecenia."
++
++msgid "Set the screen _brightness to:"
++msgstr "Ustawienie _jasności ekranu na:"
++
++msgid "No screen backlight was found."
++msgstr "Nie znaleziono podświetlenia ekranu."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "jasność %s%%"
 +
 +msgid "Dark"
 +msgstr "Ciemny"
@@ -5421,10 +5861,10 @@ index 4a32af45..d0ebf55b 100644
 +msgid "Time"
 +msgstr "Godzina"
 diff --git a/po/pt.po b/po/pt.po
-index 76184fea..f37e643f 100644
+index 76184fea..d59268c1 100644
 --- a/po/pt.po
 +++ b/po/pt.po
-@@ -2870,3 +2870,117 @@ msgstr "Serviço de definições do Xfce"
+@@ -2870,3 +2870,127 @@ msgstr "Serviço de definições do Xfce"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Serviço de definições do Xfce"
@@ -5510,8 +5950,18 @@ index 76184fea..f37e643f 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Esquema de cores: a preferência escura ou clara do ambiente de trabalho, lida pelo GTK 4 e libadwaita, Qt 6, Firefox, Chromium e aplicações Electron. O Firefox segue-a se “Aparência do site” estiver em “Automático”, o Chromium se “Modo” estiver em “Dispositivo”."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Mais: definir também o tema do gestor de janelas, o tema de ícones ou do cursor do rato, ou executar um comando próprio."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Mais: definir também o tema do gestor de janelas, o tema de ícones, do cursor do rato ou o brilho do ecrã do portátil, ou executar um comando próprio."
++
++msgid "Set the screen _brightness to:"
++msgstr "Definir o _brilho do ecrã para:"
++
++msgid "No screen backlight was found."
++msgstr "Não foi encontrada retroiluminação do ecrã."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "brilho %s%%"
 +
 +msgid "Dark"
 +msgstr "Escuro"
@@ -5543,10 +5993,10 @@ index 76184fea..f37e643f 100644
 +msgid "Time"
 +msgstr "Hora"
 diff --git a/po/pt_BR.po b/po/pt_BR.po
-index 8feb6ea4..918b5b41 100644
+index 8feb6ea4..cf13a064 100644
 --- a/po/pt_BR.po
 +++ b/po/pt_BR.po
-@@ -2885,3 +2885,117 @@ msgstr "Daemon de configurações do Xfce"
+@@ -2885,3 +2885,127 @@ msgstr "Daemon de configurações do Xfce"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "O daemon de configurações do Xfce"
@@ -5632,8 +6082,18 @@ index 8feb6ea4..918b5b41 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Esquema de cores: a preferência escura ou clara da área de trabalho, lida pelo GTK 4 e libadwaita, Qt 6, Firefox, Chromium e aplicativos Electron. O Firefox a segue se “Aparência de sites” estiver em “Automático”, o Chromium se “Modo” estiver em “Dispositivo”."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Mais: definir também o tema do gerenciador de janelas, o tema de ícones ou do cursor do mouse, ou executar um comando próprio."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Mais: definir também o tema do gerenciador de janelas, o tema de ícones, do cursor do mouse ou o brilho da tela do notebook, ou executar um comando próprio."
++
++msgid "Set the screen _brightness to:"
++msgstr "Definir o _brilho da tela para:"
++
++msgid "No screen backlight was found."
++msgstr "Nenhuma luz de fundo da tela foi encontrada."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "brilho %s%%"
 +
 +msgid "Dark"
 +msgstr "Escuro"
@@ -5665,10 +6125,10 @@ index 8feb6ea4..918b5b41 100644
 +msgid "Time"
 +msgstr "Horário"
 diff --git a/po/ro.po b/po/ro.po
-index 77ef7433..90f4aa44 100644
+index 77ef7433..276f80ed 100644
 --- a/po/ro.po
 +++ b/po/ro.po
-@@ -2829,3 +2829,117 @@ msgstr ""
+@@ -2829,3 +2829,127 @@ msgstr ""
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Demonul opțiunilor Xfce"
@@ -5754,8 +6214,18 @@ index 77ef7433..90f4aa44 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Schemă de culori: preferința întunecată sau luminoasă a desktopului, citită de GTK 4 și libadwaita, Qt 6, Firefox, Chromium și aplicațiile Electron. Firefox o urmează dacă „Aspectul site-urilor web” este setat pe „Automat”, Chromium dacă „Mod” este setat pe „Dispozitiv”."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Mai mult: setează și tema managerului de ferestre, tema de iconițe sau a cursorului de mouse ori rulează o comandă proprie."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Mai mult: setează și tema managerului de ferestre, tema de iconițe, a cursorului de mouse sau luminozitatea ecranului laptopului ori rulează o comandă proprie."
++
++msgid "Set the screen _brightness to:"
++msgstr "Setează _luminozitatea ecranului la:"
++
++msgid "No screen backlight was found."
++msgstr "Nu s-a găsit iluminarea de fundal a ecranului."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "luminozitate %s%%"
 +
 +msgid "Dark"
 +msgstr "Întunecată"
@@ -5787,10 +6257,10 @@ index 77ef7433..90f4aa44 100644
 +msgid "Time"
 +msgstr "Ora"
 diff --git a/po/ru.po b/po/ru.po
-index 75353758..822db857 100644
+index 75353758..21115a58 100644
 --- a/po/ru.po
 +++ b/po/ru.po
-@@ -2865,3 +2865,118 @@ msgstr "Служба диспетчера настроек Xfce"
+@@ -2865,3 +2865,128 @@ msgstr "Служба диспетчера настроек Xfce"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Служба диспетчера настроек Xfce"
@@ -5877,8 +6347,18 @@ index 75353758..822db857 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Цветовая схема: предпочтение тёмного или светлого оформления рабочего стола, которое учитывают GTK 4 и libadwaita, Qt 6, Firefox, Chromium и приложения Electron. Firefox следует ему, если «Внешний вид веб-сайтов» установлен в «Автоматический», Chromium — если «Режим» установлен в «Как на устройстве»."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Ещё: также установить тему оконного менеджера, тему значков или курсора мыши либо выполнить собственную команду."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Ещё: также установить тему оконного менеджера, тему значков, курсора мыши или яркость экрана ноутбука либо выполнить собственную команду."
++
++msgid "Set the screen _brightness to:"
++msgstr "Установить _яркость экрана:"
++
++msgid "No screen backlight was found."
++msgstr "Подсветка экрана не найдена."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "яркость %s%%"
 +
 +msgid "Dark"
 +msgstr "Тёмная"
@@ -5910,10 +6390,10 @@ index 75353758..822db857 100644
 +msgid "Time"
 +msgstr "Время"
 diff --git a/po/si.po b/po/si.po
-index e0270c1b..d1db30fc 100644
+index e0270c1b..af0271ae 100644
 --- a/po/si.po
 +++ b/po/si.po
-@@ -1637,6 +1637,119 @@ msgstr "සැකසුම් කළමනාකරු"
+@@ -1637,6 +1637,129 @@ msgstr "සැකසුම් කළමනාකරු"
  msgid "Graphical Settings Manager for Xfce 4"
  msgstr "Xfce 4 සඳහා චිත්‍රක සැකසුම් කළමනාකරු"
  
@@ -5997,8 +6477,18 @@ index e0270c1b..d1db30fc 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "වර්ණ පටිපාටිය: වැඩතලයේ අඳුරු හෝ ආලෝකමත් මනාපය, එය GTK 4 සහ libadwaita, Qt 6, Firefox, Chromium සහ Electron යෙදුම් කියවයි. “වෙබ් අඩවි පෙනුම” “ස්වයංක්‍රීය” නම් Firefox ද, “ප්‍රකාරය” “උපාංගය” නම් Chromium ද එය අනුගමනය කරයි."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "තව: කවුළු කළමනාකරු තේමාව, අයිකන තේමාව හෝ මූසික දර්ශක තේමාවද සකසන්න, නැතහොත් ඔබේම විධානයක් ධාවනය කරන්න."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "තව: කවුළු කළමනාකරු තේමාව, අයිකන තේමාව, මූසික දර්ශක තේමාව හෝ ලැප්ටොප් තිරයේ දීප්තියද සකසන්න, නැතහොත් ඔබේම විධානයක් ධාවනය කරන්න."
++
++msgid "Set the screen _brightness to:"
++msgstr "තිරයේ _දීප්තිය සකසන්න:"
++
++msgid "No screen backlight was found."
++msgstr "තිර පසු ආලෝකයක් හමු නොවීය."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "දීප්තිය %s%%"
 +
 +msgid "Dark"
 +msgstr "අඳුරු"
@@ -6034,10 +6524,10 @@ index e0270c1b..d1db30fc 100644
  #~ msgstr "සැකසුම් (_S)"
  
 diff --git a/po/sk.po b/po/sk.po
-index b697b17c..664d6561 100644
+index b697b17c..4b3a8e4e 100644
 --- a/po/sk.po
 +++ b/po/sk.po
-@@ -2839,3 +2839,118 @@ msgstr "Démon nastavení prostredia Xfce"
+@@ -2839,3 +2839,128 @@ msgstr "Démon nastavení prostredia Xfce"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Démon nastavenia Xfce"
@@ -6124,8 +6614,18 @@ index b697b17c..664d6561 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Farebná schéma: preferencia tmavého alebo svetlého vzhľadu pracovného prostredia, ktorú čítajú GTK 4 a libadwaita, Qt 6, Firefox, Chromium a aplikácie Electron. Firefox sa ňou riadi, ak je „Vzhľad webových stránok“ nastavený na „Automaticky“, Chromium, ak je „Režim“ nastavený na „Zariadenie“."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Viac: nastaviť aj tému správcu okien, tému ikon alebo kurzora myši, prípadne spustiť vlastný príkaz."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Viac: nastaviť aj tému správcu okien, tému ikon, kurzora myši alebo jas obrazovky notebooku, prípadne spustiť vlastný príkaz."
++
++msgid "Set the screen _brightness to:"
++msgstr "Nastaviť _jas obrazovky na:"
++
++msgid "No screen backlight was found."
++msgstr "Nenašlo sa podsvietenie obrazovky."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "jas %s %%"
 +
 +msgid "Dark"
 +msgstr "Tmavá"
@@ -6157,10 +6657,10 @@ index b697b17c..664d6561 100644
 +msgid "Time"
 +msgstr "Čas"
 diff --git a/po/sl.po b/po/sl.po
-index 4ef87b77..66b1a672 100644
+index 4ef87b77..2943428f 100644
 --- a/po/sl.po
 +++ b/po/sl.po
-@@ -2851,3 +2851,118 @@ msgstr "Pritajene Xfce nastavitve"
+@@ -2851,3 +2851,128 @@ msgstr "Pritajene Xfce nastavitve"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Strežnik za Xfce nastavitve"
@@ -6247,8 +6747,18 @@ index 4ef87b77..66b1a672 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Barvna shema: prednostna temna ali svetla podoba namizja, ki jo berejo GTK 4 in libadwaita, Qt 6, Firefox, Chromium in programi Electron. Firefox ji sledi, če je »Videz spletnih strani« nastavljen na »Samodejno«, Chromium, če je »Način« nastavljen na »Naprava«."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Več: nastavi tudi temo upravljalnika oken, temo ikon ali kazalca miške oziroma zaženi lasten ukaz."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Več: nastavi tudi temo upravljalnika oken, temo ikon, kazalca miške ali svetlost zaslona prenosnika oziroma zaženi lasten ukaz."
++
++msgid "Set the screen _brightness to:"
++msgstr "Nastavi _svetlost zaslona na:"
++
++msgid "No screen backlight was found."
++msgstr "Osvetlitve zaslona ni bilo mogoče najti."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "svetlost %s %%"
 +
 +msgid "Dark"
 +msgstr "Temna"
@@ -6280,10 +6790,10 @@ index 4ef87b77..66b1a672 100644
 +msgid "Time"
 +msgstr "Čas"
 diff --git a/po/sq.po b/po/sq.po
-index 99ddc693..608de898 100644
+index 99ddc693..32ef3d6b 100644
 --- a/po/sq.po
 +++ b/po/sq.po
-@@ -2877,3 +2877,116 @@ msgstr "Demoni Xfce i Rregullimeve"
+@@ -2877,3 +2877,126 @@ msgstr "Demoni Xfce i Rregullimeve"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Demoni i Rregullimeve Xfce"
@@ -6368,8 +6878,18 @@ index 99ddc693..608de898 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Skemë ngjyrash: parapëlqimi i errët ose i çelët i desktopit, që lexohet nga GTK 4 dhe libadwaita, Qt 6, Firefox, Chromium dhe aplikacionet Electron. Firefox-i e ndjek nëse “Pamje sajtesh” është vënë “Automatike”, Chromium-i nëse “Mënyrë” është vënë “Pajisje”."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Më tepër: cakto gjithashtu temën e përgjegjësit të dritareve, temën e ikonave ose të kursorit të miut, ose xhiro një urdhër tuajin."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Më tepër: cakto gjithashtu temën e përgjegjësit të dritareve, temën e ikonave, të kursorit të miut ose ndriçimin e ekranit të laptopit, ose xhiro një urdhër tuajin."
++
++msgid "Set the screen _brightness to:"
++msgstr "Cakto _ndriçimin e ekranit në:"
++
++msgid "No screen backlight was found."
++msgstr "S'u gjet ndriçim prapa ekranit."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "ndriçim %s%%"
 +
 +msgid "Dark"
 +msgstr "E errët"
@@ -6401,10 +6921,10 @@ index 99ddc693..608de898 100644
 +msgid "Time"
 +msgstr "Kohë"
 diff --git a/po/sr.po b/po/sr.po
-index 2c10f6a8..ead5e250 100644
+index 2c10f6a8..69ceee59 100644
 --- a/po/sr.po
 +++ b/po/sr.po
-@@ -2852,3 +2852,117 @@ msgstr "Домар поставки ИксФЦЕ-а"
+@@ -2852,3 +2852,127 @@ msgstr "Домар поставки ИксФЦЕ-а"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Домар поставки Иксфце-а"
@@ -6490,8 +7010,18 @@ index 2c10f6a8..ead5e250 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Шема боја: тамна или светла поставка радне површи коју читају GTK 4 и libadwaita, Qt 6, Firefox, Chromium и Electron програми. Firefox је прати ако је „Изглед веб сајтова“ постављен на „Аутоматски“, Chromium ако је „Режим“ постављен на „Уређај“."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Више: постави и тему управника прозора, тему иконица или показивача миша или покрени сопствену наредбу."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Више: постави и тему управника прозора, тему иконица, показивача миша или осветљеност екрана лаптопа или покрени сопствену наредбу."
++
++msgid "Set the screen _brightness to:"
++msgstr "Постави _осветљеност екрана на:"
++
++msgid "No screen backlight was found."
++msgstr "Није пронађено позадинско осветљење екрана."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "осветљеност %s%%"
 +
 +msgid "Dark"
 +msgstr "Тамна"
@@ -6523,10 +7053,10 @@ index 2c10f6a8..ead5e250 100644
 +msgid "Time"
 +msgstr "Време"
 diff --git a/po/sv.po b/po/sv.po
-index f2fd3122..333ee0d4 100644
+index f2fd3122..b12b6f11 100644
 --- a/po/sv.po
 +++ b/po/sv.po
-@@ -2863,3 +2863,116 @@ msgstr "Konfigurationsdemon för Xfce"
+@@ -2863,3 +2863,126 @@ msgstr "Konfigurationsdemon för Xfce"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Inställningshanteraren för Xfce"
@@ -6611,8 +7141,18 @@ index f2fd3122..333ee0d4 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Färgschema: skrivbordets preferens för mörkt eller ljust, som läses av GTK 4 och libadwaita, Qt 6, Firefox, Chromium och Electron-program. Firefox följer den om ”Webbplatsers utseende” är inställt på ”Automatiskt”, Chromium om ”Läge” är inställt på ”Enhet”."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Mer: ställ också in fönsterhanterarens tema, ikontemat eller muspekartemat, eller kör ett eget kommando."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Mer: ställ också in fönsterhanterarens tema, ikontemat, muspekartemat eller ljusstyrkan på en bärbar dators skärm, eller kör ett eget kommando."
++
++msgid "Set the screen _brightness to:"
++msgstr "Ställ in skärmens _ljusstyrka på:"
++
++msgid "No screen backlight was found."
++msgstr "Ingen bakgrundsbelysning för skärmen hittades."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "ljusstyrka %s %%"
 +
 +msgid "Dark"
 +msgstr "Mörkt"
@@ -6644,10 +7184,10 @@ index f2fd3122..333ee0d4 100644
 +msgid "Time"
 +msgstr "Tid"
 diff --git a/po/te.po b/po/te.po
-index bc44c62b..9846bfd9 100644
+index bc44c62b..021bfae0 100644
 --- a/po/te.po
 +++ b/po/te.po
-@@ -1617,3 +1617,116 @@ msgstr "అమరికల నిర్వాహకం"
+@@ -1617,3 +1617,126 @@ msgstr "అమరికల నిర్వాహకం"
  #: ../xfce4-settings-manager/xfce-settings-manager.desktop.in.h:2
  msgid "Graphical Settings Manager for Xfce 4"
  msgstr "Xfce 4 కొరకు రేఖాచిత్ర అమరికల నిర్వాహకం"
@@ -6732,8 +7272,18 @@ index bc44c62b..9846bfd9 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "రంగుల పథకం: డెస్క్‌టాప్ యొక్క ముదురు లేదా లేత ప్రాధాన్యత, దీనిని GTK 4 మరియు libadwaita, Qt 6, Firefox, Chromium మరియు Electron అనువర్తనాలు చదువుతాయి. “వెబ్‌సైట్ రూపం” “స్వయంచాలకం” అయితే Firefox, “మోడ్” “పరికరం” అయితే Chromium దీనిని అనుసరిస్తాయి."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "మరిన్ని: విండో నిర్వాహకి థీమ్, ప్రతీకల థీమ్ లేదా మౌస్ కర్సర్ థీమ్‌ను కూడా అమర్చు, లేదా మీ స్వంత ఆదేశాన్ని నడుపు."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "మరిన్ని: విండో నిర్వాహకి థీమ్, ప్రతీకల థీమ్, మౌస్ కర్సర్ థీమ్ లేదా ల్యాప్‌టాప్ తెర ప్రకాశాన్ని కూడా అమర్చు, లేదా మీ స్వంత ఆదేశాన్ని నడుపు."
++
++msgid "Set the screen _brightness to:"
++msgstr "తెర _ప్రకాశాన్ని అమర్చు:"
++
++msgid "No screen backlight was found."
++msgstr "తెర బ్యాక్‌లైట్ కనుగొనబడలేదు."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "ప్రకాశం %s%%"
 +
 +msgid "Dark"
 +msgstr "ముదురు"
@@ -6765,10 +7315,10 @@ index bc44c62b..9846bfd9 100644
 +msgid "Time"
 +msgstr "సమయం"
 diff --git a/po/th.po b/po/th.po
-index 6927c006..13928dd5 100644
+index 6927c006..23e5bc1b 100644
 --- a/po/th.po
 +++ b/po/th.po
-@@ -2810,3 +2810,115 @@ msgstr "ดีมอนค่าตั้งของ Xfce"
+@@ -2810,3 +2810,125 @@ msgstr "ดีมอนค่าตั้งของ Xfce"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "ดีมอนค่าตั้งของ Xfce"
@@ -6852,8 +7402,18 @@ index 6927c006..13928dd5 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "ชุดสี: ความต้องการโหมดมืดหรือสว่างของเดสก์ท็อป ซึ่ง GTK 4 และ libadwaita, Qt 6, Firefox, Chromium และโปรแกรม Electron อ่านค่านี้ Firefox จะทำตามหาก “ลักษณะของเว็บไซต์” ตั้งเป็น “อัตโนมัติ” ส่วน Chromium หาก “โหมด” ตั้งเป็น “อุปกรณ์”"
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "เพิ่มเติม: ตั้งชุดตกแต่งของตัวจัดการหน้าต่าง ชุดไอคอน หรือชุดเคอร์เซอร์ของเมาส์ด้วย หรือเรียกใช้คำสั่งของคุณเอง"
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "เพิ่มเติม: ตั้งชุดตกแต่งของตัวจัดการหน้าต่าง ชุดไอคอน ชุดเคอร์เซอร์ของเมาส์ หรือความสว่างของหน้าจอแล็ปท็อปด้วย หรือเรียกใช้คำสั่งของคุณเอง"
++
++msgid "Set the screen _brightness to:"
++msgstr "ตั้ง_ความสว่างหน้าจอเป็น:"
++
++msgid "No screen backlight was found."
++msgstr "ไม่พบไฟส่องหลังของหน้าจอ"
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "ความสว่าง %s%%"
 +
 +msgid "Dark"
 +msgstr "มืด"
@@ -6885,10 +7445,10 @@ index 6927c006..13928dd5 100644
 +msgid "Time"
 +msgstr "เวลา"
 diff --git a/po/tr.po b/po/tr.po
-index 33e75cc9..8e08bde6 100644
+index 33e75cc9..bc655296 100644
 --- a/po/tr.po
 +++ b/po/tr.po
-@@ -2859,3 +2859,116 @@ msgstr "Xfce Ayarlar Süreci"
+@@ -2859,3 +2859,126 @@ msgstr "Xfce Ayarlar Süreci"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Xfce Ayarlar Süreci"
@@ -6973,8 +7533,18 @@ index 33e75cc9..8e08bde6 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Renk düzeni: masaüstünün koyu ya da açık tercihidir; GTK 4 ve libadwaita, Qt 6, Firefox, Chromium ve Electron uygulamaları tarafından okunur. Firefox, \"Web sitesi görünümü\" \"Otomatik\" olarak ayarlıysa, Chromium, \"Mod\" \"Cihaz\" olarak ayarlıysa onu izler."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Daha fazla: pencere yöneticisi temasını, simge temasını ya da fare imleci temasını da ayarla veya kendi komutunu çalıştır."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Daha fazla: pencere yöneticisi temasını, simge temasını, fare imleci temasını ya da dizüstü bilgisayar ekranının parlaklığını da ayarla veya kendi komutunu çalıştır."
++
++msgid "Set the screen _brightness to:"
++msgstr "Ekran _parlaklığını ayarla:"
++
++msgid "No screen backlight was found."
++msgstr "Ekran arka ışığı bulunamadı."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "parlaklık %%%s"
 +
 +msgid "Dark"
 +msgstr "Koyu"
@@ -7006,10 +7576,10 @@ index 33e75cc9..8e08bde6 100644
 +msgid "Time"
 +msgstr "Saat"
 diff --git a/po/ug.po b/po/ug.po
-index f3411fcb..ad8d30d0 100644
+index f3411fcb..4a07e5bc 100644
 --- a/po/ug.po
 +++ b/po/ug.po
-@@ -2790,3 +2790,116 @@ msgstr ""
+@@ -2790,3 +2790,126 @@ msgstr ""
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "تەڭشەك مۇئەككىلى"
@@ -7094,8 +7664,18 @@ index f3411fcb..ad8d30d0 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "رەڭ لايىھىسى: ئۈستەلئۈستىنىڭ قېنىق ياكى ئاچ مايىللىقى، ئۇنى GTK 4 ۋە libadwaita، Qt 6، Firefox، Chromium ۋە Electron پروگراممىلىرى ئوقۇيدۇ. «تور بېكەت كۆرۈنۈشى» «ئاپتوماتىك» بولسا Firefox، «ھالەت» «ئۈسكۈنە» بولسا Chromium ئۇنىڭغا ئەگىشىدۇ."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "تېخىمۇ كۆپ: كۆزنەك باشقۇرغۇچ ئۇسلۇبى، سىنبەلگە ئۇسلۇبى ياكى چاشقىنەك نۇر بەلگىسى ئۇسلۇبىنىمۇ تەڭشەش، ياكى ئۆزىڭىزنىڭ بۇيرۇقىنى ئىجرا قىلىش."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "تېخىمۇ كۆپ: كۆزنەك باشقۇرغۇچ ئۇسلۇبى، سىنبەلگە ئۇسلۇبى، چاشقىنەك نۇر بەلگىسى ئۇسلۇبى ياكى خاتىرە كومپيۇتېر ئېكرانىنىڭ يورۇقلۇقىنىمۇ تەڭشەش، ياكى ئۆزىڭىزنىڭ بۇيرۇقىنى ئىجرا قىلىش."
++
++msgid "Set the screen _brightness to:"
++msgstr "ئېكران يورۇقلۇقىنى تەڭشە(_B):"
++
++msgid "No screen backlight was found."
++msgstr "ئېكراننىڭ ئارقا يورۇتقۇچى تېپىلمىدى."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "يورۇقلۇق %s%%"
 +
 +msgid "Dark"
 +msgstr "قېنىق"
@@ -7127,10 +7707,10 @@ index f3411fcb..ad8d30d0 100644
 +msgid "Time"
 +msgstr "ۋاقىت"
 diff --git a/po/uk.po b/po/uk.po
-index 8753eda4..47464ba8 100644
+index 8753eda4..1a712c44 100644
 --- a/po/uk.po
 +++ b/po/uk.po
-@@ -2859,3 +2859,118 @@ msgstr "Служба налаштування Xfce"
+@@ -2859,3 +2859,128 @@ msgstr "Служба налаштування Xfce"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Демон параметрів Xfce"
@@ -7217,8 +7797,18 @@ index 8753eda4..47464ba8 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "Схема кольорів: перевага темного чи світлого оформлення стільниці, яку враховують GTK 4 і libadwaita, Qt 6, Firefox, Chromium і програми Electron. Firefox дотримується її, якщо «Вигляд вебсайтів» встановлено на «Автоматично», Chromium — якщо «Режим» встановлено на «Як на пристрої»."
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "Більше: також встановити тему менеджера вікон, тему піктограм або курсора миші чи виконати власну команду."
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "Більше: також встановити тему менеджера вікон, тему піктограм, курсора миші або яскравість екрана ноутбука чи виконати власну команду."
++
++msgid "Set the screen _brightness to:"
++msgstr "Встановити _яскравість екрана:"
++
++msgid "No screen backlight was found."
++msgstr "Підсвічування екрана не знайдено."
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "яскравість %s%%"
 +
 +msgid "Dark"
 +msgstr "Темна"
@@ -7250,10 +7840,10 @@ index 8753eda4..47464ba8 100644
 +msgid "Time"
 +msgstr "Час"
 diff --git a/po/ur.po b/po/ur.po
-index 38a2fb5b..350a3edb 100644
+index 38a2fb5b..3f7ef688 100644
 --- a/po/ur.po
 +++ b/po/ur.po
-@@ -1734,6 +1734,119 @@ msgstr "ترتیبات منیجر"
+@@ -1734,6 +1734,129 @@ msgstr "ترتیبات منیجر"
  msgid "Graphical Settings Manager for Xfce 4"
  msgstr "تصویری ترتیبات منیجر برائے ایکسفس 4"
  
@@ -7337,8 +7927,18 @@ index 38a2fb5b..350a3edb 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "رنگ سکیم: ڈیسک ٹاپ کی گہری یا ہلکی ترجیح، جسے GTK 4 اور libadwaita، Qt 6، Firefox، Chromium اور Electron ایپلیکیشنز پڑھتی ہیں۔ Firefox اس پر عمل کرتا ہے اگر «ویب سائٹ کی ظاہری شکل» «خودکار» پر ہو، Chromium اگر «موڈ» «آلہ» پر ہو۔"
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "مزید: ونڈو منیجر تھیم، آئکن تھیم یا ماؤس کرسر تھیم بھی لگائیں، یا اپنی کمانڈ چلائیں۔"
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "مزید: ونڈو منیجر تھیم، آئکن تھیم، ماؤس کرسر تھیم یا لیپ ٹاپ اسکرین کی چمک بھی لگائیں، یا اپنی کمانڈ چلائیں۔"
++
++msgid "Set the screen _brightness to:"
++msgstr "اسکرین کی _چمک لگائیں:"
++
++msgid "No screen backlight was found."
++msgstr "اسکرین کی بیک لائٹ نہیں ملی۔"
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "چمک %s%%"
 +
 +msgid "Dark"
 +msgstr "گہرا"
@@ -7374,10 +7974,10 @@ index 38a2fb5b..350a3edb 100644
  #~ msgstr "_ترتیبات"
  
 diff --git a/po/ur_PK.po b/po/ur_PK.po
-index 38a2fb5b..350a3edb 100644
+index 38a2fb5b..3f7ef688 100644
 --- a/po/ur_PK.po
 +++ b/po/ur_PK.po
-@@ -1734,6 +1734,119 @@ msgstr "ترتیبات منیجر"
+@@ -1734,6 +1734,129 @@ msgstr "ترتیبات منیجر"
  msgid "Graphical Settings Manager for Xfce 4"
  msgstr "تصویری ترتیبات منیجر برائے ایکسفس 4"
  
@@ -7461,8 +8061,18 @@ index 38a2fb5b..350a3edb 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "رنگ سکیم: ڈیسک ٹاپ کی گہری یا ہلکی ترجیح، جسے GTK 4 اور libadwaita، Qt 6، Firefox، Chromium اور Electron ایپلیکیشنز پڑھتی ہیں۔ Firefox اس پر عمل کرتا ہے اگر «ویب سائٹ کی ظاہری شکل» «خودکار» پر ہو، Chromium اگر «موڈ» «آلہ» پر ہو۔"
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "مزید: ونڈو منیجر تھیم، آئکن تھیم یا ماؤس کرسر تھیم بھی لگائیں، یا اپنی کمانڈ چلائیں۔"
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "مزید: ونڈو منیجر تھیم، آئکن تھیم، ماؤس کرسر تھیم یا لیپ ٹاپ اسکرین کی چمک بھی لگائیں، یا اپنی کمانڈ چلائیں۔"
++
++msgid "Set the screen _brightness to:"
++msgstr "اسکرین کی _چمک لگائیں:"
++
++msgid "No screen backlight was found."
++msgstr "اسکرین کی بیک لائٹ نہیں ملی۔"
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "چمک %s%%"
 +
 +msgid "Dark"
 +msgstr "گہرا"
@@ -7498,10 +8108,10 @@ index 38a2fb5b..350a3edb 100644
  #~ msgstr "_ترتیبات"
  
 diff --git a/po/zh_CN.po b/po/zh_CN.po
-index 64226552..ef3d0165 100644
+index 64226552..004386a9 100644
 --- a/po/zh_CN.po
 +++ b/po/zh_CN.po
-@@ -2768,3 +2768,115 @@ msgstr "Xfce 设置守护进程"
+@@ -2768,3 +2768,125 @@ msgstr "Xfce 设置守护进程"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Xfce 设置守护进程"
@@ -7585,8 +8195,18 @@ index 64226552..ef3d0165 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "配色方案：桌面的深色或浅色偏好，由 GTK 4 和 libadwaita、Qt 6、Firefox、Chromium 以及 Electron 应用程序读取。当“网站外观”设为“自动”时 Firefox 会遵循它，当“模式”设为“设备”时 Chromium 会遵循它。"
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "更多：同时设置窗口管理器主题、图标主题或鼠标指针主题，或运行自己的命令。"
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "更多：同时设置窗口管理器主题、图标主题、鼠标指针主题或笔记本屏幕亮度，或运行自己的命令。"
++
++msgid "Set the screen _brightness to:"
++msgstr "设置屏幕亮度(_B)："
++
++msgid "No screen backlight was found."
++msgstr "未找到屏幕背光。"
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "亮度 %s%%"
 +
 +msgid "Dark"
 +msgstr "深色"
@@ -7618,10 +8238,10 @@ index 64226552..ef3d0165 100644
 +msgid "Time"
 +msgstr "时间"
 diff --git a/po/zh_HK.po b/po/zh_HK.po
-index cec714c6..732c13c5 100644
+index cec714c6..c9eab4e4 100644
 --- a/po/zh_HK.po
 +++ b/po/zh_HK.po
-@@ -2744,3 +2744,115 @@ msgstr ""
+@@ -2744,3 +2744,125 @@ msgstr ""
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Xfce 4 設定幕後程式"
@@ -7705,8 +8325,18 @@ index cec714c6..732c13c5 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "配色：桌面的深色或淺色偏好，由 GTK 4 與 libadwaita、Qt 6、Firefox、Chromium 及 Electron 應用程式讀取。當「網站外觀」設為「自動」時 Firefox 會遵循它，當「模式」設為「裝置」時 Chromium 會遵循它。"
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "更多：同時設定視窗管理員主題、圖示主題或滑鼠游標主題，或執行自己的指令。"
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "更多：同時設定視窗管理員主題、圖示主題、滑鼠游標主題或筆記型電腦螢幕亮度，或執行自己的指令。"
++
++msgid "Set the screen _brightness to:"
++msgstr "設定螢幕亮度(_B)："
++
++msgid "No screen backlight was found."
++msgstr "找不到螢幕背光。"
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "亮度 %s%%"
 +
 +msgid "Dark"
 +msgstr "深色"
@@ -7738,10 +8368,10 @@ index cec714c6..732c13c5 100644
 +msgid "Time"
 +msgstr "時間"
 diff --git a/po/zh_TW.po b/po/zh_TW.po
-index 4eb7e16c..9ad9a344 100644
+index 4eb7e16c..b4e3c9db 100644
 --- a/po/zh_TW.po
 +++ b/po/zh_TW.po
-@@ -2763,3 +2763,115 @@ msgstr "Xfce 設定幕後程式"
+@@ -2763,3 +2763,125 @@ msgstr "Xfce 設定幕後程式"
  #: ../xfsettingsd/xfsettingsd.desktop.in.h:2
  msgid "The Xfce Settings Daemon"
  msgstr "Xfce 4 設定幕後程式"
@@ -7825,8 +8455,18 @@ index 4eb7e16c..9ad9a344 100644
 +msgid "Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance is set to Automatic, Chromium if Mode is set to Device."
 +msgstr "配色：桌面的深色或淺色偏好，由 GTK 4 與 libadwaita、Qt 6、Firefox、Chromium 及 Electron 應用程式讀取。當「網站外觀」設為「自動」時 Firefox 會遵循它，當「模式」設為「裝置」時 Chromium 會遵循它。"
 +
-+msgid "More: also set the window manager theme, the icon theme or the mouse cursor theme, or run a command of your own."
-+msgstr "更多：同時設定視窗管理員主題、圖示主題或滑鼠游標主題，或執行自己的指令。"
++msgid "More: also set the window manager theme, the icon theme, the mouse cursor theme or the brightness of a laptop screen, or run a command of your own."
++msgstr "更多：同時設定視窗管理員主題、圖示主題、滑鼠游標主題或筆記型電腦螢幕亮度，或執行自己的指令。"
++
++msgid "Set the screen _brightness to:"
++msgstr "設定螢幕亮度(_B)："
++
++msgid "No screen backlight was found."
++msgstr "找不到螢幕背光。"
++
++#, c-format
++msgid "brightness %s%%"
++msgstr "亮度 %s%%"
 +
 +msgid "Dark"
 +msgstr "深色"

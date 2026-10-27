@@ -13,7 +13,10 @@ Add a "Schedule" tab to the appearance dialog holding any number of rules
 - set the color scheme (GSettings org.gnome.desktop.interface color-scheme,
   read via the settings portal by GTK 4/libadwaita, Qt 6, Firefox, Chromium);
 - set the matching Xfwm4 theme (default follows /Xfce/SyncThemes), the icon
-  theme or the cursor theme, and run a shell command ("More..." dialog).
+  theme, the cursor theme or the screen backlight brightness in percent, and
+  run a shell command ("More..." dialog). The brightness is set through
+  logind (Session.SetBrightness), which needs no root, preferring firmware
+  over platform over raw backlight devices like GNOME.
 
 Rules are stored in the xsettings channel under /Xfce/ThemeSchedule/ as
 parallel string arrays and applied by a new xfsettingsd helper, so they work
@@ -23,18 +26,139 @@ while logged out is made at login.
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01Np2p5AqKgTNgtBXcQRY3bY
+Claude-Session: https://claude.ai/code/session_015b974heChUULfSFVyi9jWe
 ---
+ common/backlight.h                 |  112 +++
  common/theme-variant.h             |  150 ++++
- dialogs/appearance-settings/main.c | 1268 ++++++++++++++++++++++++++++
+ dialogs/appearance-settings/main.c | 1316 ++++++++++++++++++++++++++++
  xfsettingsd/Makefile.am            |    2 +
  xfsettingsd/main.c                 |    4 +
- xfsettingsd/theme-schedule.c       |  571 +++++++++++++
+ xfsettingsd/theme-schedule.c       |  647 ++++++++++++++
  xfsettingsd/theme-schedule.h       |   31 +
- 6 files changed, 2026 insertions(+)
+ 7 files changed, 2262 insertions(+)
+ create mode 100644 common/backlight.h
  create mode 100644 common/theme-variant.h
  create mode 100644 xfsettingsd/theme-schedule.c
  create mode 100644 xfsettingsd/theme-schedule.h
 
+diff --git a/common/backlight.h b/common/backlight.h
+new file mode 100644
+index 00000000..d4db5f83
+--- /dev/null
++++ b/common/backlight.h
+@@ -0,0 +1,112 @@
++/*
++ *  Copyright (c) 2026 Grigory Tuboltsev <gtubolcev@gmail.com>
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU Library General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License along
++ *  with this program; if not, write to the Free Software Foundation, Inc.,
++ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++ */
++
++/*
++ * Shared by the appearance dialog and xfsettingsd (header only, like
++ * theme-variant.h): finding the screen backlight in /sys/class/backlight.
++ * Like in GNOME, firmware interfaces are preferred over platform ones and
++ * those over raw ones. Writing the brightness needs root,
++ * so xfsettingsd sets it through logind.
++ */
++
++#ifndef __BACKLIGHT_H__
++#define __BACKLIGHT_H__
++
++#include <glib.h>
++
++#include <string.h>
++
++G_BEGIN_DECLS
++
++#define BACKLIGHT_SYSFS_DIR "/sys/class/backlight"
++
++static inline guint64
++backlight_read_value (const gchar *device,
++                      const gchar *file)
++{
++    gchar *path = g_build_filename (BACKLIGHT_SYSFS_DIR, device, file, NULL);
++    gchar *contents = NULL;
++    guint64 value = 0;
++
++    if (g_file_get_contents (path, &contents, NULL, NULL))
++        value = g_ascii_strtoull (contents, NULL, 10);
++
++    g_free (path);
++    g_free (contents);
++
++    return value;
++}
++
++/* the name of the backlight device to use, or NULL if there is none */
++static inline gchar *
++backlight_find_device (void)
++{
++    static const gchar *types[] = { "firmware", "platform", "raw" };
++    GDir *dir = g_dir_open (BACKLIGHT_SYSFS_DIR, 0, NULL);
++    const gchar *entry;
++    gchar *best = NULL;
++    guint best_rank = G_N_ELEMENTS (types);
++
++    if (dir == NULL)
++        return NULL;
++
++    while ((entry = g_dir_read_name (dir)) != NULL)
++    {
++        gchar *path = g_build_filename (BACKLIGHT_SYSFS_DIR, entry, "type", NULL);
++        gchar *type = NULL;
++        guint rank = G_N_ELEMENTS (types);
++
++        if (g_file_get_contents (path, &type, NULL, NULL))
++        {
++            g_strstrip (type);
++            for (guint i = 0; i < G_N_ELEMENTS (types); i++)
++                if (strcmp (type, types[i]) == 0)
++                    rank = i;
++        }
++
++        if (rank < best_rank && backlight_read_value (entry, "max_brightness") > 0)
++        {
++            g_free (best);
++            best = g_strdup (entry);
++            best_rank = rank;
++        }
++
++        g_free (path);
++        g_free (type);
++    }
++
++    g_dir_close (dir);
++
++    return best;
++}
++
++/* the brightness of @device in percent, rounded */
++static inline gint
++backlight_get_percent (const gchar *device)
++{
++    guint64 max = backlight_read_value (device, "max_brightness");
++
++    if (max == 0)
++        return 0;
++
++    return (backlight_read_value (device, "brightness") * 100 + max / 2) / max;
++}
++
++G_END_DECLS
++
++#endif /* !__BACKLIGHT_H__ */
 diff --git a/common/theme-variant.h b/common/theme-variant.h
 new file mode 100644
 index 00000000..5f55f4c7
@@ -192,19 +316,20 @@ index 00000000..5f55f4c7
 +
 +#endif /* !__THEME_VARIANT_H__ */
 diff --git a/dialogs/appearance-settings/main.c b/dialogs/appearance-settings/main.c
-index 1affe482..db5b1759 100644
+index 1affe482..6432473d 100644
 --- a/dialogs/appearance-settings/main.c
 +++ b/dialogs/appearance-settings/main.c
-@@ -48,6 +48,8 @@
+@@ -48,6 +48,9 @@
  
  #include "appearance-dialog_ui.h"
  
++#include "common/backlight.h"
 +#include "common/theme-variant.h"
 +
  #define INCH_MM      25.4
  
  /* Use a fallback DPI of 96 which should be ok-ish on most systems
-@@ -74,6 +76,40 @@ enum
+@@ -74,6 +77,42 @@ enum
      N_RGBA_COLUMNS
  };
  
@@ -216,6 +341,7 @@ index 1affe482..db5b1759 100644
 +    COLUMN_SCHEDULE_XFWM4,
 +    COLUMN_SCHEDULE_ICON_THEME,
 +    COLUMN_SCHEDULE_CURSOR_THEME,
++    COLUMN_SCHEDULE_BRIGHTNESS,
 +    COLUMN_SCHEDULE_COMMAND,
 +    N_SCHEDULE_COLUMNS
 +};
@@ -239,13 +365,14 @@ index 1affe482..db5b1759 100644
 +    "/Xfce/ThemeSchedule/Xfwm4",
 +    "/Xfce/ThemeSchedule/IconThemes",
 +    "/Xfce/ThemeSchedule/CursorThemes",
++    "/Xfce/ThemeSchedule/Brightness",
 +    "/Xfce/ThemeSchedule/Commands",
 +};
 +
  enum {
  	COLOR_FG,
  	COLOR_BG,
-@@ -110,6 +146,24 @@ static GOptionEntry option_entries[] =
+@@ -110,6 +149,24 @@ static GOptionEntry option_entries[] =
  static XfconfChannel *xsettings_channel;
  static GSettings *desktop_interface_gsettings;
  
@@ -270,7 +397,7 @@ index 1affe482..db5b1759 100644
  typedef struct
  {
      GtkListStore *list_store;
-@@ -1389,6 +1443,1219 @@ appearance_settings_dialog_configure_widgets (GtkBuilder *builder)
+@@ -1389,6 +1446,1264 @@ appearance_settings_dialog_configure_widgets (GtkBuilder *builder)
  #endif
  }
  
@@ -379,7 +506,7 @@ index 1affe482..db5b1759 100644
 +                        GtkTreeIter *iter)
 +{
 +    GPtrArray *parts = g_ptr_array_new_with_free_func (g_free);
-+    gchar *theme, *color_scheme, *icon_theme, *cursor_theme, *command;
++    gchar *theme, *color_scheme, *icon_theme, *cursor_theme, *brightness, *command;
 +    gint n_more = 0;
 +    gchar *text = NULL;
 +
@@ -388,6 +515,7 @@ index 1affe482..db5b1759 100644
 +                        COLUMN_SCHEDULE_COLOR_SCHEME, &color_scheme,
 +                        COLUMN_SCHEDULE_ICON_THEME, &icon_theme,
 +                        COLUMN_SCHEDULE_CURSOR_THEME, &cursor_theme,
++                        COLUMN_SCHEDULE_BRIGHTNESS, &brightness,
 +                        COLUMN_SCHEDULE_COMMAND, &command,
 +                        -1);
 +
@@ -418,6 +546,7 @@ index 1affe482..db5b1759 100644
 +
 +    n_more = (icon_theme != NULL && *icon_theme != '\0')
 +             + (cursor_theme != NULL && *cursor_theme != '\0')
++             + (brightness != NULL && *brightness != '\0')
 +             + (command != NULL && *command != '\0');
 +    if (n_more > 0)
 +        g_ptr_array_add (parts, g_strdup_printf (g_dngettext (GETTEXT_PACKAGE, "%d more action", "%d more actions", n_more), n_more));
@@ -435,6 +564,7 @@ index 1affe482..db5b1759 100644
 +    g_free (color_scheme);
 +    g_free (icon_theme);
 +    g_free (cursor_theme);
++    g_free (brightness);
 +    g_free (command);
 +
 +    return text;
@@ -925,6 +1055,7 @@ index 1affe482..db5b1759 100644
 +                                       xfconf_channel_get_bool (xsettings_channel, "/Xfce/SyncThemes", FALSE) ? "true" : "false",
 +                                       COLUMN_SCHEDULE_ICON_THEME, "",
 +                                       COLUMN_SCHEDULE_CURSOR_THEME, "",
++                                       COLUMN_SCHEDULE_BRIGHTNESS, "",
 +                                       COLUMN_SCHEDULE_COMMAND, "",
 +                                       -1);
 +    g_free (time_str);
@@ -1049,8 +1180,9 @@ index 1affe482..db5b1759 100644
 +    GtkTreeModel *model = GTK_TREE_MODEL (schedule.store);
 +    GtkTreeIter iter;
 +    GtkWidget *dialog, *grid, *label, *xfwm4_check, *icon_check, *icon_combo;
-+    GtkWidget *cursor_check, *cursor_combo, *command_entry;
-+    gchar *time_str, *theme, *xfwm4, *icon_theme, *cursor_theme, *command, *title, *current;
++    GtkWidget *cursor_check, *cursor_combo, *brightness_check, *brightness_spin, *box, *command_entry;
++    gchar *time_str, *theme, *xfwm4, *icon_theme, *cursor_theme, *brightness, *command, *title, *current;
++    gchar *backlight;
 +    GPtrArray *cursor_themes;
 +    gint row = 0;
 +
@@ -1063,6 +1195,7 @@ index 1affe482..db5b1759 100644
 +                        COLUMN_SCHEDULE_XFWM4, &xfwm4,
 +                        COLUMN_SCHEDULE_ICON_THEME, &icon_theme,
 +                        COLUMN_SCHEDULE_CURSOR_THEME, &cursor_theme,
++                        COLUMN_SCHEDULE_BRIGHTNESS, &brightness,
 +                        COLUMN_SCHEDULE_COMMAND, &command,
 +                        -1);
 +
@@ -1126,6 +1259,30 @@ index 1affe482..db5b1759 100644
 +    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (cursor_check), *cursor_theme != '\0');
 +    g_free (current);
 +
++    /* screen backlight, by default at its current level */
++    backlight = backlight_find_device ();
++    brightness_check = gtk_check_button_new_with_mnemonic (_("Set the screen _brightness to:"));
++    gtk_grid_attach (GTK_GRID (grid), brightness_check, 0, row, 1, 1);
++    box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
++    brightness_spin = gtk_spin_button_new_with_range (1, 100, 5);
++    gtk_spin_button_set_value (GTK_SPIN_BUTTON (brightness_spin),
++                               *brightness != '\0'  ? g_ascii_strtod (brightness, NULL)
++                               : backlight != NULL ? backlight_get_percent (backlight)
++                                                   : 100);
++    gtk_entry_set_activates_default (GTK_ENTRY (brightness_spin), TRUE);
++    gtk_box_pack_start (GTK_BOX (box), brightness_spin, FALSE, FALSE, 0);
++    gtk_box_pack_start (GTK_BOX (box), gtk_label_new ("%"), FALSE, FALSE, 0);
++    g_object_bind_property (brightness_check, "active", box, "sensitive", G_BINDING_SYNC_CREATE);
++    gtk_grid_attach (GTK_GRID (grid), box, 1, row++, 1, 1);
++    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (brightness_check), *brightness != '\0');
++    if (backlight == NULL)
++    {
++        /* e.g. external monitors: keep a saved value, but do not offer it */
++        gtk_widget_set_sensitive (brightness_check, *brightness != '\0');
++        gtk_widget_set_tooltip_text (brightness_check, _("No screen backlight was found."));
++    }
++    g_free (backlight);
++
 +    /* shell command */
 +    label = gtk_label_new_with_mnemonic (_("Run co_mmand:"));
 +    gtk_label_set_xalign (GTK_LABEL (label), 0.0);
@@ -1154,6 +1311,13 @@ index 1affe482..db5b1759 100644
 +        gchar *new_command = g_strstrip (g_strdup (gtk_entry_get_text (GTK_ENTRY (command_entry))));
 +        gboolean icons = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (icon_check));
 +        gboolean cursors = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (cursor_check));
++        gchar *new_brightness = NULL;
++
++        if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (brightness_check)))
++        {
++            gtk_spin_button_update (GTK_SPIN_BUTTON (brightness_spin));
++            new_brightness = g_strdup_printf ("%d", gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (brightness_spin)));
++        }
 +
 +        gtk_list_store_set (schedule.store, &iter,
 +                            COLUMN_SCHEDULE_XFWM4,
@@ -1162,8 +1326,10 @@ index 1affe482..db5b1759 100644
 +                            icons ? gtk_combo_box_get_active_id (GTK_COMBO_BOX (icon_combo)) : "",
 +                            COLUMN_SCHEDULE_CURSOR_THEME,
 +                            cursors ? gtk_combo_box_get_active_id (GTK_COMBO_BOX (cursor_combo)) : "",
++                            COLUMN_SCHEDULE_BRIGHTNESS, new_brightness != NULL ? new_brightness : "",
 +                            COLUMN_SCHEDULE_COMMAND, new_command,
 +                            -1);
++        g_free (new_brightness);
 +        g_free (new_command);
 +        schedule_save ();
 +    }
@@ -1175,6 +1341,7 @@ index 1affe482..db5b1759 100644
 +    g_free (xfwm4);
 +    g_free (icon_theme);
 +    g_free (cursor_theme);
++    g_free (brightness);
 +    g_free (command);
 +}
 +
@@ -1194,11 +1361,12 @@ index 1affe482..db5b1759 100644
 +                         gpointer user_data)
 +{
 +    GPtrArray *parts = g_ptr_array_new_with_free_func (g_free);
-+    gchar *icon_theme, *cursor_theme, *command, *text;
++    gchar *icon_theme, *cursor_theme, *brightness, *command, *text;
 +
 +    gtk_tree_model_get (model, iter,
 +                        COLUMN_SCHEDULE_ICON_THEME, &icon_theme,
 +                        COLUMN_SCHEDULE_CURSOR_THEME, &cursor_theme,
++                        COLUMN_SCHEDULE_BRIGHTNESS, &brightness,
 +                        COLUMN_SCHEDULE_COMMAND, &command,
 +                        -1);
 +
@@ -1206,6 +1374,9 @@ index 1affe482..db5b1759 100644
 +        g_ptr_array_add (parts, g_strdup (_("icons")));
 +    if (cursor_theme != NULL && *cursor_theme != '\0')
 +        g_ptr_array_add (parts, g_strdup (_("cursor")));
++    if (brightness != NULL && *brightness != '\0')
++        /* TRANSLATORS: the screen brightness set by a rule, in the More column, e.g. "brightness 40%" */
++        g_ptr_array_add (parts, g_strdup_printf (_("brightness %s%%"), brightness));
 +    if (command != NULL && *command != '\0')
 +        g_ptr_array_add (parts, g_strdup (_("command")));
 +    g_ptr_array_add (parts, NULL);
@@ -1217,6 +1388,7 @@ index 1affe482..db5b1759 100644
 +    g_ptr_array_unref (parts);
 +    g_free (icon_theme);
 +    g_free (cursor_theme);
++    g_free (brightness);
 +    g_free (command);
 +}
 +
@@ -1289,8 +1461,8 @@ index 1affe482..db5b1759 100644
 +        _("Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, "
 +          "Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance "
 +          "is set to Automatic, Chromium if Mode is set to Device."),
-+        _("More: also set the window manager theme, the icon theme or the mouse cursor theme, "
-+          "or run a command of your own."));
++        _("More: also set the window manager theme, the icon theme, the mouse cursor theme or the "
++          "brightness of a laptop screen, or run a command of your own."));
 +    gtk_dialog_run (GTK_DIALOG (dialog));
 +    gtk_widget_destroy (dialog);
 +}
@@ -1490,7 +1662,7 @@ index 1affe482..db5b1759 100644
  static void
  appearance_settings_dialog_response (GtkWidget *dialog,
                                       gint       response_id)
-@@ -1486,6 +2753,7 @@ main (gint argc, gchar **argv)
+@@ -1486,6 +2801,7 @@ main (gint argc, gchar **argv)
                  G_CALLBACK (appearance_settings_dialog_channel_property_changed), builder);
  
              appearance_settings_dialog_configure_widgets (builder);
@@ -1549,10 +1721,10 @@ index 2f13a006..6524e2b6 100644
      {
 diff --git a/xfsettingsd/theme-schedule.c b/xfsettingsd/theme-schedule.c
 new file mode 100644
-index 00000000..6ddd2a82
+index 00000000..487ef488
 --- /dev/null
 +++ b/xfsettingsd/theme-schedule.c
-@@ -0,0 +1,571 @@
+@@ -0,0 +1,647 @@
 +/*
 + *  Copyright (c) 2026 Grigory Tuboltsev <gtubolcev@gmail.com>
 + *
@@ -1588,6 +1760,8 @@ index 00000000..6ddd2a82
 + *                                     follow /Xfce/SyncThemes
 + *   /Xfce/ThemeSchedule/IconThemes    like Themes, for the icon theme
 + *   /Xfce/ThemeSchedule/CursorThemes  cursor theme name, "" to keep it
++ *   /Xfce/ThemeSchedule/Brightness    screen backlight in percent (1-100),
++ *                                     "" to keep it
 + *   /Xfce/ThemeSchedule/Commands      shell command run after switching, with
 + *                                     the new values in XFCE_SCHEDULE_GTK_THEME,
 + *                                     XFCE_SCHEDULE_ICON_THEME and
@@ -1608,6 +1782,7 @@ index 00000000..6ddd2a82
 +
 +#include "theme-schedule.h"
 +
++#include "common/backlight.h"
 +#include "common/theme-variant.h"
 +
 +#include <gio/gio.h>
@@ -1629,6 +1804,7 @@ index 00000000..6ddd2a82
 +    RULE_XFWM4,
 +    RULE_ICON_THEME,
 +    RULE_CURSOR_THEME,
++    RULE_BRIGHTNESS,
 +    RULE_COMMAND,
 +    N_RULE_FIELDS
 +};
@@ -1640,6 +1816,7 @@ index 00000000..6ddd2a82
 +    SCHEDULE_PROP_PREFIX "Xfwm4",
 +    SCHEDULE_PROP_PREFIX "IconThemes",
 +    SCHEDULE_PROP_PREFIX "CursorThemes",
++    SCHEDULE_PROP_PREFIX "Brightness",
 +    SCHEDULE_PROP_PREFIX "Commands",
 +};
 +
@@ -1888,6 +2065,74 @@ index 00000000..6ddd2a82
 +
 +
 +static void
++xfce_theme_schedule_set_brightness_done (GObject *source,
++                                         GAsyncResult *result,
++                                         gpointer user_data)
++{
++    GVariant *ret;
++    GError *error = NULL;
++
++    ret = g_dbus_connection_call_finish (G_DBUS_CONNECTION (source), result, &error);
++    if (ret != NULL)
++        g_variant_unref (ret);
++    else
++    {
++        g_warning ("Failed to set the brightness: %s", error->message);
++        g_error_free (error);
++    }
++}
++
++
++
++/* sets the screen backlight to @percent of its maximum through logind, which
++ * lets the user of the session do so without root */
++static void
++xfce_theme_schedule_helper_set_brightness (XfceThemeScheduleHelper *helper,
++                                           const gchar *percent)
++{
++    guint64 value, max;
++    gchar *device, *end;
++    GDBusConnection *bus;
++    GError *error = NULL;
++
++    value = g_ascii_strtoull (percent, &end, 10);
++    if (*end != '\0' || value < 1 || value > 100)
++    {
++        g_warning ("Invalid scheduled brightness '%s'", percent);
++        return;
++    }
++
++    device = backlight_find_device ();
++    if (device == NULL)
++    {
++        g_message ("No screen backlight found, keeping the brightness");
++        return;
++    }
++
++    bus = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, &error);
++    if (bus != NULL)
++    {
++        max = backlight_read_value (device, "max_brightness");
++        value = MAX ((max * value + 50) / 100, 1);
++        g_dbus_connection_call (bus, "org.freedesktop.login1", "/org/freedesktop/login1/session/auto",
++                                "org.freedesktop.login1.Session", "SetBrightness",
++                                g_variant_new ("(ssu)", "backlight", device, (guint32) value),
++                                NULL, G_DBUS_CALL_FLAGS_NONE, -1, NULL,
++                                xfce_theme_schedule_set_brightness_done, NULL);
++        g_object_unref (bus);
++    }
++    else
++    {
++        g_warning ("Failed to set the brightness: %s", error->message);
++        g_error_free (error);
++    }
++
++    g_free (device);
++}
++
++
++
++static void
 +xfce_theme_schedule_helper_run_command (XfceThemeScheduleHelper *helper,
 +                                        const gchar *command)
 +{
@@ -1974,6 +2219,9 @@ index 00000000..6ddd2a82
 +    /* cursor theme */
 +    if (rule[RULE_CURSOR_THEME] != NULL && *rule[RULE_CURSOR_THEME] != '\0')
 +        xfconf_channel_set_string (helper->channel, "/Gtk/CursorThemeName", rule[RULE_CURSOR_THEME]);
++
++    if (rule[RULE_BRIGHTNESS] != NULL && *rule[RULE_BRIGHTNESS] != '\0')
++        xfce_theme_schedule_helper_set_brightness (helper, rule[RULE_BRIGHTNESS]);
 +
 +    if (rule[RULE_COMMAND] != NULL && *rule[RULE_COMMAND] != '\0')
 +        xfce_theme_schedule_helper_run_command (helper, rule[RULE_COMMAND]);
