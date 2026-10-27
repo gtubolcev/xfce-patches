@@ -37,8 +37,14 @@ UBUNTU_VERSION=$(curl -fsS "https://api.launchpad.net/devel/ubuntu/+archive/prim
   | python3 -c 'import json, sys; print("\n".join(e["source_package_version"] for e in json.load(sys.stdin)["entries"]))' \
   | sort -V | tail -1)
 [ -n "$UBUNTU_VERSION" ] || { echo "error: no $PKG in Ubuntu $DIST" >&2; exit 1; }
-dget --download-only --allow-unauthenticated \
-  "https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/$PKG/$UBUNTU_VERSION/${PKG}_${UBUNTU_VERSION#*:}.dsc"
+# Launchpad answers 502 now and then, so retry
+for try in 1 2 3 4 5; do
+  dget --download-only --allow-unauthenticated \
+    "https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/$PKG/$UBUNTU_VERSION/${PKG}_${UBUNTU_VERSION#*:}.dsc" && break
+  [ "$try" -lt 5 ] || exit 1
+  rm -f ./*
+  sleep 60
+done
 dpkg-source -x ./*.dsc
 SRCDIR=$(find . -mindepth 1 -maxdepth 1 -type d | head -1)
 cd "$SRCDIR"
