@@ -12,8 +12,8 @@
 # than the previous one and than the Ubuntu package it is based on. The orig
 # tarball is not uploaded, Launchpad takes it from the Ubuntu archive.
 #
-# The Ubuntu source package is taken from Launchpad (the newest version
-# published for that release). Needs a GPG key known to Launchpad;
+# The Ubuntu source package is the newest version published for that
+# release, taken from archive.ubuntu.com. Needs a GPG key known to Launchpad;
 # SIGN_KEY=... picks the key (else the one of DEBEMAIL); NO_UPLOAD=1 only
 # builds the source package (unsigned) into _build/ppa/.
 set -euo pipefail
@@ -33,19 +33,23 @@ PATCHDIR=$ROOT/packages/$PKG/patches
 rm -rf "$WORK"
 mkdir -p "$WORK"
 cd "$WORK"
-UBUNTU_VERSION=$(curl -fsS "https://api.launchpad.net/devel/ubuntu/+archive/primary?ws.op=getPublishedSources&source_name=$PKG&exact_match=true&status=Published&distro_series=https://api.launchpad.net/devel/ubuntu/$DIST" \
-  | python3 -c 'import json, sys; print("\n".join(e["source_package_version"] for e in json.load(sys.stdin)["entries"]))' \
-  | sort -V | tail -1)
-[ -n "$UBUNTU_VERSION" ] || { echo "error: no $PKG in Ubuntu $DIST" >&2; exit 1; }
-# Launchpad answers 502 now and then, so retry
+read -r UBUNTU_VERSION COMPONENT < <(curl -fsS --retry 5 --retry-all-errors "https://api.launchpad.net/devel/ubuntu/+archive/primary?ws.op=getPublishedSources&source_name=$PKG&exact_match=true&status=Published&distro_series=https://api.launchpad.net/devel/ubuntu/$DIST" \
+  | python3 -c 'import json, sys; print("\n".join(e["source_package_version"] + " " + e["component_name"] for e in json.load(sys.stdin)["entries"]))' \
+  | sort -V | tail -1) || true
+[ -n "${UBUNTU_VERSION:-}" ] || { echo "error: no $PKG in Ubuntu $DIST" >&2; exit 1; }
+# the files come from the archive pool: the Launchpad librarian often
+# answers 502/503. dget does not always fail on a missing file, so a
+# download only counts once it unpacks.
+POOL=${PKG:0:1}
+[[ $PKG == lib* ]] && POOL=${PKG:0:4}
 for try in 1 2 3 4 5; do
   dget --download-only --allow-unauthenticated \
-    "https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/$PKG/$UBUNTU_VERSION/${PKG}_${UBUNTU_VERSION#*:}.dsc" && break
+    "http://archive.ubuntu.com/ubuntu/pool/$COMPONENT/$POOL/$PKG/${PKG}_${UBUNTU_VERSION#*:}.dsc" \
+    && dpkg-source -x ./*.dsc && break
   [ "$try" -lt 5 ] || exit 1
-  rm -f ./*
+  rm -rf ./*
   sleep 60
 done
-dpkg-source -x ./*.dsc
 SRCDIR=$(find . -mindepth 1 -maxdepth 1 -type d | head -1)
 cd "$SRCDIR"
 
