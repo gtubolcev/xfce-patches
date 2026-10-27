@@ -57,10 +57,10 @@ dch --newversion "$VERSION" --distribution "$DIST" --force-distribution \
   "Apply XFCE-patches (https://github.com/gtubolcev/xfce-patches): ${PATCHES[*]}"
 
 if [ -n "${NO_UPLOAD:-}" ]; then
-  dpkg-buildpackage -S -sd -d -us -uc
+  dpkg-buildpackage -S -sd -d -nc -us -uc
   exit 0
 fi
 
-dpkg-buildpackage -S -sd -d ${SIGN_KEY:+--sign-key="$SIGN_KEY"}
+dpkg-buildpackage -S -sd -d -nc ${SIGN_KEY:+--sign-key="$SIGN_KEY"}
 cd ..
 dput "$PPA" ./*_source.changes
