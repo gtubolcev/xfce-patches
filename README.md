@@ -76,7 +76,7 @@ cd src/thunar && meson setup build && ninja -C build   # hack, test, git commit
 scripts/export-patches.sh thunar          # -> packages/thunar/patches/
 scripts/build-package.sh thunar           # optional local .deb build -> out/
 git push                                  # CI builds debs-thunar artifact
-git tag v0.1.0 && git push --tags         # CI attaches all .debs to a release
+git tag -a v0.1.0 -m "What is new" && git push --tags   # release: the message + all .debs
 ```
 
 Packages get the version suffix `+xfcepatches1` (e.g. `4.20.7-1+xfcepatches1`), so they

@@ -110,7 +110,12 @@ jobs:
       - env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cat > notes.md <<'EOF'
+          # what's new: the message of the annotated tag
+          REF=$(gh api "repos/${{ github.repository }}/git/ref/tags/${{ github.ref_name }}" -q '.object.type + " " + .object.sha')
+          if [ "${REF% *}" = tag ]; then
+            { echo "## What's new"; echo; gh api "repos/${{ github.repository }}/git/tags/${REF#* }" -q .message; echo; } > notes.md
+          fi
+          cat >> notes.md <<'EOF'
           Packages for Xubuntu, amd64. Pick the files for your release by the version in their names:
 
           | Xubuntu | Xfce | xfce4-settings files |
