@@ -28,25 +28,30 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01Np2p5AqKgTNgtBXcQRY3bY
 Claude-Session: https://claude.ai/code/session_015b974heChUULfSFVyi9jWe
 ---
- common/backlight.h                 |  112 +++
- common/theme-variant.h             |  150 ++++
- dialogs/appearance-settings/main.c | 1316 ++++++++++++++++++++++++++++
- xfsettingsd/Makefile.am            |    4 +-
- xfsettingsd/main.c                 |    4 +
- xfsettingsd/theme-schedule.c       |  647 ++++++++++++++
- xfsettingsd/theme-schedule.h       |   31 +
- 7 files changed, 2263 insertions(+), 1 deletion(-)
+ common/backlight.h                      |  110 ++
+ common/debug.c                          |    1 +
+ common/debug.h                          |    1 +
+ common/sun-times.h                      |  406 ++++++
+ common/theme-variant.h                  |  150 ++
+ dialogs/appearance-settings/Makefile.am |    3 +-
+ dialogs/appearance-settings/main.c      | 1771 +++++++++++++++++++++++
+ xfsettingsd/Makefile.am                 |    7 +-
+ xfsettingsd/main.c                      |    4 +
+ xfsettingsd/theme-schedule.c            |  643 ++++++++
+ xfsettingsd/theme-schedule.h            |   31 +
+ 11 files changed, 3124 insertions(+), 3 deletions(-)
  create mode 100644 common/backlight.h
+ create mode 100644 common/sun-times.h
  create mode 100644 common/theme-variant.h
  create mode 100644 xfsettingsd/theme-schedule.c
  create mode 100644 xfsettingsd/theme-schedule.h
 
 diff --git a/common/backlight.h b/common/backlight.h
 new file mode 100644
-index 00000000..d4db5f83
+index 00000000..094cce60
 --- /dev/null
 +++ b/common/backlight.h
-@@ -0,0 +1,112 @@
+@@ -0,0 +1,110 @@
 +/*
 + *  Copyright (c) 2026 Grigory Tuboltsev <gtubolcev@gmail.com>
 + *
@@ -77,8 +82,6 @@ index 00000000..d4db5f83
 +#define __BACKLIGHT_H__
 +
 +#include <glib.h>
-+
-+#include <string.h>
 +
 +G_BEGIN_DECLS
 +
@@ -124,7 +127,7 @@ index 00000000..d4db5f83
 +        {
 +            g_strstrip (type);
 +            for (guint i = 0; i < G_N_ELEMENTS (types); i++)
-+                if (strcmp (type, types[i]) == 0)
++                if (g_strcmp0 (type, types[i]) == 0)
 +                    rank = i;
 +        }
 +
@@ -159,6 +162,442 @@ index 00000000..d4db5f83
 +G_END_DECLS
 +
 +#endif /* !__BACKLIGHT_H__ */
+diff --git a/common/debug.c b/common/debug.c
+index f3713064..b439d998 100644
+--- a/common/debug.c
++++ b/common/debug.c
+@@ -34,6 +34,7 @@ static const GDebugKey dbg_keys[] = {
+     { "accessibility", XFSD_DEBUG_ACCESSIBILITY },
+     { "pointers", XFSD_DEBUG_POINTERS },
+     { "displays", XFSD_DEBUG_DISPLAYS },
++    { "theme-schedule", XFSD_DEBUG_THEME_SCHEDULE },
+ };
+ 
+ 
+diff --git a/common/debug.h b/common/debug.h
+index 8cb7dee0..6b7359cf 100644
+--- a/common/debug.h
++++ b/common/debug.h
+@@ -37,6 +37,7 @@ typedef enum
+     XFSD_DEBUG_ACCESSIBILITY = 1 << 7,
+     XFSD_DEBUG_POINTERS = 1 << 8,
+     XFSD_DEBUG_DISPLAYS = 1 << 9,
++    XFSD_DEBUG_THEME_SCHEDULE = 1 << 10,
+ } XfsdDebugDomain;
+ 
+ void
+diff --git a/common/sun-times.h b/common/sun-times.h
+new file mode 100644
+index 00000000..eea51854
+--- /dev/null
++++ b/common/sun-times.h
+@@ -0,0 +1,406 @@
++/*
++ *  Copyright (c) 2026 Grigory Tuboltsev <gtubolcev@gmail.com>
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU Library General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License along
++ *  with this program; if not, write to the Free Software Foundation, Inc.,
++ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++ */
++
++/*
++ * Shared by the appearance dialog and xfsettingsd (header only, the common
++ * library is not always built): the times of the theme schedule rules, which
++ * are either a time of the day ("HH:MM") or sunrise or sunset with an offset
++ * in minutes ("sunrise", "sunset+30", "sunrise-15").
++ *
++ * Sunrise and sunset are computed with the NOAA approximation, like GNOME
++ * Night Light does. The location is taken from the setting, a time zone name
++ * or "latitude,longitude" in degrees, or else from the system time zone; the
++ * coordinates of a time zone (its main city) come from the tzdata zone tables,
++ * which is good enough for the sun times.
++ */
++
++#ifndef __SUN_TIMES_H__
++#define __SUN_TIMES_H__
++
++#include <glib.h>
++#include <math.h>
++#include <stdlib.h>
++#include <string.h>
++
++G_BEGIN_DECLS
++
++#define SUN_TIMES_ZONEINFO_DIR "/usr/share/zoneinfo"
++
++typedef enum
++{
++    SUN_TIMES_CLOCK, /* minutes since midnight */
++    SUN_TIMES_SUNRISE, /* minutes after sunrise, negative for before */
++    SUN_TIMES_SUNSET, /* same for sunset */
++} SunTimesEvent;
++
++/* parses a rule time into @event and @minutes; FALSE if invalid */
++static inline gboolean
++sun_times_parse (const gchar *str,
++                 SunTimesEvent *event,
++                 gint *minutes)
++{
++    guint64 hours, mins;
++    gint64 offset = 0;
++    gchar *end;
++
++    if (str == NULL)
++        return FALSE;
++
++    if (g_str_has_prefix (str, "sunrise") || g_str_has_prefix (str, "sunset"))
++    {
++        *event = str[3] == 'r' ? SUN_TIMES_SUNRISE : SUN_TIMES_SUNSET;
++        str += *event == SUN_TIMES_SUNRISE ? 7 : 6;
++        if (*str != '\0')
++        {
++            if ((*str != '+' && *str != '-') || !g_ascii_isdigit (str[1]))
++                return FALSE;
++            offset = g_ascii_strtoll (str, &end, 10);
++            if (*end != '\0' || offset < -12 * 60 || offset > 12 * 60)
++                return FALSE;
++        }
++        *minutes = offset;
++        return TRUE;
++    }
++
++    if (!g_ascii_isdigit (*str))
++        return FALSE;
++
++    hours = g_ascii_strtoull (str, &end, 10);
++    if (*end != ':' || !g_ascii_isdigit (end[1]))
++        return FALSE;
++
++    mins = g_ascii_strtoull (end + 1, &end, 10);
++    if (*end != '\0' || hours > 23 || mins > 59)
++        return FALSE;
++
++    *event = SUN_TIMES_CLOCK;
++    *minutes = hours * 60 + mins;
++    return TRUE;
++}
++
++/* the rule time string for @event and @minutes */
++static inline gchar *
++sun_times_to_string (SunTimesEvent event,
++                     gint minutes)
++{
++    const gchar *name = event == SUN_TIMES_SUNRISE ? "sunrise" : "sunset";
++
++    if (event == SUN_TIMES_CLOCK)
++        return g_strdup_printf ("%02d:%02d", minutes / 60, minutes % 60);
++    if (minutes == 0)
++        return g_strdup (name);
++    return g_strdup_printf ("%s%+d", name, minutes);
++}
++
++/* "+DDMM[SS]" or "+DDDMM[SS]" from the zone table -> degrees */
++static inline gboolean
++sun_times_parse_iso6709 (const gchar *str,
++                         gint degree_digits,
++                         gdouble *degrees,
++                         const gchar **end)
++{
++    gint n_digits = 0;
++    gdouble value = 0;
++    guint parts[3] = { 0, 0, 0 };
++
++    if (*str != '+' && *str != '-')
++        return FALSE;
++
++    while (g_ascii_isdigit (str[1 + n_digits]))
++        n_digits++;
++    if (n_digits != degree_digits + 2 && n_digits != degree_digits + 4)
++        return FALSE;
++
++    for (gint i = 0; i < n_digits; i++)
++    {
++        gint part = i < degree_digits ? 0 : 1 + (i - degree_digits) / 2;
++        parts[part] = parts[part] * 10 + g_ascii_digit_value (str[1 + i]);
++    }
++
++    value = parts[0] + parts[1] / 60.0 + parts[2] / 3600.0;
++    *degrees = *str == '-' ? -value : value;
++    *end = str + 1 + n_digits;
++
++    return TRUE;
++}
++
++static inline gint
++sun_times_compare_zones (const gchar **a,
++                         const gchar **b)
++{
++    return g_strcmp0 (*a, *b);
++}
++
++/* the lines of the tzdata zone tables, NULL-terminated */
++static inline gchar **
++sun_times_read_zone_tables (void)
++{
++    static const gchar *tables[] = { "zone1970.tab", "zone.tab" };
++    GString *all = g_string_new (NULL);
++    gchar **lines;
++
++    for (guint t = 0; t < G_N_ELEMENTS (tables); t++)
++    {
++        gchar *path = g_build_filename (SUN_TIMES_ZONEINFO_DIR, tables[t], NULL);
++        gchar *contents = NULL;
++
++        if (g_file_get_contents (path, &contents, NULL, NULL))
++            g_string_append_printf (all, "%s\n", contents);
++
++        g_free (contents);
++        g_free (path);
++    }
++
++    lines = g_strsplit (all->str, "\n", -1);
++    g_string_free (all, TRUE);
++
++    return lines;
++}
++
++/* @line of a zone table -> the zone name (to be freed) and its coordinates */
++static inline gchar *
++sun_times_parse_zone_line (const gchar *line,
++                           gdouble *latitude,
++                           gdouble *longitude)
++{
++    gchar **columns = g_strsplit (line, "\t", 4);
++    gchar *zone = NULL;
++    const gchar *end;
++
++    /* country codes, coordinates, zone name, comment */
++    if (line[0] != '#' && g_strv_length (columns) >= 3
++        && sun_times_parse_iso6709 (columns[1], 2, latitude, &end)
++        && sun_times_parse_iso6709 (end, 3, longitude, &end)
++        && *end == '\0')
++        zone = g_strdup (columns[2]);
++
++    g_strfreev (columns);
++
++    return zone;
++}
++
++/* the names of all time zones with coordinates, sorted */
++static inline GPtrArray *
++sun_times_list_zones (void)
++{
++    gchar **lines = sun_times_read_zone_tables ();
++    GHashTable *seen = g_hash_table_new (g_str_hash, g_str_equal);
++    GPtrArray *zones = g_ptr_array_new_with_free_func (g_free);
++    gdouble latitude, longitude;
++
++    for (guint i = 0; lines[i] != NULL; i++)
++    {
++        gchar *zone = sun_times_parse_zone_line (lines[i], &latitude, &longitude);
++
++        if (zone != NULL && g_hash_table_add (seen, zone))
++            g_ptr_array_add (zones, zone);
++        else
++            g_free (zone);
++    }
++
++    g_ptr_array_sort (zones, (GCompareFunc) sun_times_compare_zones);
++    g_hash_table_unref (seen);
++    g_strfreev (lines);
++
++    return zones;
++}
++
++/* the coordinates of time zone @zone in the tzdata zone tables */
++static inline gboolean
++sun_times_zone_location (const gchar *zone,
++                         gdouble *latitude,
++                         gdouble *longitude)
++{
++    gchar **lines = sun_times_read_zone_tables ();
++    gboolean found = FALSE;
++
++    for (guint i = 0; lines[i] != NULL && !found; i++)
++    {
++        gchar *name = sun_times_parse_zone_line (lines[i], latitude, longitude);
++
++        found = g_strcmp0 (name, zone) == 0;
++        g_free (name);
++    }
++
++    g_strfreev (lines);
++
++    if (!found)
++    {
++        /* an old name, linked to the current one ("Europe/Kiev") */
++        gchar *path = g_build_filename (SUN_TIMES_ZONEINFO_DIR, zone, NULL);
++        gchar *target = realpath (path, NULL);
++
++        if (target != NULL && g_str_has_prefix (target, SUN_TIMES_ZONEINFO_DIR "/")
++            && g_strcmp0 (target + strlen (SUN_TIMES_ZONEINFO_DIR "/"), zone) != 0)
++            found = sun_times_zone_location (target + strlen (SUN_TIMES_ZONEINFO_DIR "/"), latitude, longitude);
++        free (target);
++        g_free (path);
++    }
++
++    return found;
++}
++
++/* the name of the system time zone, if known, e.g. "Europe/Berlin" */
++static inline gchar *
++sun_times_get_zone (void)
++{
++    GTimeZone *tz = g_time_zone_new_local ();
++    const gchar *identifier = g_time_zone_get_identifier (tz);
++    gchar *zone = NULL;
++
++    if (identifier != NULL && *identifier != ':' && *identifier != '/')
++        zone = g_strdup (identifier);
++    else
++    {
++        /* /etc/localtime is a link into the zoneinfo directory */
++        gchar *target = realpath ("/etc/localtime", NULL);
++
++        if (target != NULL && g_str_has_prefix (target, SUN_TIMES_ZONEINFO_DIR "/"))
++            zone = g_strdup (target + strlen (SUN_TIMES_ZONEINFO_DIR "/"));
++        free (target);
++    }
++
++    g_time_zone_unref (tz);
++
++    return zone;
++}
++
++/* the location for the sun times: from @setting, which is a time zone name
++ * ("Europe/Berlin") or "latitude,longitude", or if NULL or empty from the
++ * system time zone; @zone_name gets the time zone used, if any */
++static inline gboolean
++sun_times_get_location (const gchar *setting,
++                        gdouble *latitude,
++                        gdouble *longitude,
++                        gchar **zone_name)
++{
++    gchar *zone, *end;
++    gboolean found;
++
++    if (zone_name != NULL)
++        *zone_name = NULL;
++
++    if (setting != NULL && *setting != '\0' && !g_ascii_isalpha (*setting))
++    {
++        *latitude = g_ascii_strtod (setting, &end);
++        if (*end != ',')
++            return FALSE;
++        *longitude = g_ascii_strtod (end + 1, &end);
++        return *end == '\0' && fabs (*latitude) <= 90 && fabs (*longitude) <= 180;
++    }
++
++    zone = setting != NULL && *setting != '\0' ? g_strdup (setting) : sun_times_get_zone ();
++    if (zone == NULL)
++        return FALSE;
++
++    found = sun_times_zone_location (zone, latitude, longitude);
++    if (found && zone_name != NULL)
++        *zone_name = g_steal_pointer (&zone);
++    g_free (zone);
++
++    return found;
++}
++
++#define SUN_TIMES_RAD(deg) ((deg) * G_PI / 180.0)
++#define SUN_TIMES_DEG(rad) ((rad) * 180.0 / G_PI)
++
++/* sunrise and sunset in minutes after 00:00 UTC of the day of @date,
++ * NOAA approximation; FALSE if the sun does not rise or set that day */
++static inline gboolean
++sun_times_compute_utc (GDateTime *date,
++                       gdouble latitude,
++                       gdouble longitude,
++                       gdouble *sunrise,
++                       gdouble *sunset)
++{
++    GDateTime *noon;
++    gdouble jd, t, mean_long, mean_anom, eccent, center, app_long, obliquity, declination, y, eq_time, cos_ha, ha;
++
++    /* Julian day at noon UTC */
++    noon = g_date_time_new_utc (g_date_time_get_year (date), g_date_time_get_month (date),
++                                g_date_time_get_day_of_month (date), 12, 0, 0);
++    jd = g_date_time_to_unix (noon) / 86400.0 + 2440587.5;
++    g_date_time_unref (noon);
++
++    t = (jd - 2451545.0) / 36525.0;
++    mean_long = fmod (280.46646 + t * (36000.76983 + t * 0.0003032), 360.0);
++    mean_anom = 357.52911 + t * (35999.05029 - 0.0001537 * t);
++    eccent = 0.016708634 - t * (0.000042037 + 0.0000001267 * t);
++    center = sin (SUN_TIMES_RAD (mean_anom)) * (1.914602 - t * (0.004817 + 0.000014 * t))
++             + sin (SUN_TIMES_RAD (2 * mean_anom)) * (0.019993 - 0.000101 * t)
++             + sin (SUN_TIMES_RAD (3 * mean_anom)) * 0.000289;
++    app_long = mean_long + center - 0.00569 - 0.00478 * sin (SUN_TIMES_RAD (125.04 - 1934.136 * t));
++    obliquity = 23.0 + (26.0 + (21.448 - t * (46.815 + t * (0.00059 - t * 0.001813))) / 60.0) / 60.0
++                + 0.00256 * cos (SUN_TIMES_RAD (125.04 - 1934.136 * t));
++    declination = asin (sin (SUN_TIMES_RAD (obliquity)) * sin (SUN_TIMES_RAD (app_long)));
++    y = tan (SUN_TIMES_RAD (obliquity / 2)) * tan (SUN_TIMES_RAD (obliquity / 2));
++    eq_time = 4 * SUN_TIMES_DEG (y * sin (2 * SUN_TIMES_RAD (mean_long))
++                                 - 2 * eccent * sin (SUN_TIMES_RAD (mean_anom))
++                                 + 4 * eccent * y * sin (SUN_TIMES_RAD (mean_anom)) * cos (2 * SUN_TIMES_RAD (mean_long))
++                                 - 0.5 * y * y * sin (4 * SUN_TIMES_RAD (mean_long))
++                                 - 1.25 * eccent * eccent * sin (2 * SUN_TIMES_RAD (mean_anom)));
++
++    /* the sun's upper edge at the horizon, with refraction */
++    cos_ha = cos (SUN_TIMES_RAD (90.833)) / (cos (SUN_TIMES_RAD (latitude)) * cos (declination))
++             - tan (SUN_TIMES_RAD (latitude)) * tan (declination);
++    if (cos_ha < -1 || cos_ha > 1)
++        return FALSE;
++    ha = SUN_TIMES_DEG (acos (cos_ha));
++
++    *sunrise = 720 - 4 * (longitude + ha) - eq_time;
++    *sunset = 720 - 4 * (longitude - ha) - eq_time;
++
++    return TRUE;
++}
++
++/* minutes since local midnight at which a rule of @event and @minutes fires on
++ * the local day of @date, or -1 if not that day (no location, polar day or night) */
++static inline gint
++sun_times_minutes_on (GDateTime *date,
++                      SunTimesEvent event,
++                      gint minutes,
++                      gboolean has_location,
++                      gdouble latitude,
++                      gdouble longitude)
++{
++    GDateTime *midnight_utc, *at, *local;
++    gdouble sunrise, sunset;
++    gint result;
++
++    if (event == SUN_TIMES_CLOCK)
++        return minutes;
++
++    if (!has_location || !sun_times_compute_utc (date, latitude, longitude, &sunrise, &sunset))
++        return -1;
++
++    midnight_utc = g_date_time_new_utc (g_date_time_get_year (date), g_date_time_get_month (date),
++                                        g_date_time_get_day_of_month (date), 0, 0, 0);
++    at = g_date_time_add_seconds (midnight_utc, ((event == SUN_TIMES_SUNRISE ? sunrise : sunset) + minutes) * 60);
++    local = g_date_time_to_local (at);
++    result = g_date_time_get_hour (local) * 60 + g_date_time_get_minute (local);
++
++    g_date_time_unref (local);
++    g_date_time_unref (at);
++    g_date_time_unref (midnight_utc);
++
++    return result;
++}
++
++G_END_DECLS
++
++#endif /* !__SUN_TIMES_H__ */
 diff --git a/common/theme-variant.h b/common/theme-variant.h
 new file mode 100644
 index 00000000..5f55f4c7
@@ -315,21 +754,36 @@ index 00000000..5f55f4c7
 +G_END_DECLS
 +
 +#endif /* !__THEME_VARIANT_H__ */
+diff --git a/dialogs/appearance-settings/Makefile.am b/dialogs/appearance-settings/Makefile.am
+index 180af5ab..f72eae4a 100644
+--- a/dialogs/appearance-settings/Makefile.am
++++ b/dialogs/appearance-settings/Makefile.am
+@@ -37,7 +37,8 @@ xfce4_appearance_settings_LDADD = \
+ 	$(GTK_LIBS) \
+ 	$(LIBXFCE4UI_LIBS) \
+ 	$(LIBXFCE4UTIL_LIBS) \
+-	$(XFCONF_LIBS)
++	$(XFCONF_LIBS) \
++	-lm
+ 
+ xfce4_appearance_scriptsdir = $(HELPER_PATH_PREFIX)/xfce4/settings
+ xfce4_appearance_scripts_SCRIPTS = appearance-install-theme
 diff --git a/dialogs/appearance-settings/main.c b/dialogs/appearance-settings/main.c
-index 3257b2a9..2107bc58 100644
+index 3257b2a9..6e2d4648 100644
 --- a/dialogs/appearance-settings/main.c
 +++ b/dialogs/appearance-settings/main.c
-@@ -23,6 +23,9 @@
+@@ -23,6 +23,10 @@
  
  #include "appearance-dialog_ui.h"
  
 +#include "common/backlight.h"
++#include "common/sun-times.h"
 +#include "common/theme-variant.h"
 +
  #include <cairo-gobject.h>
  #include <gio/gio.h>
  #include <gtk/gtk.h>
-@@ -65,6 +68,42 @@ enum
+@@ -65,6 +69,43 @@ enum
      N_RGBA_COLUMNS
  };
  
@@ -356,6 +810,7 @@ index 3257b2a9..2107bc58 100644
 +
 +/* Theme schedule, applied by xfsettingsd */
 +#define SCHEDULE_ENABLED_PROP "/Xfce/ThemeSchedule/Enabled"
++#define SCHEDULE_LOCATION_PROP "/Xfce/ThemeSchedule/Location"
 +
 +/* the rules are stored as one string array per column, see xfsettingsd/theme-schedule.c */
 +static const gchar *schedule_props[N_SCHEDULE_COLUMNS] = {
@@ -372,7 +827,7 @@ index 3257b2a9..2107bc58 100644
  enum
  {
      COLOR_FG,
-@@ -98,6 +137,24 @@ static GOptionEntry option_entries[] = {
+@@ -98,6 +139,33 @@ static GOptionEntry option_entries[] = {
  static XfconfChannel *xsettings_channel;
  static GSettings *desktop_interface_gsettings;
  
@@ -388,38 +843,157 @@ index 3257b2a9..2107bc58 100644
 +    GtkTreeViewColumn *time_column;
 +    GtkTreeViewColumn *more_column;
 +    GtkWidget *status_label;
++    GtkWidget *location_box; /* shown if a rule is at sunrise or sunset */
++    GtkWidget *location_label;
 +    GtkWidget *time_popover;
++    GtkWidget *time_event_combo; /* in the order of SunTimesEvent */
++    GtkWidget *time_stack;
 +    GtkWidget *hour_spin;
 +    GtkWidget *minute_spin;
++    GtkWidget *offset_spin;
 +    gchar *time_path; /* the rule whose time the popover edits */
++    gboolean has_location; /* for sunrise and sunset */
++    gdouble latitude;
++    gdouble longitude;
++    gchar *zone; /* the time zone the location is from, or NULL */
 +} schedule;
 +
  typedef struct
  {
      GtkListStore *list_store;
-@@ -1662,6 +1719,1264 @@ appearance_settings_dialog_configure_widgets (GtkBuilder *builder)
+@@ -1662,6 +1730,1708 @@ appearance_settings_dialog_configure_widgets (GtkBuilder *builder)
  #endif
  }
  
-+/* "HH:MM" -> minutes since midnight, or -1 if invalid */
-+static gint
-+schedule_parse_time (const gchar *str)
++static void
++schedule_refresh_location (void)
 +{
-+    guint64 hours, minutes;
-+    gchar *end;
++    gchar *setting = xfconf_channel_get_string (xsettings_channel, SCHEDULE_LOCATION_PROP, NULL);
 +
-+    if (str == NULL || !g_ascii_isdigit (*str))
++    g_free (schedule.zone);
++    schedule.has_location = sun_times_get_location (setting, &schedule.latitude, &schedule.longitude, &schedule.zone);
++    g_free (setting);
++}
++
++/* minutes since midnight at which the rule time @str is on the day of @date,
++ * or -1 if invalid or not that day */
++static gint
++schedule_time_on (const gchar *str,
++                  GDateTime *date)
++{
++    SunTimesEvent event;
++    gint minutes;
++
++    if (!sun_times_parse (str, &event, &minutes))
 +        return -1;
 +
-+    hours = g_ascii_strtoull (str, &end, 10);
-+    if (*end != ':' || !g_ascii_isdigit (end[1]))
-+        return -1;
++    return sun_times_minutes_on (date, event, minutes, schedule.has_location, schedule.latitude, schedule.longitude);
++}
 +
-+    minutes = g_ascii_strtoull (end + 1, &end, 10);
-+    if (*end != '\0' || hours > 23 || minutes > 59)
-+        return -1;
++/* whether the rule times @a and @b are the same */
++static gboolean
++schedule_same_time (const gchar *a,
++                    const gchar *b)
++{
++    SunTimesEvent event_a, event_b;
++    gint minutes_a, minutes_b;
 +
-+    return hours * 60 + minutes;
++    return sun_times_parse (a, &event_a, &minutes_a) && sun_times_parse (b, &event_b, &minutes_b)
++           && event_a == event_b && minutes_a == minutes_b;
++}
++
++/* the rule time @str for the list, e.g. "Sunset +30 min (17:12)" */
++static gchar *
++schedule_describe_time (const gchar *str)
++{
++    SunTimesEvent event;
++    GDateTime *now;
++    gint minutes, today;
++    gchar *name, *text;
++
++    if (!sun_times_parse (str, &event, &minutes))
++        return g_strdup (str);
++    if (event == SUN_TIMES_CLOCK)
++        return g_strdup_printf ("%02d:%02d", minutes / 60, minutes % 60);
++
++    if (minutes == 0)
++        name = g_strdup (event == SUN_TIMES_SUNRISE ? _("Sunrise") : _("Sunset"));
++    else
++        /* TRANSLATORS: sunrise or sunset with an offset in minutes, e.g. "Sunset +30 min" */
++        name = g_strdup_printf (event == SUN_TIMES_SUNRISE ? _("Sunrise %+d min") : _("Sunset %+d min"), minutes);
++
++    now = g_date_time_new_now_local ();
++    today = schedule_time_on (str, now);
++    g_date_time_unref (now);
++
++    if (today < 0)
++        return name;
++
++    text = g_strdup_printf ("%s (%02d:%02d)", name, today / 60, today % 60);
++    g_free (name);
++
++    return text;
++}
++
++/* whether a rule is at sunrise or sunset */
++static gboolean
++schedule_uses_sun (void)
++{
++    GtkTreeModel *model = GTK_TREE_MODEL (schedule.store);
++    GtkTreeIter iter;
++    gboolean uses_sun = FALSE;
++
++    if (gtk_tree_model_get_iter_first (model, &iter))
++    {
++        do
++        {
++            SunTimesEvent event;
++            gchar *time_str;
++            gint minutes;
++
++            gtk_tree_model_get (model, &iter, COLUMN_SCHEDULE_TIME, &time_str, -1);
++            uses_sun = sun_times_parse (time_str, &event, &minutes) && event != SUN_TIMES_CLOCK;
++            g_free (time_str);
++        } while (!uses_sun && gtk_tree_model_iter_next (model, &iter));
++    }
++
++    return uses_sun;
++}
++
++static void
++schedule_update_location_label (void)
++{
++    GDateTime *now;
++    gchar *place, *text;
++    gint sunrise, sunset;
++
++    if (!schedule.has_location)
++    {
++        gtk_label_set_text (GTK_LABEL (schedule.location_label), _("Choose a location for sunrise and sunset."));
++        return;
++    }
++
++    if (schedule.zone != NULL)
++        place = g_strdup (schedule.zone);
++    else
++        place = g_strdup_printf ("%.2f°, %.2f°", schedule.latitude, schedule.longitude);
++
++    now = g_date_time_new_now_local ();
++    sunrise = schedule_time_on ("sunrise", now);
++    sunset = schedule_time_on ("sunset", now);
++    g_date_time_unref (now);
++
++    if (sunrise < 0 || sunset < 0)
++        text = g_strdup_printf (_("%s: no sunrise or sunset today"), place);
++    else
++        text = g_strdup_printf (_("%s: sunrise %02d:%02d, sunset %02d:%02d"), place,
++                                sunrise / 60, sunrise % 60, sunset / 60, sunset % 60);
++
++    gtk_label_set_text (GTK_LABEL (schedule.location_label), text);
++    gtk_widget_set_tooltip_text (schedule.location_label, text);
++
++    g_free (text);
++    g_free (place);
 +}
 +
 +/* the installed theme whose name matches @name case-insensitively, or NULL */
@@ -441,8 +1015,7 @@ index 3257b2a9..2107bc58 100644
 +            if (theme != NULL && g_ascii_strcasecmp (theme, name) == 0)
 +                found = g_steal_pointer (&theme);
 +            g_free (theme);
-+        }
-+        while (found == NULL && gtk_tree_model_iter_next (model, &iter));
++        } while (found == NULL && gtk_tree_model_iter_next (model, &iter));
 +    }
 +
 +    return found;
@@ -467,8 +1040,7 @@ index 3257b2a9..2107bc58 100644
 +            if (g_strcmp0 (choice_label, label) == 0)
 +                gtk_tree_model_get (model, &iter, COLUMN_CHOICE_VALUE, &value, -1);
 +            g_free (choice_label);
-+        }
-+        while (value == NULL && gtk_tree_model_iter_next (model, &iter));
++        } while (value == NULL && gtk_tree_model_iter_next (model, &iter));
 +    }
 +
 +    return value;
@@ -493,8 +1065,7 @@ index 3257b2a9..2107bc58 100644
 +            if (g_strcmp0 (choice_value, value) == 0)
 +                gtk_tree_model_get (model, &iter, COLUMN_CHOICE_LABEL, &label, -1);
 +            g_free (choice_value);
-+        }
-+        while (label == NULL && gtk_tree_model_iter_next (model, &iter));
++        } while (label == NULL && gtk_tree_model_iter_next (model, &iter));
 +    }
 +
 +    return label != NULL ? label : g_strdup (value);
@@ -528,7 +1099,7 @@ index 3257b2a9..2107bc58 100644
 +            g_ptr_array_add (parts, g_strdup_printf (theme[1] == 'd' ? _("no dark variant of %s")
 +                                                                     : _("no light variant of %s"),
 +                                                     current));
-+        else if (strcmp (variant, current) != 0)
++        else if (g_strcmp0 (variant, current) != 0)
 +            g_ptr_array_add (parts, g_strdup (variant));
 +
 +        g_free (variant);
@@ -575,7 +1146,7 @@ index 3257b2a9..2107bc58 100644
 +{
 +    GtkTreeModel *model = GTK_TREE_MODEL (schedule.store);
 +    GtkTreeIter iter;
-+    GDateTime *now;
++    GDateTime *now, *tomorrow;
 +    gint now_minutes;
 +    gint next_minutes = -1, first_minutes = -1;
 +    gchar *next_rule = NULL, *first_rule = NULL;
@@ -585,6 +1156,9 @@ index 3257b2a9..2107bc58 100644
 +    if (schedule.status_label == NULL)
 +        return;
 +
++    gtk_widget_set_visible (schedule.location_box, schedule_uses_sun ());
++    schedule_update_location_label ();
++
 +    if (!xfconf_channel_get_bool (xsettings_channel, SCHEDULE_ENABLED_PROP, FALSE))
 +    {
 +        gtk_label_set_text (GTK_LABEL (schedule.status_label), "");
@@ -593,7 +1167,7 @@ index 3257b2a9..2107bc58 100644
 +
 +    now = g_date_time_new_now_local ();
 +    now_minutes = g_date_time_get_hour (now) * 60 + g_date_time_get_minute (now);
-+    g_date_time_unref (now);
++    tomorrow = g_date_time_add_days (now, 1);
 +
 +    /* next rule after now, or the first rule of tomorrow */
 +    if (gtk_tree_model_get_iter_first (model, &iter))
@@ -601,13 +1175,14 @@ index 3257b2a9..2107bc58 100644
 +        do
 +        {
 +            gchar *time_str, *rule;
-+            gint minutes;
++            gint minutes, minutes_tomorrow;
 +
 +            gtk_tree_model_get (model, &iter, COLUMN_SCHEDULE_TIME, &time_str, -1);
-+            minutes = schedule_parse_time (time_str);
++            minutes = schedule_time_on (time_str, now);
++            minutes_tomorrow = schedule_time_on (time_str, tomorrow);
 +            rule = schedule_describe_rule (model, &iter);
 +
-+            if (minutes >= 0 && rule != NULL)
++            if (rule != NULL)
 +            {
 +                if (minutes > now_minutes && (next_minutes < 0 || minutes < next_minutes))
 +                {
@@ -615,9 +1190,9 @@ index 3257b2a9..2107bc58 100644
 +                    g_free (next_rule);
 +                    next_rule = g_strdup (rule);
 +                }
-+                if (first_minutes < 0 || minutes < first_minutes)
++                if (minutes_tomorrow >= 0 && (first_minutes < 0 || minutes_tomorrow < first_minutes))
 +                {
-+                    first_minutes = minutes;
++                    first_minutes = minutes_tomorrow;
 +                    g_free (first_rule);
 +                    first_rule = g_strdup (rule);
 +                }
@@ -625,9 +1200,11 @@ index 3257b2a9..2107bc58 100644
 +
 +            g_free (time_str);
 +            g_free (rule);
-+        }
-+        while (gtk_tree_model_iter_next (model, &iter));
++        } while (gtk_tree_model_iter_next (model, &iter));
 +    }
++
++    g_date_time_unref (now);
++    g_date_time_unref (tomorrow);
 +
 +    if (next_minutes < 0)
 +    {
@@ -676,8 +1253,7 @@ index 3257b2a9..2107bc58 100644
 +                gtk_tree_model_get (model, &iter, c, &value, -1);
 +                g_ptr_array_add (values[c], value != NULL ? value : g_strdup (""));
 +            }
-+        }
-+        while (gtk_tree_model_iter_next (model, &iter));
++        } while (gtk_tree_model_iter_next (model, &iter));
 +    }
 +
 +    for (guint c = 0; c < N_SCHEDULE_COLUMNS; c++)
@@ -728,9 +1304,9 @@ index 3257b2a9..2107bc58 100644
 +        g_strfreev (values[c]);
 +}
 +
-+/* whether a rule other than the one at @except_path (may be NULL) is at @minutes */
++/* whether a rule other than the one at @except_path (may be NULL) is at @time_str */
 +static gboolean
-+schedule_time_taken (gint minutes,
++schedule_time_taken (const gchar *time_str,
 +                     const gchar *except_path)
 +{
 +    GtkTreeModel *model = GTK_TREE_MODEL (schedule.store);
@@ -741,15 +1317,14 @@ index 3257b2a9..2107bc58 100644
 +    {
 +        do
 +        {
-+            gchar *time_str, *path;
++            gchar *rule_time_str, *path;
 +
-+            gtk_tree_model_get (model, &iter, COLUMN_SCHEDULE_TIME, &time_str, -1);
++            gtk_tree_model_get (model, &iter, COLUMN_SCHEDULE_TIME, &rule_time_str, -1);
 +            path = gtk_tree_model_get_string_from_iter (model, &iter);
-+            taken = schedule_parse_time (time_str) == minutes && g_strcmp0 (path, except_path) != 0;
-+            g_free (time_str);
++            taken = schedule_same_time (rule_time_str, time_str) && g_strcmp0 (path, except_path) != 0;
++            g_free (rule_time_str);
 +            g_free (path);
-+        }
-+        while (!taken && gtk_tree_model_iter_next (model, &iter));
++        } while (!taken && gtk_tree_model_iter_next (model, &iter));
 +    }
 +
 +    return taken;
@@ -757,25 +1332,25 @@ index 3257b2a9..2107bc58 100644
 +
 +static void
 +schedule_set_time (const gchar *path,
-+                   gint minutes)
++                   const gchar *time_str)
 +{
 +    GtkTreeIter iter;
-+    gchar *time_str;
++    gchar *description, *text;
 +
-+    if (schedule_time_taken (minutes, path))
++    if (schedule_time_taken (time_str, path))
 +    {
 +        gtk_widget_error_bell (schedule.treeview);
-+        time_str = g_strdup_printf (_("There is already a rule at %02d:%02d."), minutes / 60, minutes % 60);
-+        gtk_label_set_text (GTK_LABEL (schedule.status_label), time_str);
-+        g_free (time_str);
++        description = schedule_describe_time (time_str);
++        text = g_strdup_printf (_("There is already a rule at %s."), description);
++        gtk_label_set_text (GTK_LABEL (schedule.status_label), text);
++        g_free (text);
++        g_free (description);
 +        return;
 +    }
 +
 +    if (gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL (schedule.store), &iter, path))
 +    {
-+        time_str = g_strdup_printf ("%02d:%02d", minutes / 60, minutes % 60);
 +        gtk_list_store_set (schedule.store, &iter, COLUMN_SCHEDULE_TIME, time_str, -1);
-+        g_free (time_str);
 +        schedule_save ();
 +    }
 +}
@@ -792,11 +1367,32 @@ index 3257b2a9..2107bc58 100644
 +    return TRUE;
 +}
 +
++/* the offset from sunrise or sunset with its sign */
++static gboolean
++cb_schedule_offset_spin_output (GtkSpinButton *spin)
++{
++    gint offset = gtk_spin_button_get_value_as_int (spin);
++    gchar *text = offset != 0 ? g_strdup_printf ("%+d", offset) : g_strdup ("0");
++
++    gtk_entry_set_text (GTK_ENTRY (spin), text);
++    g_free (text);
++
++    return TRUE;
++}
++
++static void
++cb_schedule_time_event_changed (GtkComboBox *combo)
++{
++    gtk_stack_set_visible_child_name (GTK_STACK (schedule.time_stack),
++                                      gtk_combo_box_get_active (combo) == SUN_TIMES_CLOCK ? "clock" : "sun");
++}
++
 +static void
 +cb_schedule_time_popover_closed (GtkPopover *popover)
 +{
 +    gchar *time_str, *old_time_str;
 +    GtkTreeIter iter;
++    SunTimesEvent event;
 +
 +    if (schedule.time_path == NULL)
 +        return;
@@ -804,16 +1400,21 @@ index 3257b2a9..2107bc58 100644
 +    /* take digits typed but not confirmed yet */
 +    gtk_spin_button_update (GTK_SPIN_BUTTON (schedule.hour_spin));
 +    gtk_spin_button_update (GTK_SPIN_BUTTON (schedule.minute_spin));
++    gtk_spin_button_update (GTK_SPIN_BUTTON (schedule.offset_spin));
 +
 +    if (gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL (schedule.store), &iter, schedule.time_path))
 +    {
-+        gint minutes = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (schedule.hour_spin)) * 60
-+                       + gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (schedule.minute_spin));
++        event = gtk_combo_box_get_active (GTK_COMBO_BOX (schedule.time_event_combo));
++        if (event == SUN_TIMES_CLOCK)
++            time_str = sun_times_to_string (event,
++                                            gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (schedule.hour_spin)) * 60
++                                                + gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (schedule.minute_spin)));
++        else
++            time_str = sun_times_to_string (event, gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (schedule.offset_spin)));
 +
 +        gtk_tree_model_get (GTK_TREE_MODEL (schedule.store), &iter, COLUMN_SCHEDULE_TIME, &old_time_str, -1);
-+        time_str = g_strdup_printf ("%02d:%02d", minutes / 60, minutes % 60);
-+        if (g_strcmp0 (time_str, old_time_str) != 0)
-+            schedule_set_time (schedule.time_path, minutes);
++        if (!schedule_same_time (time_str, old_time_str))
++            schedule_set_time (schedule.time_path, time_str);
 +        g_free (time_str);
 +        g_free (old_time_str);
 +    }
@@ -839,16 +1440,19 @@ index 3257b2a9..2107bc58 100644
 +    return spin;
 +}
 +
-+/* GTK has no time picker: hours and minutes in a popover at the cell */
++/* GTK has no time picker: hours and minutes, or the offset from sunrise or
++ * sunset, in a popover at the cell */
 +static void
 +schedule_edit_time (GtkTreePath *path)
 +{
 +    GtkTreeView *treeview = GTK_TREE_VIEW (schedule.treeview);
 +    GtkTreeIter iter;
 +    GdkRectangle rect;
-+    GtkWidget *box;
++    GtkWidget *vbox, *box;
++    GDateTime *now;
++    SunTimesEvent event;
 +    gchar *time_str;
-+    gint minutes;
++    gint minutes, today;
 +
 +    if (!gtk_tree_model_get_iter (GTK_TREE_MODEL (schedule.store), &iter, path))
 +        return;
@@ -859,33 +1463,72 @@ index 3257b2a9..2107bc58 100644
 +        gtk_popover_set_position (GTK_POPOVER (schedule.time_popover), GTK_POS_BOTTOM);
 +        g_signal_connect (schedule.time_popover, "closed", G_CALLBACK (cb_schedule_time_popover_closed), NULL);
 +
-+        box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
-+        gtk_container_set_border_width (GTK_CONTAINER (box), 12);
-+        gtk_container_add (GTK_CONTAINER (schedule.time_popover), box);
++        vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
++        gtk_container_set_border_width (GTK_CONTAINER (vbox), 12);
++        gtk_container_add (GTK_CONTAINER (schedule.time_popover), vbox);
 +
++        schedule.time_event_combo = gtk_combo_box_text_new ();
++        gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (schedule.time_event_combo), _("At a time"));
++        gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (schedule.time_event_combo), _("At sunrise"));
++        gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (schedule.time_event_combo), _("At sunset"));
++        g_signal_connect (schedule.time_event_combo, "changed", G_CALLBACK (cb_schedule_time_event_changed), NULL);
++        gtk_box_pack_start (GTK_BOX (vbox), schedule.time_event_combo, FALSE, FALSE, 0);
++
++        schedule.time_stack = gtk_stack_new ();
++        gtk_stack_set_vhomogeneous (GTK_STACK (schedule.time_stack), FALSE);
++        gtk_box_pack_start (GTK_BOX (vbox), schedule.time_stack, FALSE, FALSE, 0);
++
++        box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
++        gtk_widget_set_halign (box, GTK_ALIGN_CENTER);
 +        schedule.hour_spin = schedule_time_spin_new (23);
 +        gtk_box_pack_start (GTK_BOX (box), schedule.hour_spin, FALSE, FALSE, 0);
 +        gtk_box_pack_start (GTK_BOX (box), gtk_label_new (":"), FALSE, FALSE, 0);
 +        schedule.minute_spin = schedule_time_spin_new (59);
 +        gtk_box_pack_start (GTK_BOX (box), schedule.minute_spin, FALSE, FALSE, 0);
++        gtk_stack_add_named (GTK_STACK (schedule.time_stack), box, "clock");
 +
-+        gtk_widget_show_all (box);
++        box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
++        gtk_widget_set_halign (box, GTK_ALIGN_CENTER);
++        gtk_widget_set_valign (box, GTK_ALIGN_CENTER);
++        schedule.offset_spin = gtk_spin_button_new_with_range (-180, 180, 5);
++        gtk_spin_button_set_increments (GTK_SPIN_BUTTON (schedule.offset_spin), 5, 30);
++        gtk_entry_set_width_chars (GTK_ENTRY (schedule.offset_spin), 4);
++        gtk_entry_set_alignment (GTK_ENTRY (schedule.offset_spin), 1.0);
++        gtk_widget_set_tooltip_text (schedule.offset_spin, _("Minutes before (-) or after (+)"));
++        g_signal_connect (schedule.offset_spin, "output", G_CALLBACK (cb_schedule_offset_spin_output), NULL);
++        g_signal_connect_swapped (schedule.offset_spin, "activate", G_CALLBACK (gtk_popover_popdown), schedule.time_popover);
++        gtk_box_pack_start (GTK_BOX (box), schedule.offset_spin, FALSE, FALSE, 0);
++        gtk_box_pack_start (GTK_BOX (box), gtk_label_new (_("min")), FALSE, FALSE, 0);
++        gtk_stack_add_named (GTK_STACK (schedule.time_stack), box, "sun");
++
++        gtk_widget_show_all (vbox);
 +    }
 +
 +    gtk_tree_model_get (GTK_TREE_MODEL (schedule.store), &iter, COLUMN_SCHEDULE_TIME, &time_str, -1);
-+    minutes = MAX (schedule_parse_time (time_str), 0);
++    if (!sun_times_parse (time_str, &event, &minutes))
++    {
++        event = SUN_TIMES_CLOCK;
++        minutes = 0;
++    }
++
++    /* the clock time of today also for a rule at sunrise or sunset, as a start */
++    now = g_date_time_new_now_local ();
++    today = MAX (schedule_time_on (time_str, now), 0);
++    g_date_time_unref (now);
 +    g_free (time_str);
 +
 +    g_free (schedule.time_path);
 +    schedule.time_path = gtk_tree_path_to_string (path);
-+    gtk_spin_button_set_value (GTK_SPIN_BUTTON (schedule.hour_spin), minutes / 60);
-+    gtk_spin_button_set_value (GTK_SPIN_BUTTON (schedule.minute_spin), minutes % 60);
++    gtk_combo_box_set_active (GTK_COMBO_BOX (schedule.time_event_combo), event);
++    gtk_spin_button_set_value (GTK_SPIN_BUTTON (schedule.hour_spin), today / 60);
++    gtk_spin_button_set_value (GTK_SPIN_BUTTON (schedule.minute_spin), today % 60);
++    gtk_spin_button_set_value (GTK_SPIN_BUTTON (schedule.offset_spin), event == SUN_TIMES_CLOCK ? 0 : minutes);
 +
 +    gtk_tree_view_get_cell_area (treeview, path, schedule.time_column, &rect);
 +    gtk_tree_view_convert_bin_window_to_widget_coords (treeview, rect.x, rect.y, &rect.x, &rect.y);
 +    gtk_popover_set_pointing_to (GTK_POPOVER (schedule.time_popover), &rect);
 +    gtk_popover_popup (GTK_POPOVER (schedule.time_popover));
-+    gtk_widget_grab_focus (schedule.hour_spin);
++    gtk_widget_grab_focus (event == SUN_TIMES_CLOCK ? schedule.hour_spin : schedule.offset_spin);
 +}
 +
 +/* the row has to be laid out to place the popover at it */
@@ -924,7 +1567,7 @@ index 3257b2a9..2107bc58 100644
 +        gtk_list_store_set (schedule.store, &iter, COLUMN_SCHEDULE_THEME, value, -1);
 +
 +        /* a style comes with the matching color scheme */
-+        if (strcmp (value, ":dark") == 0
++        if (g_strcmp0 (value, ":dark") == 0
 +            || (*value != '\0' && *value != ':' && theme_variant_is_dark (value)))
 +            gtk_list_store_set (schedule.store, &iter, COLUMN_SCHEDULE_COLOR_SCHEME, "prefer-dark", -1);
 +        else if (*value != '\0')
@@ -954,6 +1597,46 @@ index 3257b2a9..2107bc58 100644
 +}
 +
 +/* shows the label of a rule's theme or color scheme value */
++static void
++schedule_time_cell_data (GtkTreeViewColumn *column,
++                         GtkCellRenderer *renderer,
++                         GtkTreeModel *model,
++                         GtkTreeIter *iter,
++                         gpointer user_data)
++{
++    gchar *time_str, *text;
++
++    gtk_tree_model_get (model, iter, COLUMN_SCHEDULE_TIME, &time_str, -1);
++    text = schedule_describe_time (time_str);
++    g_object_set (renderer, "text", text, NULL);
++    g_free (text);
++    g_free (time_str);
++}
++
++/* the rules in the order of their times today */
++static gint
++schedule_compare_times (GtkTreeModel *model,
++                        GtkTreeIter *a,
++                        GtkTreeIter *b,
++                        gpointer user_data)
++{
++    GDateTime *now = g_date_time_new_now_local ();
++    gchar *time_a, *time_b;
++    gint minutes_a, minutes_b, result;
++
++    gtk_tree_model_get (model, a, COLUMN_SCHEDULE_TIME, &time_a, -1);
++    gtk_tree_model_get (model, b, COLUMN_SCHEDULE_TIME, &time_b, -1);
++    minutes_a = schedule_time_on (time_a, now);
++    minutes_b = schedule_time_on (time_b, now);
++    result = minutes_a != minutes_b ? minutes_a - minutes_b : g_strcmp0 (time_a, time_b);
++
++    g_free (time_a);
++    g_free (time_b);
++    g_date_time_unref (now);
++
++    return result;
++}
++
 +static void
 +schedule_choice_cell_data (GtkTreeViewColumn *column,
 +                           GtkCellRenderer *renderer,
@@ -1001,8 +1684,7 @@ index 3257b2a9..2107bc58 100644
 +                                                   COLUMN_CHOICE_LABEL, theme,
 +                                                   COLUMN_CHOICE_VALUE, theme, -1);
 +            g_free (theme);
-+        }
-+        while (gtk_tree_model_iter_next (schedule.themes, &iter));
++        } while (gtk_tree_model_iter_next (schedule.themes, &iter));
 +    }
 +
 +    schedule_update_status ();
@@ -1032,12 +1714,16 @@ index 3257b2a9..2107bc58 100644
 +    start = ((g_date_time_get_hour (now) + 1) % 24) * 60;
 +    g_date_time_unref (now);
 +
-+    for (gint i = 0; i < 24 * 60 && minutes < 0; i += 60)
-+        if (!schedule_time_taken ((start + i) % (24 * 60), NULL))
-+            minutes = (start + i) % (24 * 60);
-+    for (gint i = 0; i < 24 * 60 && minutes < 0; i++)
-+        if (!schedule_time_taken ((start + i) % (24 * 60), NULL))
-+            minutes = (start + i) % (24 * 60);
++    for (gint step = 60; step > 0 && minutes < 0; step = step == 60 ? 1 : 0)
++    {
++        for (gint i = 0; i < 24 * 60 && minutes < 0; i += step)
++        {
++            time_str = sun_times_to_string (SUN_TIMES_CLOCK, (start + i) % (24 * 60));
++            if (!schedule_time_taken (time_str, NULL))
++                minutes = (start + i) % (24 * 60);
++            g_free (time_str);
++        }
++    }
 +
 +    if (minutes < 0)
 +    {
@@ -1046,7 +1732,7 @@ index 3257b2a9..2107bc58 100644
 +    }
 +
 +    /* the typical evening rule: dark variant of the current style, dark colors */
-+    time_str = g_strdup_printf ("%02d:%02d", minutes / 60, minutes % 60);
++    time_str = sun_times_to_string (SUN_TIMES_CLOCK, minutes);
 +    gtk_list_store_insert_with_values (schedule.store, &iter, -1,
 +                                       COLUMN_SCHEDULE_TIME, time_str,
 +                                       COLUMN_SCHEDULE_THEME, ":dark",
@@ -1217,7 +1903,7 @@ index 3257b2a9..2107bc58 100644
 +    /* Xfwm4 theme, by default as the switch on the Style tab */
 +    xfwm4_check = gtk_check_button_new_with_mnemonic (_("Set the matching _window manager theme along with the theme"));
 +    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (xfwm4_check),
-+                                  *xfwm4 != '\0' ? strcmp (xfwm4, "true") == 0
++                                  *xfwm4 != '\0' ? g_strcmp0 (xfwm4, "true") == 0
 +                                                 : xfconf_channel_get_bool (xsettings_channel, "/Xfce/SyncThemes", FALSE));
 +    gtk_grid_attach (GTK_GRID (grid), xfwm4_check, 0, row++, 2, 1);
 +
@@ -1235,8 +1921,7 @@ index 3257b2a9..2107bc58 100644
 +            if (name != NULL)
 +                gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (icon_combo), name, name);
 +            g_free (name);
-+        }
-+        while (gtk_tree_model_iter_next (schedule.icon_themes, &iter));
++        } while (gtk_tree_model_iter_next (schedule.icon_themes, &iter));
 +    }
 +    current = xfconf_channel_get_string (xsettings_channel, "/Net/IconThemeName", "Rodent");
 +    schedule_combo_set_active_id (GTK_COMBO_BOX_TEXT (icon_combo),
@@ -1266,7 +1951,7 @@ index 3257b2a9..2107bc58 100644
 +    box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
 +    brightness_spin = gtk_spin_button_new_with_range (1, 100, 5);
 +    gtk_spin_button_set_value (GTK_SPIN_BUTTON (brightness_spin),
-+                               *brightness != '\0'  ? g_ascii_strtod (brightness, NULL)
++                               *brightness != '\0' ? g_ascii_strtod (brightness, NULL)
 +                               : backlight != NULL ? backlight_get_percent (backlight)
 +                                                   : 100);
 +    gtk_entry_set_activates_default (GTK_ENTRY (brightness_spin), TRUE);
@@ -1440,6 +2125,210 @@ index 3257b2a9..2107bc58 100644
 +    }
 +}
 +
++/* a time zone matches what is typed anywhere in its name, "_" as space */
++static gboolean
++schedule_zone_match (GtkEntryCompletion *completion,
++                     const gchar *key,
++                     GtkTreeIter *iter,
++                     gpointer user_data)
++{
++    gchar *zone, *name, *typed;
++    gboolean match;
++
++    gtk_tree_model_get (gtk_entry_completion_get_model (completion), iter, 0, &zone, -1);
++    name = g_utf8_casefold (g_strdelimit (zone, "_", ' '), -1);
++    typed = g_strdelimit (g_strdup (key), "_", ' ');
++    match = strstr (name, typed) != NULL;
++
++    g_free (typed);
++    g_free (name);
++    g_free (zone);
++
++    return match;
++}
++
++/* the coordinates of a time zone picked as the city, as a start for own ones */
++static void
++cb_schedule_city_changed (GtkEntry *entry,
++                          GtkWidget **spins)
++{
++    gdouble latitude, longitude;
++
++    if (sun_times_zone_location (gtk_entry_get_text (entry), &latitude, &longitude))
++    {
++        gtk_spin_button_set_value (GTK_SPIN_BUTTON (spins[0]), latitude);
++        gtk_spin_button_set_value (GTK_SPIN_BUTTON (spins[1]), longitude);
++    }
++}
++
++static GtkWidget *
++schedule_location_spin_new (GtkWidget *grid,
++                            gint row,
++                            const gchar *label_text,
++                            gdouble max,
++                            const gchar *tooltip,
++                            GtkWidget *radio)
++{
++    GtkWidget *label, *spin;
++
++    label = gtk_label_new_with_mnemonic (label_text);
++    gtk_label_set_xalign (GTK_LABEL (label), 0.0);
++    gtk_widget_set_margin_start (label, 24);
++    gtk_grid_attach (GTK_GRID (grid), label, 0, row, 1, 1);
++    g_object_bind_property (radio, "active", label, "sensitive", G_BINDING_SYNC_CREATE);
++
++    spin = gtk_spin_button_new_with_range (-max, max, 0.1);
++    gtk_spin_button_set_digits (GTK_SPIN_BUTTON (spin), 2);
++    gtk_entry_set_activates_default (GTK_ENTRY (spin), TRUE);
++    gtk_widget_set_tooltip_text (spin, tooltip);
++    gtk_label_set_mnemonic_widget (GTK_LABEL (label), spin);
++    gtk_grid_attach (GTK_GRID (grid), spin, 1, row, 1, 1);
++    g_object_bind_property (radio, "active", spin, "sensitive", G_BINDING_SYNC_CREATE);
++
++    return spin;
++}
++
++static void
++cb_schedule_location_clicked (GtkButton *button)
++{
++    GtkWidget *dialog, *grid, *zone_radio, *city_radio, *coordinates_radio, *city_entry, *spins[2];
++    GtkEntryCompletion *completion;
++    GtkListStore *zones_store;
++    GPtrArray *zones;
++    gchar *setting, *text, *zone;
++    gdouble latitude, longitude;
++    gboolean done = FALSE;
++
++    dialog = gtk_dialog_new_with_buttons (_("Location for Sunrise and Sunset"),
++                                          GTK_WINDOW (gtk_widget_get_toplevel (GTK_WIDGET (button))),
++                                          GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
++                                          _("_Cancel"), GTK_RESPONSE_CANCEL, _("_OK"), GTK_RESPONSE_OK, NULL);
++    gtk_dialog_set_default_response (GTK_DIALOG (dialog), GTK_RESPONSE_OK);
++
++    grid = gtk_grid_new ();
++    gtk_container_set_border_width (GTK_CONTAINER (grid), 12);
++    gtk_grid_set_row_spacing (GTK_GRID (grid), 6);
++    gtk_grid_set_column_spacing (GTK_GRID (grid), 12);
++    gtk_box_pack_start (GTK_BOX (gtk_dialog_get_content_area (GTK_DIALOG (dialog))), grid, TRUE, TRUE, 0);
++
++    /* the system time zone */
++    if (sun_times_get_location (NULL, &latitude, &longitude, &zone))
++        text = g_strdup_printf (_("Use the location of the _time zone (%s)"), zone);
++    else
++        text = g_strdup (_("Use the location of the _time zone (unknown)"));
++    zone_radio = gtk_radio_button_new_with_mnemonic (NULL, text);
++    g_free (text);
++    gtk_grid_attach (GTK_GRID (grid), zone_radio, 0, 0, 2, 1);
++
++    /* a city of the time zone list */
++    city_radio = gtk_radio_button_new_with_mnemonic_from_widget (GTK_RADIO_BUTTON (zone_radio), _("C_ity:"));
++    gtk_grid_attach (GTK_GRID (grid), city_radio, 0, 1, 1, 1);
++    city_entry = gtk_entry_new ();
++    gtk_entry_set_placeholder_text (GTK_ENTRY (city_entry), "Europe/Berlin");
++    gtk_entry_set_activates_default (GTK_ENTRY (city_entry), TRUE);
++    gtk_widget_set_hexpand (city_entry, TRUE);
++    gtk_widget_set_tooltip_text (city_entry, _("The main city of a time zone, type a part of its name"));
++    gtk_grid_attach (GTK_GRID (grid), city_entry, 1, 1, 1, 1);
++    g_object_bind_property (city_radio, "active", city_entry, "sensitive", G_BINDING_SYNC_CREATE);
++
++    zones_store = gtk_list_store_new (1, G_TYPE_STRING);
++    zones = sun_times_list_zones ();
++    for (guint i = 0; i < zones->len; i++)
++        gtk_list_store_insert_with_values (zones_store, NULL, -1, 0, g_ptr_array_index (zones, i), -1);
++    g_ptr_array_unref (zones);
++    completion = gtk_entry_completion_new ();
++    gtk_entry_completion_set_model (completion, GTK_TREE_MODEL (zones_store));
++    gtk_entry_completion_set_text_column (completion, 0);
++    gtk_entry_completion_set_match_func (completion, schedule_zone_match, NULL, NULL);
++    gtk_entry_set_completion (GTK_ENTRY (city_entry), completion);
++    g_object_unref (completion);
++    g_object_unref (zones_store);
++
++    /* own coordinates */
++    coordinates_radio = gtk_radio_button_new_with_mnemonic_from_widget (GTK_RADIO_BUTTON (zone_radio), _("Coo_rdinates:"));
++    gtk_grid_attach (GTK_GRID (grid), coordinates_radio, 0, 2, 2, 1);
++    spins[0] = schedule_location_spin_new (grid, 3, _("L_atitude:"), 90, _("Degrees, negative for south"), coordinates_radio);
++    spins[1] = schedule_location_spin_new (grid, 4, _("L_ongitude:"), 180, _("Degrees, negative for west"), coordinates_radio);
++    g_signal_connect (city_entry, "changed", G_CALLBACK (cb_schedule_city_changed), spins);
++
++    /* start from the location in use */
++    if (schedule.has_location)
++    {
++        gtk_spin_button_set_value (GTK_SPIN_BUTTON (spins[0]), schedule.latitude);
++        gtk_spin_button_set_value (GTK_SPIN_BUTTON (spins[1]), schedule.longitude);
++    }
++    setting = xfconf_channel_get_string (xsettings_channel, SCHEDULE_LOCATION_PROP, NULL);
++    if (setting == NULL || *setting == '\0')
++        gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (zone_radio), TRUE);
++    else if (g_ascii_isalpha (*setting))
++        gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (city_radio), TRUE);
++    else
++        gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (coordinates_radio), TRUE);
++    g_signal_handlers_block_by_func (city_entry, cb_schedule_city_changed, spins);
++    gtk_entry_set_text (GTK_ENTRY (city_entry),
++                        setting != NULL && g_ascii_isalpha (*setting) ? setting : zone != NULL ? zone : "");
++    g_signal_handlers_unblock_by_func (city_entry, cb_schedule_city_changed, spins);
++    g_free (setting);
++    g_free (zone);
++
++    gtk_widget_show_all (dialog);
++    while (!done)
++    {
++        if (gtk_dialog_run (GTK_DIALOG (dialog)) != GTK_RESPONSE_OK)
++            done = TRUE;
++        else if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (zone_radio)))
++        {
++            xfconf_channel_reset_property (xsettings_channel, SCHEDULE_LOCATION_PROP, FALSE);
++            done = TRUE;
++        }
++        else if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (city_radio)))
++        {
++            const gchar *city = gtk_entry_get_text (GTK_ENTRY (city_entry));
++
++            /* only a time zone of the list has coordinates */
++            done = sun_times_zone_location (city, &latitude, &longitude);
++            if (done)
++                xfconf_channel_set_string (xsettings_channel, SCHEDULE_LOCATION_PROP, city);
++            else
++            {
++                gtk_widget_error_bell (dialog);
++                gtk_widget_grab_focus (city_entry);
++            }
++        }
++        else
++        {
++            gchar latitude_str[G_ASCII_DTOSTR_BUF_SIZE], longitude_str[G_ASCII_DTOSTR_BUF_SIZE];
++
++            gtk_spin_button_update (GTK_SPIN_BUTTON (spins[0]));
++            gtk_spin_button_update (GTK_SPIN_BUTTON (spins[1]));
++            g_ascii_formatd (latitude_str, sizeof (latitude_str), "%.4f",
++                             gtk_spin_button_get_value (GTK_SPIN_BUTTON (spins[0])));
++            g_ascii_formatd (longitude_str, sizeof (longitude_str), "%.4f",
++                             gtk_spin_button_get_value (GTK_SPIN_BUTTON (spins[1])));
++            setting = g_strconcat (latitude_str, ",", longitude_str, NULL);
++            xfconf_channel_set_string (xsettings_channel, SCHEDULE_LOCATION_PROP, setting);
++            g_free (setting);
++            done = TRUE;
++        }
++    }
++
++    gtk_widget_destroy (dialog);
++}
++
++static void
++cb_schedule_location_changed (XfconfChannel *channel,
++                              const gchar *property,
++                              const GValue *value)
++{
++    schedule_refresh_location ();
++
++    /* the rules at sunrise or sunset may move */
++    gtk_tree_sortable_set_sort_func (GTK_TREE_SORTABLE (schedule.store), COLUMN_SCHEDULE_TIME,
++                                     schedule_compare_times, NULL, NULL);
++    gtk_widget_queue_draw (schedule.treeview);
++    schedule_update_status ();
++}
++
 +static void
 +cb_schedule_help_clicked (GtkButton *button)
 +{
@@ -1450,10 +2339,12 @@ index 3257b2a9..2107bc58 100644
 +                                     GTK_MESSAGE_INFO, GTK_BUTTONS_CLOSE,
 +                                     _("Switching the style at set times"));
 +    gtk_message_dialog_format_secondary_text (
-+        GTK_MESSAGE_DIALOG (dialog), "%s\n\n%s\n\n%s\n\n%s",
++        GTK_MESSAGE_DIALOG (dialog), "%s\n\n%s\n\n%s\n\n%s\n\n%s",
 +        _("Each rule takes effect when the clock reaches its time; the settings stay until the next rule. "
 +          "A setting changed by hand stays until the next rule as well. A switch missed while you were "
 +          "logged out is made at login."),
++        _("Time: a time of the day, or sunrise or sunset, also some minutes before or after. Sunrise and "
++          "sunset are computed for the location of the time zone, or for a location of your choice."),
 +        _("Theme: \"Dark variant\" and \"Light variant\" are looked up from the theme in use at the time of "
 +          "the switch, e.g. Greybird becomes Greybird-dark, Orchis-Compact becomes Orchis-Dark-Compact. "
 +          "Upper and lower case do not matter. If there is no such variant, the theme stays. "
@@ -1492,6 +2383,9 @@ index 3257b2a9..2107bc58 100644
 +
 +    schedule.icon_themes = gtk_tree_view_get_model (GTK_TREE_VIEW (gtk_builder_get_object (builder, "icon_theme_treeview")));
 +    schedule.store = gtk_list_store_newv (N_SCHEDULE_COLUMNS, column_types);
++    schedule_refresh_location ();
++    gtk_tree_sortable_set_sort_func (GTK_TREE_SORTABLE (schedule.store), COLUMN_SCHEDULE_TIME,
++                                     schedule_compare_times, NULL, NULL);
 +    gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (schedule.store), COLUMN_SCHEDULE_TIME, GTK_SORT_ASCENDING);
 +    schedule_load ();
 +
@@ -1549,8 +2443,8 @@ index 3257b2a9..2107bc58 100644
 +    gtk_container_add (GTK_CONTAINER (scrolled), schedule.treeview);
 +
 +    renderer = gtk_cell_renderer_text_new ();
-+    schedule.time_column = gtk_tree_view_column_new_with_attributes (_("Time"), renderer,
-+                                                                     "text", COLUMN_SCHEDULE_TIME, NULL);
++    schedule.time_column = gtk_tree_view_column_new_with_attributes (_("Time"), renderer, NULL);
++    gtk_tree_view_column_set_cell_data_func (schedule.time_column, renderer, schedule_time_cell_data, NULL, NULL);
 +    gtk_tree_view_append_column (GTK_TREE_VIEW (schedule.treeview), schedule.time_column);
 +
 +    renderer = gtk_cell_renderer_combo_new ();
@@ -1627,6 +2521,18 @@ index 3257b2a9..2107bc58 100644
 +    gtk_label_set_ellipsize (GTK_LABEL (schedule.status_label), PANGO_ELLIPSIZE_END);
 +    gtk_box_pack_start (GTK_BOX (rules_box), schedule.status_label, FALSE, FALSE, 0);
 +
++    schedule.location_box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
++    gtk_box_pack_start (GTK_BOX (rules_box), schedule.location_box, FALSE, FALSE, 0);
++    schedule.location_label = gtk_label_new (NULL);
++    gtk_label_set_xalign (GTK_LABEL (schedule.location_label), 0.0);
++    gtk_label_set_ellipsize (GTK_LABEL (schedule.location_label), PANGO_ELLIPSIZE_END);
++    gtk_box_pack_start (GTK_BOX (schedule.location_box), schedule.location_label, TRUE, TRUE, 0);
++    button = gtk_button_new_with_mnemonic (_("_Location…"));
++    g_signal_connect (button, "clicked", G_CALLBACK (cb_schedule_location_clicked), NULL);
++    gtk_box_pack_end (GTK_BOX (schedule.location_box), button, FALSE, FALSE, 0);
++    gtk_widget_show_all (schedule.location_box);
++    gtk_widget_set_no_show_all (schedule.location_box, TRUE);
++
 +    /* Explanation, with a button for the longer help next to it; a "Help"
 +     * button would be confused with the one of the dialog */
 +    box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
@@ -1654,6 +2560,8 @@ index 3257b2a9..2107bc58 100644
 +    /* the variants in the status line depend on the current theme */
 +    g_signal_connect (xsettings_channel, "property-changed::/Net/ThemeName",
 +                      G_CALLBACK (cb_schedule_current_theme_changed), NULL);
++    g_signal_connect (xsettings_channel, "property-changed::" SCHEDULE_LOCATION_PROP,
++                      G_CALLBACK (cb_schedule_location_changed), NULL);
 +
 +    schedule_update_status ();
 +    g_timeout_add_seconds (30, schedule_status_timeout, NULL);
@@ -1662,7 +2570,7 @@ index 3257b2a9..2107bc58 100644
  static void
  appearance_settings_dialog_response (GtkWidget *dialog,
                                       gint response_id)
-@@ -1758,6 +3073,7 @@ main (gint argc,
+@@ -1758,6 +3528,7 @@ main (gint argc,
                                G_CALLBACK (appearance_settings_dialog_channel_property_changed), builder);
  
              appearance_settings_dialog_configure_widgets (builder);
@@ -1671,7 +2579,7 @@ index 3257b2a9..2107bc58 100644
  #ifdef ENABLE_X11
              if (opt_socket_id != 0 && GDK_IS_X11_DISPLAY (gdk_display_get_default ()))
 diff --git a/xfsettingsd/Makefile.am b/xfsettingsd/Makefile.am
-index 00a8ee65..3b94b7f1 100644
+index 00a8ee65..e2050175 100644
 --- a/xfsettingsd/Makefile.am
 +++ b/xfsettingsd/Makefile.am
 @@ -22,7 +22,9 @@ xfsettingsd_SOURCES = \
@@ -1685,6 +2593,16 @@ index 00a8ee65..3b94b7f1 100644
  
  xfsettingsd_CFLAGS = \
  	-I$(top_builddir) \
+@@ -54,7 +56,8 @@ xfsettingsd_LDADD = \
+ 	$(GMODULE_LIBS) \
+ 	$(XFCONF_LIBS) \
+ 	$(LIBXFCE4UTIL_LIBS) \
+-	$(LIBXFCE4UI_LIBS)
++	$(LIBXFCE4UI_LIBS) \
++	-lm
+ 
+ if ENABLE_X11
+ 
 diff --git a/xfsettingsd/main.c b/xfsettingsd/main.c
 index 1e4474e8..b6af3e37 100644
 --- a/xfsettingsd/main.c
@@ -1723,10 +2641,10 @@ index 1e4474e8..b6af3e37 100644
  #endif
 diff --git a/xfsettingsd/theme-schedule.c b/xfsettingsd/theme-schedule.c
 new file mode 100644
-index 00000000..487ef488
+index 00000000..69eb3078
 --- /dev/null
 +++ b/xfsettingsd/theme-schedule.c
-@@ -0,0 +1,647 @@
+@@ -0,0 +1,643 @@
 +/*
 + *  Copyright (c) 2026 Grigory Tuboltsev <gtubolcev@gmail.com>
 + *
@@ -1746,12 +2664,13 @@ index 00000000..487ef488
 + */
 +
 +/*
-+ * Switches the Gtk theme, the preferred color scheme and more at fixed times
++ * Switches the Gtk theme, the preferred color scheme and more at set times
 + * of the day. The rules live in the xsettings channel as parallel string
 + * arrays, where a missing entry counts as "":
 + *
 + *   /Xfce/ThemeSchedule/Enabled       bool
-+ *   /Xfce/ThemeSchedule/Times         "HH:MM"
++ *   /Xfce/ThemeSchedule/Times         "HH:MM", or "sunrise" or "sunset" with an
++ *                                     optional offset in minutes ("sunset+30")
 + *   /Xfce/ThemeSchedule/Themes        theme name, ":dark" or ":light" for that
 + *                                     variant of the current theme, "" to keep it
 + *   /Xfce/ThemeSchedule/ColorSchemes  "prefer-dark", "prefer-light", "default",
@@ -1775,7 +2694,12 @@ index 00000000..487ef488
 + *
 + *   /Xfce/ThemeSchedule/CheckedUntil  Unix time
 + *
-+ * so that a switch missed while logged out is caught up at login.
++ * so that a switch missed while logged out is caught up at login. Sunrise and
++ * sunset are computed for
++ *
++ *   /Xfce/ThemeSchedule/Location      a time zone ("Europe/Paris") or
++ *                                     "latitude,longitude" in degrees, if
++ *                                     unset the location of the time zone
 + */
 +
 +#ifdef HAVE_CONFIG_H
@@ -1785,16 +2709,17 @@ index 00000000..487ef488
 +#include "theme-schedule.h"
 +
 +#include "common/backlight.h"
++#include "common/debug.h"
++#include "common/sun-times.h"
 +#include "common/theme-variant.h"
 +
 +#include <gio/gio.h>
 +#include <libxfce4util/libxfce4util.h>
 +#include <xfconf/xfconf.h>
 +
-+#include <string.h>
-+
 +#define SCHEDULE_ENABLED_PROP "/Xfce/ThemeSchedule/Enabled"
 +#define SCHEDULE_CHECKED_PROP "/Xfce/ThemeSchedule/CheckedUntil"
++#define SCHEDULE_LOCATION_PROP "/Xfce/ThemeSchedule/Location"
 +#define SCHEDULE_PROP_PREFIX "/Xfce/ThemeSchedule/"
 +
 +/* the parallel arrays of the rules */
@@ -1860,7 +2785,7 @@ index 00000000..487ef488
 +
 +
 +
-+G_DEFINE_TYPE (XfceThemeScheduleHelper, xfce_theme_schedule_helper, G_TYPE_OBJECT)
++G_DEFINE_FINAL_TYPE (XfceThemeScheduleHelper, xfce_theme_schedule_helper, G_TYPE_OBJECT)
 +
 +
 +
@@ -1916,29 +2841,6 @@ index 00000000..487ef488
 +        g_object_unref (helper->desktop_interface_gsettings);
 +
 +    G_OBJECT_CLASS (xfce_theme_schedule_helper_parent_class)->finalize (object);
-+}
-+
-+
-+
-+/* "HH:MM" -> minutes since midnight, or -1 if invalid */
-+static gint
-+xfce_theme_schedule_parse_time (const gchar *str)
-+{
-+    guint64 hours, minutes;
-+    gchar *end;
-+
-+    if (str == NULL || !g_ascii_isdigit (*str))
-+        return -1;
-+
-+    hours = g_ascii_strtoull (str, &end, 10);
-+    if (*end != ':' || !g_ascii_isdigit (end[1]))
-+        return -1;
-+
-+    minutes = g_ascii_strtoull (end + 1, &end, 10);
-+    if (*end != '\0' || hours > 23 || minutes > 59)
-+        return -1;
-+
-+    return hours * 60 + minutes;
 +}
 +
 +
@@ -2035,11 +2937,11 @@ index 00000000..487ef488
 +    if (value == NULL || *value == '\0')
 +        return NULL;
 +
-+    if (strcmp (value, ":dark") == 0 || strcmp (value, ":light") == 0)
++    if (g_strcmp0 (value, ":dark") == 0 || g_strcmp0 (value, ":light") == 0)
 +    {
 +        theme_name = theme_variant_find (current, value[1] == 'd', xfce_theme_schedule_lookup_theme, (gpointer) kind);
 +        if (theme_name == NULL)
-+            g_message ("Theme '%s' has no %s variant, keeping it", current, value + 1);
++            xfsettings_dbg (XFSD_DEBUG_THEME_SCHEDULE, "Theme '%s' has no %s variant, keeping it", current, value + 1);
 +    }
 +    else
 +    {
@@ -2060,7 +2962,7 @@ index 00000000..487ef488
 +    /* same rules as the "Set matching Xfwm4 theme" switch of the appearance dialog */
 +    if (xfce_theme_schedule_find_theme_file (theme_name, "xfwm4" G_DIR_SEPARATOR_S "themerc"))
 +        xfconf_channel_set_string (xfconf_channel_get ("xfwm4"), "/general/theme", theme_name);
-+    else if (strcmp (theme_name, "Adwaita") == 0 || strcmp (theme_name, "Adwaita-dark") == 0)
++    else if (g_strcmp0 (theme_name, "Adwaita") == 0 || g_strcmp0 (theme_name, "Adwaita-dark") == 0)
 +        xfconf_channel_set_string (xfconf_channel_get ("xfwm4"), "/general/theme", "Default");
 +}
 +
@@ -2107,7 +3009,7 @@ index 00000000..487ef488
 +    device = backlight_find_device ();
 +    if (device == NULL)
 +    {
-+        g_message ("No screen backlight found, keeping the brightness");
++        xfsettings_dbg (XFSD_DEBUG_THEME_SCHEDULE, "No screen backlight found, keeping the brightness");
 +        return;
 +    }
 +
@@ -2180,7 +3082,7 @@ index 00000000..487ef488
 +    /* Gtk theme */
 +    current = xfconf_channel_get_string (helper->channel, "/Net/ThemeName", "Default");
 +    theme_name = xfce_theme_schedule_resolve_theme (rule[RULE_THEME], current, &gtk_theme_kind);
-+    if (theme_name != NULL && strcmp (theme_name, current) != 0)
++    if (theme_name != NULL && g_strcmp0 (theme_name, current) != 0)
 +        xfconf_channel_set_string (helper->channel, "/Net/ThemeName", theme_name);
 +    g_free (current);
 +
@@ -2188,7 +3090,7 @@ index 00000000..487ef488
 +    if (rule[RULE_XFWM4] == NULL || *rule[RULE_XFWM4] == '\0')
 +        xfwm4 = xfconf_channel_get_bool (helper->channel, "/Xfce/SyncThemes", FALSE);
 +    else
-+        xfwm4 = strcmp (rule[RULE_XFWM4], "true") == 0;
++        xfwm4 = g_strcmp0 (rule[RULE_XFWM4], "true") == 0;
 +    if (xfwm4 && theme_name != NULL)
 +        xfce_theme_schedule_helper_set_xfwm4_theme (helper, theme_name);
 +
@@ -2205,7 +3107,7 @@ index 00000000..487ef488
 +            else if (theme_name != NULL)
 +                g_settings_reset (helper->desktop_interface_gsettings, "color-scheme");
 +        }
-+        else if (strcmp (color_scheme, "default") == 0)
++        else if (g_strcmp0 (color_scheme, "default") == 0)
 +            g_settings_reset (helper->desktop_interface_gsettings, "color-scheme");
 +        else if (*color_scheme != '\0')
 +            g_settings_set_string (helper->desktop_interface_gsettings, "color-scheme", color_scheme);
@@ -2214,7 +3116,7 @@ index 00000000..487ef488
 +    /* icon theme */
 +    current = xfconf_channel_get_string (helper->channel, "/Net/IconThemeName", "Rodent");
 +    icon_theme_name = xfce_theme_schedule_resolve_theme (rule[RULE_ICON_THEME], current, &icon_theme_kind);
-+    if (icon_theme_name != NULL && strcmp (icon_theme_name, current) != 0)
++    if (icon_theme_name != NULL && g_strcmp0 (icon_theme_name, current) != 0)
 +        xfconf_channel_set_string (helper->channel, "/Net/IconThemeName", icon_theme_name);
 +    g_free (current);
 +
@@ -2247,19 +3149,27 @@ index 00000000..487ef488
 +
 +
 +
-+/* Unix time of the last occurrence of @minutes (since midnight) not after @now */
++/* Unix time of the last occurrence of a rule time not after @now, or 0 */
 +static gint64
 +xfce_theme_schedule_last_occurrence (GDateTime *now,
-+                                     gint minutes)
++                                     SunTimesEvent event,
++                                     gint offset,
++                                     gboolean has_location,
++                                     gdouble latitude,
++                                     gdouble longitude)
 +{
 +    GDateTime *date, *at;
 +    gint64 result;
++    gint minutes;
 +
 +    date = g_date_time_ref (now);
 +    for (gint days = 0; days < 2; days++)
 +    {
-+        at = g_date_time_new_local (g_date_time_get_year (date), g_date_time_get_month (date),
-+                                    g_date_time_get_day_of_month (date), minutes / 60, minutes % 60, 0);
++        /* sunrise and sunset move from day to day, or do not happen */
++        minutes = sun_times_minutes_on (date, event, offset, has_location, latitude, longitude);
++        at = minutes < 0 ? NULL
++                         : g_date_time_new_local (g_date_time_get_year (date), g_date_time_get_month (date),
++                                                  g_date_time_get_day_of_month (date), minutes / 60, minutes % 60, 0);
 +        if (at != NULL && g_date_time_compare (at, now) <= 0)
 +        {
 +            result = g_date_time_to_unix (at);
@@ -2293,12 +3203,11 @@ index 00000000..487ef488
 +    GDateTime *now;
 +    gint64 now_unix, checked, best_unix;
 +    gint best = -1;
++    gchar *location;
++    gdouble latitude = 0, longitude = 0;
++    gboolean has_location;
 +
-+    if (helper->timer_id != 0)
-+    {
-+        g_source_remove (helper->timer_id);
-+        helper->timer_id = 0;
-+    }
++    g_clear_handle_id (&helper->timer_id, g_source_remove);
 +
 +    if (!xfconf_channel_get_bool (helper->channel, SCHEDULE_ENABLED_PROP, FALSE))
 +        return;
@@ -2320,11 +3229,16 @@ index 00000000..487ef488
 +        n_fields[f] = fields[f] != NULL ? g_strv_length (fields[f]) : 0;
 +    }
 +
++    location = xfconf_channel_get_string (helper->channel, SCHEDULE_LOCATION_PROP, NULL);
++    has_location = sun_times_get_location (location, &latitude, &longitude, NULL);
++    g_free (location);
++
 +    /* the latest rule time passed since the last check */
 +    best_unix = checked;
 +    for (guint i = 0; i < n_fields[RULE_TIME]; i++)
 +    {
-+        gint minutes = xfce_theme_schedule_parse_time (fields[RULE_TIME][i]);
++        SunTimesEvent event;
++        gint minutes;
 +        gboolean does_something = FALSE;
 +        gint64 at;
 +
@@ -2332,10 +3246,10 @@ index 00000000..487ef488
 +            if (f != RULE_XFWM4 && i < n_fields[f] && *fields[f][i] != '\0')
 +                does_something = TRUE;
 +
-+        if (minutes < 0 || !does_something)
++        if (!sun_times_parse (fields[RULE_TIME][i], &event, &minutes) || !does_something)
 +            continue;
 +
-+        at = xfce_theme_schedule_last_occurrence (now, minutes);
++        at = xfce_theme_schedule_last_occurrence (now, event, minutes, has_location, latitude, longitude);
 +        if (at > best_unix)
 +        {
 +            best = i;
@@ -2371,7 +3285,7 @@ index 00000000..487ef488
 +                                                     XfceThemeScheduleHelper *helper)
 +{
 +    if (g_str_has_prefix (property, SCHEDULE_PROP_PREFIX)
-+        && strcmp (property, SCHEDULE_CHECKED_PROP) != 0)
++        && g_strcmp0 (property, SCHEDULE_CHECKED_PROP) != 0)
 +        xfce_theme_schedule_helper_update (helper, TRUE);
 +}
 diff --git a/xfsettingsd/theme-schedule.h b/xfsettingsd/theme-schedule.h

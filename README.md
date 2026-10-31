@@ -9,7 +9,10 @@ Extra features for XFCE components on **Xubuntu 26.04 (resolute)** (and ports to
 
 A **Schedule** tab in *Settings → Appearance* switches the style at set times,
 e.g. to a dark theme in the evening and back to light in the morning.
-Any number of rules "at HH:MM switch the style"; each rule can change:
+Any number of rules "at HH:MM switch the style" — or at sunrise or sunset, also some
+minutes before or after (e.g. "Sunset +30 min"). Sunrise and sunset are computed for
+the location of the time zone, or for a city or coordinates set under *Location…*.
+Each rule can change:
 
 - **Theme** — the dark or light variant of whatever theme is active at that moment
   (found case-insensitively: Greybird → Greybird-dark, Orchis-Compact → Orchis-Dark-Compact),
@@ -26,7 +29,7 @@ The rules live in xfconf (`xsettings:/Xfce/ThemeSchedule/`) and are applied by
 xfsettingsd, so the dialog does not need to be open. A rule fires when the clock
 passes its time, so a manual change stays until the next rule; a switch missed
 while logged out is applied at login. Translated into all Xfce languages
-(machine translations, not yet reviewed). Sunrise/sunset rules are planned.
+(machine translations, not yet reviewed).
 
 ## Install
 
