@@ -34,12 +34,12 @@ Claude-Session: https://claude.ai/code/session_015b974heChUULfSFVyi9jWe
  common/sun-times.h                      |  406 ++++++
  common/theme-variant.h                  |  150 ++
  dialogs/appearance-settings/Makefile.am |    3 +-
- dialogs/appearance-settings/main.c      | 1771 +++++++++++++++++++++++
+ dialogs/appearance-settings/main.c      | 1776 +++++++++++++++++++++++
  xfsettingsd/Makefile.am                 |    7 +-
  xfsettingsd/main.c                      |    4 +
  xfsettingsd/theme-schedule.c            |  643 ++++++++
  xfsettingsd/theme-schedule.h            |   31 +
- 11 files changed, 3124 insertions(+), 3 deletions(-)
+ 11 files changed, 3129 insertions(+), 3 deletions(-)
  create mode 100644 common/backlight.h
  create mode 100644 common/sun-times.h
  create mode 100644 common/theme-variant.h
@@ -769,7 +769,7 @@ index 180af5ab..f72eae4a 100644
  xfce4_appearance_scriptsdir = $(HELPER_PATH_PREFIX)/xfce4/settings
  xfce4_appearance_scripts_SCRIPTS = appearance-install-theme
 diff --git a/dialogs/appearance-settings/main.c b/dialogs/appearance-settings/main.c
-index 3257b2a9..6e2d4648 100644
+index 3257b2a9..6d7f1634 100644
 --- a/dialogs/appearance-settings/main.c
 +++ b/dialogs/appearance-settings/main.c
 @@ -23,6 +23,10 @@
@@ -861,7 +861,7 @@ index 3257b2a9..6e2d4648 100644
  typedef struct
  {
      GtkListStore *list_store;
-@@ -1662,6 +1730,1708 @@ appearance_settings_dialog_configure_widgets (GtkBuilder *builder)
+@@ -1662,6 +1730,1713 @@ appearance_settings_dialog_configure_widgets (GtkBuilder *builder)
  #endif
  }
  
@@ -1448,7 +1448,7 @@ index 3257b2a9..6e2d4648 100644
 +    GtkTreeView *treeview = GTK_TREE_VIEW (schedule.treeview);
 +    GtkTreeIter iter;
 +    GdkRectangle rect;
-+    GtkWidget *vbox, *box;
++    GtkWidget *vbox, *box, *button;
 +    GDateTime *now;
 +    SunTimesEvent event;
 +    gchar *time_str;
@@ -1500,6 +1500,11 @@ index 3257b2a9..6e2d4648 100644
 +        gtk_box_pack_start (GTK_BOX (box), schedule.offset_spin, FALSE, FALSE, 0);
 +        gtk_box_pack_start (GTK_BOX (box), gtk_label_new (_("min")), FALSE, FALSE, 0);
 +        gtk_stack_add_named (GTK_STACK (schedule.time_stack), box, "sun");
++
++        /* closing the popover saves the time */
++        button = gtk_button_new_with_mnemonic (_("_OK"));
++        g_signal_connect_swapped (button, "clicked", G_CALLBACK (gtk_popover_popdown), schedule.time_popover);
++        gtk_box_pack_start (GTK_BOX (vbox), button, FALSE, FALSE, 0);
 +
 +        gtk_widget_show_all (vbox);
 +    }
@@ -2570,7 +2575,7 @@ index 3257b2a9..6e2d4648 100644
  static void
  appearance_settings_dialog_response (GtkWidget *dialog,
                                       gint response_id)
-@@ -1758,6 +3528,7 @@ main (gint argc,
+@@ -1758,6 +3533,7 @@ main (gint argc,
                                G_CALLBACK (appearance_settings_dialog_channel_property_changed), builder);
  
              appearance_settings_dialog_configure_widgets (builder);
