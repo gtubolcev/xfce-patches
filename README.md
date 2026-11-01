@@ -2,6 +2,7 @@
 
 Extra features for XFCE components on **Xubuntu 26.04 (resolute)** (and ports to
 **24.04 (noble)**), packaged as drop-in replacement `.deb`s built by GitHub Actions.
+Test builds for **Debian 13 (trixie)** and **Arch Linux** too.
 
 ## Features
 
@@ -35,7 +36,8 @@ while logged out is applied at login. Translated into all Xfce languages
 
 Download the `.deb`s for your Xubuntu release from
 [Releases](https://github.com/gtubolcev/xfce-patches/releases/latest)
-(`*_4.20.1-*` for 26.04, `*_4.18.4-*` for 24.04 — the 24.04 build is untested),
+(`*_4.20.1-1ubuntu*` for 26.04, `*_4.18.4-*` for 24.04 — the 24.04 build is untested;
+`*_4.20.1-1+xfcepatches*` for Debian 13),
 put them into an empty folder, then:
 
 ```bash
@@ -45,6 +47,12 @@ sudo apt install ./*.deb
 and log out and back in. The packages replace the stock ones (version suffix
 `+xfcepatches1+<release>`, e.g. `+xfcepatches1+v0.1.2`); to go back, reinstall the Ubuntu version with
 `sudo apt install --reinstall --allow-downgrades xfce4-settings=<version> xfce4-helpers=<version>`.
+
+On Arch Linux (also Manjaro, EndeavourOS) install
+`xfce4-settings-xfcepatches-*.pkg.tar.zst` from the same page with
+`sudo pacman -U ./xfce4-settings-xfcepatches-*.pkg.tar.zst`; it replaces
+`xfce4-settings`, and `sudo pacman -S xfce4-settings` goes back. The Debian and
+Arch builds are untested.
 
 The code was written with an AI assistant (Claude) and has not been reviewed by
 an Xfce developer.
@@ -62,11 +70,16 @@ packages/<source-package>/
     <codename>/     optional port to an older Ubuntu release (e.g. noble),
         BASE            with its own BASE and patches/
         patches/
+    arch/           optional port to Arch Linux: BASE, patches/, PKGBUILD
+                    and the files the PKGBUILD needs
 scripts/
     setup-dev.sh        one-time: enable deb-src, install toolchain (sudo)
     fetch-upstream.sh   clone upstream git at the installed version -> src/<pkg>
     export-patches.sh   commits on src/<pkg> (branch work) -> packages/<pkg>/patches
     build-package.sh    apt-get source + our patches -> .deb (used by CI too)
+    build-arch.sh       packages/<pkg>/arch -> makepkg -> .pkg.tar.zst (CI)
+    screenshot.sh       docs/theme-schedule.png from the built .debs (CI commits
+                        it after each push to main when the dialog changed)
 src/                upstream working clones (git-ignored)
 ```
 
@@ -101,8 +114,20 @@ mkdir -p packages/xfce4-settings/noble && echo xfce4-settings-4.18.4 > packages/
 scripts/export-patches.sh xfce4-settings noble   # -> packages/xfce4-settings/noble/patches/
 ```
 
-CI builds every package for 26.04 and, if `packages/<pkg>/<codename>/` exists,
-also in an `ubuntu:<codename>` container; a release gets the `.deb`s of all of them.
+CI builds every package for 26.04 and Debian 13 (trixie, with the same patches
+unless `packages/<pkg>/trixie/` exists) and, if `packages/<pkg>/<codename>/`
+exists, also in an `ubuntu:<codename>` container; a release gets the packages of
+all of them.
+
+#### Arch Linux
+
+Arch follows upstream bugfix releases, so the port is based on a newer tag, in
+the same way (branch `arch`, worktree `src/<pkg>-arch`, `export-patches.sh
+<pkg> arch`). `packages/<pkg>/arch/PKGBUILD` follows Arch's own PKGBUILD, with a
+package name of its own (`<pkg>-xfcepatches`, provides and conflicts with
+`<pkg>`) so that a stock update does not replace it. CI builds it in an
+`archlinux` container with `scripts/build-arch.sh`; the Ubuntu PPA gets only
+the Ubuntu builds.
 
 A manual run (Actions → build → Run workflow) with a package name builds any
 source package, patched or not.

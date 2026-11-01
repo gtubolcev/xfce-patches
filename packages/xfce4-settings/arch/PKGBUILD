@@ -1,0 +1,80 @@
+# xfce4-settings with the XFCE-patches changes, for Arch Linux.
+#
+# Follows Arch's own PKGBUILD (extra/xfce4-settings, 4.20.5-1): the same
+# sources, configure options and default-xsettings-xml.patch. The upstream
+# commit Arch cherry-picks is patches/0001 here, as our changes are on top of
+# it. Built by scripts/build-arch.sh, which puts the patches next to this file.
+#
+# The package has a name of its own, so a stock update does not replace it:
+# it provides and conflicts with xfce4-settings.
+
+pkgname=xfce4-settings-xfcepatches
+_pkgname=xfce4-settings
+_upstream=4.20.5
+pkgver=${_upstream}_${XFCEPATCHES_RELEASE:-0}
+pkgrel=1
+pkgdesc="Xfce's Configuration System, with a schedule for the style (XFCE-patches)"
+arch=('x86_64')
+url="https://github.com/gtubolcev/xfce-patches"
+license=('GPL-2.0-or-later')
+groups=('xfce4')
+depends=('exo' 'garcon' 'libxfce4ui' 'xfconf' 'libnotify' 'libcanberra'
+         'colord' 'libxklavier' 'elementary-icon-theme' 'gnome-themes-extra')
+makedepends=('git' 'glib2-devel' 'xfce4-dev-tools' 'xf86-input-libinput')
+optdepends=('python: xfce4-compose-mail -- "mailto:" URI handling'
+            'xiccd: for displays support in xfce4-color-settings'
+            'cups: for printers support in xfce4-color-settings'
+            'sane: for scanners support in xfce4-color-settings')
+provides=("$_pkgname=$_upstream")
+conflicts=("$_pkgname")
+_patches=(0*.patch)
+source=("git+https://gitlab.xfce.org/xfce/xfce4-settings.git#tag=$_pkgname-$_upstream"
+        git+https://gitlab.freedesktop.org/wlroots/wlr-protocols.git
+        default-xsettings-xml.patch
+        "${_patches[@]}")
+sha256sums=('f42a038862d516bde1384d06e71a5f664ab0dd64da2140740d96b77ac9e81c1c'
+            'SKIP'
+            '008da8cae0251864d1bf34e2649674e0566475a423becf81e8e3f5c6acb3877d')
+sha256sums+=("${_patches[@]/*/SKIP}")
+
+prepare() {
+  cd $_pkgname
+
+  # Enable Adwaita theme, elementary icon theme and font hinting by default
+  patch -Np1 -i "$srcdir/default-xsettings-xml.patch"
+
+  for p in "${_patches[@]}"; do
+    patch -Np1 -F0 -i "$srcdir/$p"
+  done
+
+  git submodule init
+  git config submodule.protocols/wlr-protocols.url "$srcdir/wlr-protocols"
+  git -c protocol.file.allow=always submodule update
+  NOCONFIGURE=1 ./autogen.sh
+}
+
+build() {
+  cd $_pkgname
+  ./configure \
+    --prefix=/usr \
+    --sysconfdir=/etc \
+    --localstatedir=/var \
+    --enable-x11 \
+    --enable-wayland \
+    --enable-xrandr \
+    --enable-xcursor \
+    --enable-libnotify \
+    --enable-libxklavier \
+    --enable-pluggable-dialogs \
+    --enable-sound-settings \
+    --disable-debug \
+    --enable-maintainer-mode
+  make
+}
+
+package() {
+  cd $_pkgname
+  make DESTDIR="$pkgdir" install
+}
+
+# vim:set ts=2 sw=2 et:

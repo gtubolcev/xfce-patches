@@ -18,32 +18,45 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       packages: ${{ steps.m.outputs.packages }}
+      ppa: ${{ steps.m.outputs.ppa }}
     steps:
       - uses: actions/checkout@v5
       - id: m
         env:
           INPUT_PACKAGE: ${{ inputs.package }}
         run: |
-          # one build per package for 26.04, plus one per port to an older
-          # release in packages/<pkg>/<codename>/
+          # one build per package for Ubuntu 26.04 and Debian 13 (both with
+          # packages/<pkg>/patches, unless a port of its own exists), plus one
+          # per port in packages/<pkg>/<codename>/: an older Ubuntu release,
+          # or "arch" for Arch Linux
           if [ -n "$INPUT_PACKAGE" ]; then
             pkgs=$INPUT_PACKAGE
           else
             pkgs=$(find packages -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort)
           fi
-          pk=$(for p in $pkgs; do
-                 echo "$p resolute"
-                 for d in packages/$p/*/BASE; do
-                   [ -f "$d" ] && echo "$p $(basename "$(dirname "$d")")"
-                 done
-               done | jq -Rsc 'split("\n") | map(select(. != "") | split(" ") | {package: .[0], dist: .[1]})')
-          echo "packages=$pk" | tee -a "$GITHUB_OUTPUT"
+          target() {
+            case $2 in
+              arch) echo "$1 $2 archlinux:latest arch" ;;
+              bookworm|trixie|forky|sid) echo "$1 $2 debian:$2 deb" ;;
+              *) echo "$1 $2 ubuntu:$2 deb" ;;
+            esac
+          }
+          all=$(for p in $pkgs; do
+                  target "$p" resolute
+                  [ -f "packages/$p/trixie/BASE" ] || target "$p" trixie
+                  for d in packages/$p/*/BASE; do
+                    [ -f "$d" ] && target "$p" "$(basename "$(dirname "$d")")"
+                  done
+                done)
+          json() { jq -Rsc 'split("\n") | map(select(. != "") | split(" ") | {package: .[0], dist: .[1], image: .[2], kind: .[3]})'; }
+          echo "packages=$(echo "$all" | json)" | tee -a "$GITHUB_OUTPUT"
+          echo "ppa=$(echo "$all" | grep ' ubuntu:' | json)" | tee -a "$GITHUB_OUTPUT"
 
   build:
     needs: matrix
     if: needs.matrix.outputs.packages != '[]'
     runs-on: ubuntu-latest
-    container: ubuntu:${{ matrix.target.dist }}
+    container: ${{ matrix.target.image }}
     name: build (${{ matrix.target.package }}, ${{ matrix.target.dist }})
     strategy:
       fail-fast: false
@@ -51,35 +64,75 @@ jobs:
         target: ${{ fromJSON(needs.matrix.outputs.packages) }}
     steps:
       - name: Prepare container
+        if: matrix.target.kind == 'deb'
         run: |
-          sed -i 's/^Types: deb$/Types: deb deb-src/' /etc/apt/sources.list.d/ubuntu.sources
+          sed -i 's/^Types: deb$/Types: deb deb-src/' /etc/apt/sources.list.d/*.sources
           apt-get update
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
             ca-certificates git build-essential devscripts equivs quilt fakeroot dpkg-dev
       - uses: actions/checkout@v5
       - name: Build ${{ matrix.target.package }}
+        if: matrix.target.kind == 'deb'
         env:
           DEBIAN_FRONTEND: noninteractive
           DEBFULLNAME: ${{ github.actor }}
           DEBEMAIL: ${{ github.actor }}@users.noreply.github.com
           RELEASE: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}
         run: scripts/build-package.sh "${{ matrix.target.package }}" out
+      - name: Build ${{ matrix.target.package }}
+        if: matrix.target.kind == 'arch'
+        env:
+          RELEASE: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}
+        run: scripts/build-arch.sh "${{ matrix.target.package }}" out
       - uses: actions/upload-artifact@v5
         with:
-          name: debs-${{ matrix.target.package }}-${{ matrix.target.dist }}
-          path: out/*.deb
+          name: pkgs-${{ matrix.target.package }}-${{ matrix.target.dist }}
+          path: out/*
+
+  # the README screenshot, taken from the packages just built; committed only
+  # when the picture changed (the clock and the settings are fixed). Pushes
+  # with GITHUB_TOKEN do not start another workflow run.
+  screenshot:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    container: ubuntu:26.04
+    permissions:
+      contents: write
+    steps:
+      - run: apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates git
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v5
+        with:
+          name: pkgs-xfce4-settings-resolute
+          path: debs
+      - run: scripts/screenshot.sh debs docs/theme-schedule.png
+      - name: Commit the screenshot if it changed
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          if git diff --quiet -- docs/theme-schedule.png; then
+            echo "screenshot unchanged"; exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "docs: Update the theme schedule screenshot" -- docs/theme-schedule.png
+          for i in 1 2 3; do
+            git pull --rebase origin main && git push origin HEAD:main && exit 0
+            sleep 5
+          done
+          exit 1
 
   # each release also goes to the PPA, signed with a key of its own that is
   # registered in Launchpad (secret PPA_GPG_KEY, armored private key)
   ppa:
     needs: [matrix, build]
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') && needs.matrix.outputs.ppa != '[]'
     runs-on: ubuntu-latest
     name: ppa (${{ matrix.target.package }}, ${{ matrix.target.dist }})
     strategy:
       fail-fast: false
       matrix:
-        target: ${{ fromJSON(needs.matrix.outputs.packages) }}
+        target: ${{ fromJSON(needs.matrix.outputs.ppa) }}
     steps:
       - uses: actions/checkout@v5
       - name: Install tools
@@ -118,19 +171,31 @@ jobs:
             { echo "## What's new"; echo; gh api "repos/${{ github.repository }}/git/tags/${REF#* }" -q .message; echo; } > notes.md
           fi
           cat >> notes.md <<'EOF'
-          Packages for Xubuntu, amd64. Pick the files for your release by the version in their names:
+          Packages for amd64. Pick the files for your distribution by the version in their names:
 
-          | Xubuntu | Xfce | xfce4-settings files |
+          | Distribution | Xfce | xfce4-settings files |
           |---|---|---|
-          | 26.04 (resolute) | 4.20 | `*_4.20.1-*` |
-          | 24.04 (noble) | 4.18 | `*_4.18.4-*` |
+          | Xubuntu 26.04 (resolute) | 4.20 | `*_4.20.1-1ubuntu*` |
+          | Xubuntu 24.04 (noble), Linux Mint 22 | 4.18 | `*_4.18.4-*` |
+          | Debian 13 (trixie), MX Linux 25 | 4.20 | `*_4.20.1-1+xfcepatches*` (no `ubuntu` in the name) |
+          | Arch Linux, Manjaro, EndeavourOS | 4.20 | `xfce4-settings-xfcepatches-*.pkg.tar.zst` |
 
-          Download all files for your release (e.g. both `xfce4-settings` and `xfce4-helpers`) into an empty folder and install them together:
+          **Ubuntu, Debian:** download all `.deb` files for your release (e.g. both `xfce4-settings` and `xfce4-helpers`) into an empty folder and install them together:
 
           ```
           sudo apt install ./*.deb
           ```
 
-          Then log out and back in. To go back to the stock Ubuntu packages, reinstall them with `sudo apt install --reinstall --allow-downgrades <package>=<ubuntu version>`.
+          To go back to the stock packages, reinstall them with `sudo apt install --reinstall --allow-downgrades <package>=<distribution version>`. On Ubuntu the [PPA](https://launchpad.net/~gtubolcev/+archive/ubuntu/xfce-patches) is easier, it also brings updates.
+
+          **Arch:** the package replaces `xfce4-settings` (pacman asks to remove it):
+
+          ```
+          sudo pacman -U ./xfce4-settings-xfcepatches-*.pkg.tar.zst
+          ```
+
+          To go back: `sudo pacman -S xfce4-settings`.
+
+          Then log out and back in, or run `xfsettingsd --replace &`: the running settings daemon stays the old one until then.
           EOF
-          gh release create "${{ github.ref_name }}" out/*.deb --repo "${{ github.repository }}" --notes-file notes.md --generate-notes
+          gh release create "${{ github.ref_name }}" out/* --repo "${{ github.repository }}" --notes-file notes.md --generate-notes

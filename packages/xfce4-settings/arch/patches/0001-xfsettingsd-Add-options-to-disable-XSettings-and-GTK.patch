@@ -1,0 +1,49 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Ball=C3=B3=20Gy=C3=B6rgy?= <ballogyor@gmail.com>
+Date: Tue, 22 Sep 2026 01:31:50 +0000
+Subject: [PATCH 1/3] xfsettingsd: Add options to disable XSettings and GTK
+ settings helpers
+
+Similar to the environment variable that disables the clipboard
+manager, this allows users to disable the XSettings and GTK settings
+helpers if they choose to use another way to handle them in the Xfce
+session.
+
+(cherry picked from commit a704c86c5ce19af76c603c48a22943b306bfb710)
+---
+ xfsettingsd/main.c | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
+
+diff --git a/xfsettingsd/main.c b/xfsettingsd/main.c
+index 8fe18606..1951a792 100644
+--- a/xfsettingsd/main.c
++++ b/xfsettingsd/main.c
+@@ -120,9 +120,12 @@ on_name_acquired (GDBusConnection *connection,
+     if (GDK_IS_X11_DISPLAY (gdk_display_get_default ()))
+     {
+         /* launch settings manager */
+-        s_data->xsettings_helper = g_object_new (XFCE_TYPE_XSETTINGS_HELPER, NULL);
+-        xfce_xsettings_helper_register (XFCE_XSETTINGS_HELPER (s_data->xsettings_helper),
+-                                        gdk_display_get_default (), opt_replace);
++        if (g_getenv ("XFSETTINGSD_NO_XSETTINGS") == NULL)
++        {
++            s_data->xsettings_helper = g_object_new (XFCE_TYPE_XSETTINGS_HELPER, NULL);
++            xfce_xsettings_helper_register (XFCE_XSETTINGS_HELPER (s_data->xsettings_helper),
++                                            gdk_display_get_default (), opt_replace);
++        }
+ 
+         /* create the sub daemons */
+         s_data->pointer_helper = g_object_new (XFCE_TYPE_POINTERS_HELPER, NULL);
+@@ -136,7 +139,11 @@ on_name_acquired (GDBusConnection *connection,
+ #endif
+ 
+     s_data->gtk_decorations_helper = g_object_new (XFCE_TYPE_DECORATIONS_HELPER, NULL);
+-    s_data->gtk_settings_helper = g_object_new (XFCE_TYPE_GTK_SETTINGS_HELPER, NULL);
++
++    if (g_getenv ("XFSETTINGSD_NO_GTK_SETTINGS") == NULL)
++    {
++        s_data->gtk_settings_helper = g_object_new (XFCE_TYPE_GTK_SETTINGS_HELPER, NULL);
++    }
+ #ifdef ENABLE_DISPLAY_SETTINGS
+     s_data->displays_helper = xfce_displays_helper_new ();
+ #endif

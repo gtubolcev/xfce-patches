@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build an Ubuntu source package with our patches applied.
+# Build an Ubuntu or Debian source package with our patches applied.
 #
 #   scripts/build-package.sh <source-package> [out-dir]
 #
@@ -11,8 +11,9 @@
 # one), installs the build dependencies and runs dpkg-buildpackage. Resulting
 # .deb files land in out-dir.
 #
-# Works both in CI (as root in an ubuntu:26.04 or 24.04 container) and locally
-# (set SUDO=sudo, or it is picked automatically when not root).
+# Works both in CI (as root in an ubuntu:26.04, ubuntu:24.04 or debian:trixie
+# container) and locally (set SUDO=sudo, or it is picked automatically when
+# not root).
 set -euo pipefail
 
 PKG=${1:?usage: $0 <source-package> [out-dir]}
@@ -75,4 +76,4 @@ $SUDO mk-build-deps --install --remove \
 dpkg-buildpackage -us -uc -b -j"$(nproc)"
 
 cd ..
-cp -v ./*.deb "$OUT"/
+find . -maxdepth 1 -name '*.deb' ! -name '*-dbgsym_*' -exec cp -v {} "$OUT"/ \;
