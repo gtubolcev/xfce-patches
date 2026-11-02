@@ -1,0 +1,24 @@
+# Maintainer: Grigory Tuboltsev <gtubolcev@gmail.com>
+# Built by scripts/build-arch.sh from the source next to this directory.
+
+pkgname=thunar-disk-usage-plugin
+_upstream=0.1.0
+pkgver=${_upstream}_${XFCEPATCHES_RELEASE:-0}
+pkgrel=1
+pkgdesc='Disk usage chart (like Baobab) in the folder properties of Thunar'
+arch=('x86_64')
+url='https://github.com/gtubolcev/xfce-patches/tree/main/thunar-disk-usage'
+license=('GPL-2.0-or-later')
+depends=('thunar' 'gtk3' 'glib2')
+makedepends=('meson' 'gettext')
+source=('thunar-disk-usage.tar.gz')
+sha256sums=('SKIP')
+
+build() {
+  arch-meson thunar-disk-usage build
+  meson compile -C build
+}
+
+package() {
+  meson install -C build --destdir "$pkgdir"
+}

@@ -2,7 +2,8 @@
 
 Extra features for XFCE components on **Xubuntu 26.04 (resolute)** (and ports to
 **24.04 (noble)**), packaged as drop-in replacement `.deb`s built by GitHub Actions.
-Test builds for **Debian 13 (trixie)** and **Arch Linux** too.
+Test builds for **Debian 13 (trixie)** and **Arch Linux** too. Also a
+Thunar plugin of our own that works with the stock Thunar.
 
 ## Features
 
@@ -32,6 +33,16 @@ passes its time, so a manual change stays until the next rule; a switch missed
 while logged out is applied at login. Translated into all Xfce languages
 (machine translations, not yet reviewed).
 
+### Disk usage in Thunar (plugin)
+
+A **Disk Usage** tab in the *Properties* dialog of a folder, and **Show Disk
+Usage** (Ctrl+Alt+D) in the folder's context menu: a ring chart of what takes up
+the space, ported from GNOME's Disk Usage Analyzer (Baobab). A plugin, not a
+patch — it installs next to the stock Thunar 4.18+. See
+[thunar-disk-usage/README.md](thunar-disk-usage/README.md).
+
+![Disk Usage tab](docs/thunar-disk-usage.png)
+
 ## Install
 
 Download the `.deb`s for your Xubuntu release from
@@ -54,6 +65,10 @@ On Arch Linux (also Manjaro, EndeavourOS) install
 `xfce4-settings`, and `sudo pacman -S xfce4-settings` goes back. The Debian and
 Arch builds are untested.
 
+The Thunar plugin is a separate package, `thunar-disk-usage-plugin` (see its
+[README](thunar-disk-usage/README.md#install) for the file names); it does not
+replace anything and goes with `sudo apt remove thunar-disk-usage-plugin`.
+
 The code was written with an AI assistant (Claude) and has not been reviewed by
 an Xfce developer.
 
@@ -72,14 +87,21 @@ packages/<source-package>/
         patches/
     arch/           optional port to Arch Linux: BASE, patches/, PKGBUILD
                     and the files the PKGBUILD needs
+<subproject>/       a program of our own (e.g. thunar-disk-usage): sources,
+    debian/             native Debian packaging
+    arch/PKGBUILD       Arch packaging
 scripts/
     setup-dev.sh        one-time: enable deb-src, install toolchain (sudo)
     fetch-upstream.sh   clone upstream git at the installed version -> src/<pkg>
     export-patches.sh   commits on src/<pkg> (branch work) -> packages/<pkg>/patches
     build-package.sh    apt-get source + our patches -> .deb (used by CI too)
-    build-arch.sh       packages/<pkg>/arch -> makepkg -> .pkg.tar.zst (CI)
+    build-arch.sh       packages/<pkg>/arch or <subproject>/arch -> makepkg
+                        -> .pkg.tar.zst (CI)
+    build-native.sh     <subproject> -> native .deb (CI)
+    upload-ppa.sh       signed source package -> Launchpad PPA (CI, on tags)
     screenshot.sh       docs/theme-schedule.png from the built .debs (CI commits
                         it after each push to main when the dialog changed)
+    screenshot-tdu.sh   docs/thunar-disk-usage.png, the same for the plugin
 src/                upstream working clones (git-ignored)
 ```
 

@@ -2,10 +2,12 @@
 # Build an Arch Linux package with our patches applied.
 #
 #   scripts/build-arch.sh <source-package> [out-dir]
+#   scripts/build-arch.sh <dir> [out-dir]
 #
 # Copies packages/<pkg>/arch/PKGBUILD, its extra files and patches/*.patch
-# into a build directory and runs makepkg there. With RELEASE=v0.1.2 the
-# package version gets it (4.20.5_0.1.2), so that each release upgrades the
+# into a build directory and runs makepkg there. A subproject of our own
+# (<dir>/arch/PKGBUILD in the repo root) gets its source as <dir>.tar.gz.
+# With RELEASE=v0.1.2 the package version gets it (4.20.5_0.1.2), so that each release upgrades the
 # previous one. Resulting .pkg.tar.zst files land in out-dir.
 #
 # Meant for CI, as root in an archlinux container: installs base-devel and
@@ -18,6 +20,8 @@ ROOT=$(cd "$(dirname "$0")/.." && pwd)
 OUT=$(realpath -m "${2:-$ROOT/out}")
 WORK=${WORK:-$ROOT/_build}/$PKG-arch
 PKGDIR=$ROOT/packages/$PKG/arch
+NATIVE=
+[ -f "$ROOT/$PKG/arch/PKGBUILD" ] && { PKGDIR=$ROOT/$PKG/arch; NATIVE=1; }
 
 RELEASE=${RELEASE:-}
 export XFCEPATCHES_RELEASE=${RELEASE#v}
@@ -25,7 +29,12 @@ export XFCEPATCHES_RELEASE=${RELEASE#v}
 rm -rf "$WORK"
 mkdir -p "$WORK" "$OUT"
 find "$PKGDIR" -maxdepth 1 -type f ! -name BASE -exec cp {} "$WORK"/ \;
-cp "$PKGDIR"/patches/*.patch "$WORK"/
+if [ -n "$NATIVE" ]; then
+  tar -C "$ROOT" --exclude="./$PKG/arch" --exclude="./$PKG/debian" --exclude="./$PKG/PLAN.md" \
+    -czf "$WORK/$PKG.tar.gz" "./$PKG"
+else
+  cp "$PKGDIR"/patches/*.patch "$WORK"/
+fi
 
 if [ "$(id -u)" -eq 0 ]; then
   pacman -Syu --noconfirm --needed base-devel git

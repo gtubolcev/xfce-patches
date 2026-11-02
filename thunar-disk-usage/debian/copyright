@@ -1,0 +1,28 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: thunar-disk-usage-plugin
+Source: https://github.com/gtubolcev/xfce-patches
+
+Files: *
+Copyright: 2026 Grigory Tuboltsev
+License: GPL-2+
+
+Files: src/du-chart.* src/du-rings-chart.*
+Copyright: 2006-2008 Igalia
+           2013 Stefano Facchini <stefano.facchini@gmail.com>
+           2026 Grigory Tuboltsev
+Comment: ported to C and GTK 3 from Baobab 49.1
+License: GPL-2+
+
+License: GPL-2+
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ On Debian systems, the complete text of the GNU General Public
+ License version 2 can be found in "/usr/share/common-licenses/GPL-2".

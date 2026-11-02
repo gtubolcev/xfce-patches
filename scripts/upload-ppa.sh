@@ -3,6 +3,11 @@
 # Launchpad PPA, which then builds the .debs for amd64 and the other arches.
 #
 #   scripts/upload-ppa.sh <source-package> [codename]
+#   scripts/upload-ppa.sh <dir> [codename]
+#
+# A subproject of our own (<dir>/debian in the repo root) is uploaded as a
+# native package, versioned like build-native.sh plus the upload number
+# (0.1.0+v0.5.0~resolute~ppa1).
 #
 # codename defaults to the running release; an older one (e.g. noble) uses the
 # port in packages/<pkg>/<codename>/patches. PPA=... overrides the target
@@ -30,12 +35,48 @@ WORK=$ROOT/_build/ppa/$PKG-$DIST
 export DEBFULLNAME=${DEBFULLNAME:-"Grigory Tuboltsev"}
 export DEBEMAIL=${DEBEMAIL:-"gtubolcev@gmail.com"}
 
-PATCHDIR=$ROOT/packages/$PKG/patches
-[ -d "$ROOT/packages/$PKG/$DIST" ] && PATCHDIR=$ROOT/packages/$PKG/$DIST/patches
+# the next upload number for versions starting with $1 of source package $2:
+# a version can be uploaded to the PPA only once, even after it was deleted
+next_upload() {
+  curl -fsS --retry 5 --retry-all-errors "https://api.launchpad.net/devel/${PPA_ARCHIVE}?ws.op=getPublishedSources&source_name=$2&exact_match=true" \
+    | python3 -c 'import json, sys
+prefix = sys.argv[1]
+nums = [e["source_package_version"][len(prefix):] for e in json.load(sys.stdin)["entries"]
+        if e["source_package_version"].startswith(prefix)]
+print(max((int(n) for n in nums if n.isdigit()), default=0) + 1)' "$1"
+}
+
+# $@: extra dpkg-buildpackage options
+sign_and_upload() {
+  if [ -n "${NO_UPLOAD:-}" ]; then
+    dpkg-buildpackage -S -d -nc -us -uc "$@"
+    exit 0
+  fi
+  dpkg-buildpackage -S -d -nc ${SIGN_KEY:+--sign-key="$SIGN_KEY"} "$@"
+  cd ..
+  dput "$PPA" ./*_source.changes
+}
 
 rm -rf "$WORK"
 mkdir -p "$WORK"
 cd "$WORK"
+
+if [ -f "$ROOT/$PKG/debian/control" ]; then
+  mkdir src
+  tar -C "$ROOT/$PKG" --exclude=./arch --exclude=./PLAN.md -cf - . | tar -C src -xf -
+  cd src
+  SOURCE=$(dpkg-parsechangelog -S Source)
+  VERSION="$(dpkg-parsechangelog -S Version)+$RELEASE~$DIST~ppa"
+  VERSION=$VERSION$(next_upload "$VERSION" "$SOURCE")
+  dch --newversion "$VERSION" --force-bad-version --distribution "$DIST" \
+    --force-distribution "Release $RELEASE of XFCE-patches (https://github.com/gtubolcev/xfce-patches)."
+  # a native package: the tarball is the whole source and must be uploaded
+  sign_and_upload
+  exit 0
+fi
+
+PATCHDIR=$ROOT/packages/$PKG/patches
+[ -d "$ROOT/packages/$PKG/$DIST" ] && PATCHDIR=$ROOT/packages/$PKG/$DIST/patches
 read -r UBUNTU_VERSION COMPONENT < <(curl -fsS --retry 5 --retry-all-errors "https://api.launchpad.net/devel/ubuntu/+archive/primary?ws.op=getPublishedSources&source_name=$PKG&exact_match=true&status=Published&distro_series=https://api.launchpad.net/devel/ubuntu/$DIST" \
   | python3 -c 'import json, sys; print("\n".join(e["source_package_version"] + " " + e["component_name"] for e in json.load(sys.stdin)["entries"]))' \
   | sort -V | tail -1) || true
@@ -68,21 +109,9 @@ done
 # the version of the release debs plus an upload number: a version can be
 # uploaded to the PPA only once, even after it was deleted there
 VERSION="$(dpkg-parsechangelog -S Version)+xfcepatches1+$RELEASE~ppa"
-UPLOAD=$(curl -fsS --retry 5 --retry-all-errors "https://api.launchpad.net/devel/${PPA_ARCHIVE}?ws.op=getPublishedSources&source_name=$PKG&exact_match=true" \
-  | python3 -c 'import json, sys
-prefix = sys.argv[1]
-nums = [e["source_package_version"][len(prefix):] for e in json.load(sys.stdin)["entries"]
-        if e["source_package_version"].startswith(prefix)]
-print(max((int(n) for n in nums if n.isdigit()), default=0) + 1)' "$VERSION")
-VERSION=$VERSION$UPLOAD
+VERSION=$VERSION$(next_upload "$VERSION" "$PKG")
 dch --newversion "$VERSION" --distribution "$DIST" --force-distribution \
   "Apply XFCE-patches (https://github.com/gtubolcev/xfce-patches): ${PATCHES[*]}"
 
-if [ -n "${NO_UPLOAD:-}" ]; then
-  dpkg-buildpackage -S -sd -d -nc -us -uc
-  exit 0
-fi
-
-dpkg-buildpackage -S -sd -d -nc ${SIGN_KEY:+--sign-key="$SIGN_KEY"}
-cd ..
-dput "$PPA" ./*_source.changes
+# the orig tarball is not uploaded, Launchpad takes it from the archive
+sign_and_upload -sd

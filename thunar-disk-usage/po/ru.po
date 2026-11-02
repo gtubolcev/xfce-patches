@@ -1,0 +1,89 @@
+# Russian translation of thunar-disk-usage-plugin.
+# Copyright (C) 2026 Grigory Tuboltsev
+# This file is distributed under the same license as the thunar-disk-usage-plugin package.
+# Grigory Tuboltsev <gtubolcev@gmail.com>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: thunar-disk-usage-plugin\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-02 17:57+0100\n"
+"PO-Revision-Date: 2026-11-02 18:00+0100\n"
+"Last-Translator: Grigory Tuboltsev <gtubolcev@gmail.com>\n"
+"Language-Team: Russian\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#: src/du-chart.c:342
+msgid "_Open Folder"
+msgstr "_Открыть папку"
+
+#: src/du-chart.c:343
+msgid "_Copy Path to Clipboard"
+msgstr "_Копировать путь в буфер обмена"
+
+#: src/du-chart.c:344
+msgid "Mo_ve to Trash"
+msgstr "_Переместить в корзину"
+
+#: src/du-chart.c:350
+msgid "Go to _Parent Folder"
+msgstr "_Перейти в родительскую папку"
+
+#: src/du-chart.c:351
+msgid "Zoom _In"
+msgstr "_Увеличить"
+
+#: src/du-chart.c:352
+msgid "Zoom _Out"
+msgstr "_Уменьшить"
+
+#: src/du-view.c:106
+#, c-format
+msgid "Failed to move \"%s\" to the trash"
+msgstr "Не удалось переместить «%s» в корзину"
+
+#: src/du-view.c:204
+#, c-format
+msgid "%u folder could not be read"
+msgid_plural "%u folders could not be read"
+msgstr[0] "Не удалось прочитать %u папку"
+msgstr[1] "Не удалось прочитать %u папки"
+msgstr[2] "Не удалось прочитать %u папок"
+
+#: src/du-view.c:219
+#, c-format
+msgid "Scanning… %s in %s item"
+msgid_plural "Scanning… %s in %s items"
+msgstr[0] "Анализ… %s в %s объекте"
+msgstr[1] "Анализ… %s в %s объектах"
+msgstr[2] "Анализ… %s в %s объектах"
+
+#: src/du-view.c:227
+#, c-format
+msgid "%s in %s item"
+msgid_plural "%s in %s items"
+msgstr[0] "%s в %s объекте"
+msgstr[1] "%s в %s объектах"
+msgstr[2] "%s в %s объектах"
+
+#: src/tdu-page.c:217
+msgid "Disk Usage"
+msgstr "Использование диска"
+
+#: src/tdu-provider.c:174
+msgid "Show _Disk Usage"
+msgstr "Показать _использование диска"
+
+#: src/tdu-provider.c:175
+msgid "Show what takes up the space in this folder"
+msgstr "Показать, что занимает место в этой папке"
+
+#. TRANSLATORS: window title, %s is the folder name
+#: src/tdu-window.c:131
+#, c-format
+msgid "Disk Usage — %s"
+msgstr "Использование диска — %s"

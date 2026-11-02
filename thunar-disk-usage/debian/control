@@ -1,0 +1,31 @@
+Source: thunar-disk-usage-plugin
+Section: xfce
+Priority: optional
+Maintainer: Grigory Tuboltsev <gtubolcev@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               gettext,
+               libglib2.0-dev (>= 2.72),
+               libgtk-3-dev (>= 3.24),
+               libthunarx-3-dev (>= 4.18),
+               meson (>= 0.62),
+               pkgconf
+Standards-Version: 4.7.0
+Rules-Requires-Root: no
+Homepage: https://github.com/gtubolcev/xfce-patches/tree/main/thunar-disk-usage
+Vcs-Git: https://github.com/gtubolcev/xfce-patches.git
+Vcs-Browser: https://github.com/gtubolcev/xfce-patches
+
+Package: thunar-disk-usage-plugin
+Architecture: any
+Depends: thunar, ${misc:Depends}, ${shlibs:Depends}
+Enhances: thunar
+Description: disk usage chart for the Thunar file manager
+ Shows how much space a folder and its sub folders use, as a ring chart
+ like the one of Baobab (GNOME Disk Usage Analyzer), right in Thunar:
+  - a "Disk Usage" tab in the properties of a folder;
+  - "Show Disk Usage" in the context menu of a folder (Ctrl+Alt+U) opens
+    the same chart in a window of its own.
+ .
+ Click a ring segment to go into a folder, the centre to go back up.
+ The scan does not cross into other file systems and counts hard links
+ once, like "du -x".
