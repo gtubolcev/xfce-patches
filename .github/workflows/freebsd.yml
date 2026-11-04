@@ -46,7 +46,9 @@ jobs:
             # requires one, so pkg-config fails for gtk+-3.0 without it
             mkdir -p /build/pc
             printf 'Name: bzip2\nDescription: bzip2\nVersion: 1.0.8\nLibs: -lbz2\nCflags:\n' > /build/pc/bzip2.pc
-            export PKG_CONFIG_PATH=/build/pc
+            # meson installs .pc files into lib/pkgconfig, the 4.20 packages have them
+            # in libdata/pkgconfig, which pkgconf searches first
+            export PKG_CONFIG_PATH=/build/pc:/usr/local/lib/pkgconfig
 
             # newer Xfce libraries than the 4.20 packages
             for p in libxfce4util libxfce4ui xfce4-session; do
