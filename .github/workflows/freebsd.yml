@@ -65,6 +65,7 @@ jobs:
             git clone "$REPO" xfce4-settings
             cd xfce4-settings
             git checkout "$REF"
+            git submodule update --init --depth 1
             git log --oneline -1
             meson setup _b --prefix=/usr/local -Dxorg-libinput=disabled
             grep -q HAVE_SYS_BACKLIGHT_H _b/build.ninja || { echo "sys/backlight.h not detected"; exit 1; }
