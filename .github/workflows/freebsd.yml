@@ -52,7 +52,8 @@ jobs:
             for p in libxfce4util libxfce4ui xfce4-session; do
               git clone --depth 1 https://gitlab.xfce.org/xfce/$p.git
             done
-            OPTS="--prefix=/usr/local -Dgtk-doc=false -Dintrospection=false -Dvala=disabled"
+            # b_lundef: "environ" is defined by the program, not libc, on FreeBSD
+            OPTS="--prefix=/usr/local -Db_lundef=false -Dgtk-doc=false -Dintrospection=false -Dvala=disabled"
             (cd libxfce4util && meson setup _b $OPTS && meson install -C _b)
             (cd libxfce4ui && meson setup _b $OPTS -Dlibgtop=disabled -Depoxy=disabled -Dgudev=disabled \
               && meson install -C _b)
