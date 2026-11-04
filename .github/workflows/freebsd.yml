@@ -36,7 +36,7 @@ jobs:
               xfce4-dev-tools glib gtk3 gdk-pixbuf2 xfce4-conf garcon libxfce4windowing \
               libwnck3 libICE libSM libX11 libXext libXi libXrandr libXcursor xorgproto \
               fontconfig libxklavier libnotify upower colord libxkbcommon \
-              gtk-layer-shell wayland wayland-protocols hwdata
+              gtk-layer-shell wayland wayland-protocols hwdata iceauth
           run: |
             set -e
             uname -a
