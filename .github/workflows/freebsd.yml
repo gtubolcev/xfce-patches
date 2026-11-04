@@ -1,0 +1,85 @@
+name: freebsd
+
+# Builds xfce4-settings from an MR branch on FreeBSD, to check the code that
+# differs between Linux and FreeBSD (e.g. common/backlight.c). FreeBSD has
+# Xfce 4.20 packages only, so the libraries that xfce4-settings master needs
+# in newer versions are built from git first.
+
+on:
+  workflow_dispatch:
+    inputs:
+      repo:
+        description: 'xfce4-settings git repository'
+        required: false
+        default: 'https://gitlab.xfce.org/gtubolcev/xfce-4-settings.git'
+      ref:
+        description: 'Branch, tag or commit to build'
+        required: false
+        default: 'theme-schedule'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      REPO: ${{ inputs.repo || 'https://gitlab.xfce.org/gtubolcev/xfce-4-settings.git' }}
+      REF: ${{ inputs.ref || 'theme-schedule' }}
+    steps:
+      - uses: vmactions/freebsd-vm@v1
+        with:
+          release: '14.3'
+          usesh: true
+          envs: 'REPO REF'
+          prepare: |
+            set -e
+            pkg install -y git meson ninja pkgconf gettext-tools libxml2 \
+              xfce4-dev-tools glib gtk3 gdk-pixbuf2 xfce4-conf garcon libxfce4windowing \
+              libwnck3 libICE libSM libX11 libXext libXi libXrandr libXcursor xorgproto \
+              fontconfig libxklavier libnotify upower colord libxkbcommon \
+              gtk-layer-shell wayland wayland-protocols hwdata
+          run: |
+            set -e
+            uname -a
+            mkdir -p /build && cd /build
+
+            # newer Xfce libraries than the 4.20 packages
+            for p in libxfce4util libxfce4ui xfce4-session; do
+              git clone --depth 1 https://gitlab.xfce.org/xfce/$p.git
+            done
+            OPTS="--prefix=/usr/local -Dgtk-doc=false -Dintrospection=false -Dvala=disabled"
+            (cd libxfce4util && meson setup _b $OPTS && meson install -C _b)
+            (cd libxfce4ui && meson setup _b $OPTS -Dlibgtop=disabled -Depoxy=disabled -Dgudev=disabled \
+              && meson install -C _b)
+            (cd xfce4-session && meson setup _b $OPTS -Dpolkit=disabled && meson install -C _b)
+
+            # xfce4-settings itself, with warnings shown
+            git clone "$REPO" xfce4-settings
+            cd xfce4-settings
+            git checkout "$REF"
+            git log --oneline -1
+            meson setup _b --prefix=/usr/local -Dxorg-libinput=disabled
+            grep -q HAVE_SYS_BACKLIGHT_H _b/build.ninja || { echo "sys/backlight.h not detected"; exit 1; }
+            meson compile -C _b > build.log 2>&1 || { cat build.log; exit 1; }
+            cat build.log
+            if grep -E "warning|error" build.log | grep -E "backlight|theme-schedule|theme-variant"; then
+              exit 1
+            fi
+
+            # the FreeBSD backlight code: a VM has no backlight, so nothing
+            # must be found and nothing must crash
+            cat > bl-test.c <<'EOF'
+            #include "common/backlight.h"
+            int main (void)
+            {
+                gchar *device = backlight_find_device ();
+                g_print ("backlight device: %s\n", device != NULL ? device : "(none)");
+                if (device != NULL)
+                    g_print ("brightness: %d %%\n", backlight_get_percent (device));
+                g_free (device);
+                return 0;
+            }
+            EOF
+            cc -Wall -Werror -DHAVE_SYS_BACKLIGHT_H -I. -o bl-test bl-test.c common/backlight.c \
+              $(pkg-config --cflags --libs gio-2.0)
+            ./bl-test
+            ls -l /dev/backlight 2>&1 || true
