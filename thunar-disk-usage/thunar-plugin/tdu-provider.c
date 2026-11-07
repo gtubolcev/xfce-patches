@@ -175,7 +175,7 @@ tdu_provider_menu_item_new (ThunarxFileInfo *folder,
   item = thunarx_menu_item_new (TDU_MENU_ITEM_NAME,
                                 _("Show _Disk Usage"),
                                   _("Show what takes up the space in this folder"),
-                                "drive-harddisk");
+                                "thunar-disk-usage-plugin");
   g_object_set_data_full (G_OBJECT (item), "tdu-folder", g_object_ref (folder), g_object_unref);
   g_signal_connect (item, "activate", G_CALLBACK (tdu_provider_activated), window);
 

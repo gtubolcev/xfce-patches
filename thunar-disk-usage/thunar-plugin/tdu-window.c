@@ -70,7 +70,7 @@ static void
 tdu_window_init (TduWindow *window)
 {
   gtk_window_set_default_size (GTK_WINDOW (window), 640, 480);
-  gtk_window_set_icon_name (GTK_WINDOW (window), "drive-harddisk");
+  gtk_window_set_icon_name (GTK_WINDOW (window), "thunar-disk-usage-plugin");
 
   window->view = du_view_new ();
   gtk_container_set_border_width (GTK_CONTAINER (window), 12);

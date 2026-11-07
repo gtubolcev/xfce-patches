@@ -13,6 +13,11 @@ Copyright: 2006-2008 Igalia
 Comment: ported to C and GTK 3 from Baobab 49.1
 License: GPL-2+
 
+Files: icons/*
+Copyright: The GNOME Project (Baobab)
+Comment: org.gnome.baobab.svg and org.gnome.baobab-symbolic.svg of Baobab 49.1
+License: GPL-2+
+
 License: GPL-2+
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
