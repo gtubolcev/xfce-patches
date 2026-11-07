@@ -170,7 +170,8 @@ tdu_provider_menu_item_new (ThunarxFileInfo *folder,
   ThunarxMenuItem *item;
 
   /* the same name in the file and the folder menu, so that one shortcut
-   * works with and without a selected folder */
+   * works with and without a selected folder; a toolbar button activates
+   * the item of the folder menu, i.e. shows the current folder */
   item = thunarx_menu_item_new (TDU_MENU_ITEM_NAME,
                                 _("Show _Disk Usage"),
                                   _("Show what takes up the space in this folder"),

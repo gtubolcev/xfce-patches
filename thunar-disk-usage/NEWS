@@ -3,5 +3,6 @@
 - First version: a "Disk Usage" tab in the properties dialog of a folder
   and "Show Disk Usage" (Ctrl+Alt+U) in the context menu, a ring chart
   ported from Baobab
+- The menu item can be added to the toolbar (View > Configure Toolbar)
 - Translation Updates:
   German, Russian

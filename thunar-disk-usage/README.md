@@ -7,12 +7,15 @@ like the one in GNOME's Disk Usage Analyzer (Baobab):
 - **Show Disk Usage** (Ctrl+Alt+U) in the context menu of a folder and of the
   folder background opens the same view in a window of its own.
 
+It can also be a button in the toolbar: *View → Configure Toolbar…*, tick
+**Show Disk Usage**. The button shows the current folder.
+
 Thunar's shortcut editor does not list the items of plugins. To change the
 shortcut, quit Thunar (`thunar -q`) and add a line to
 `~/.config/Thunar/accels.scm`, e.g. for Ctrl+Shift+D, or `""` for none:
 
 ```
-(gtk_accel_path "<Actions>/ThunarActions/tdu-show-disk-usage" "<Primary><Shift>d")
+(gtk_accel_path "<Actions>/ThunarActions/uca-action-tdu-show-disk-usage" "<Primary><Shift>d")
 ```
 
 ![Disk Usage tab](../docs/thunar-disk-usage.png)

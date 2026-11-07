@@ -23,8 +23,10 @@
 
 G_BEGIN_DECLS
 
-/* name of the menu item; Thunar binds "<Actions>/ThunarActions/<name>" */
-#define TDU_MENU_ITEM_NAME "tdu-show-disk-usage"
+/* name of the menu item; Thunar binds "<Actions>/ThunarActions/<name>",
+ * and offers the items whose name starts with "uca-action" (meant for its
+ * custom actions) as buttons in its toolbar editor */
+#define TDU_MENU_ITEM_NAME "uca-action-tdu-show-disk-usage"
 
 typedef struct _TduProviderClass TduProviderClass;
 typedef struct _TduProvider      TduProvider;
