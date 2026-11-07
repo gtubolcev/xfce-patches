@@ -1,0 +1,6 @@
+thunar-plugin/du-chart.c
+thunar-plugin/du-view.c
+thunar-plugin/tdu-page.c
+thunar-plugin/tdu-plugin.c
+thunar-plugin/tdu-provider.c
+thunar-plugin/tdu-window.c

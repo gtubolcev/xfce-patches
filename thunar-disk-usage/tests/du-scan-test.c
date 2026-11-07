@@ -18,7 +18,7 @@
 /* du-scan-test PATH [DEPTH]: scan PATH like the plugin does and print the
  * folder sizes in bytes, for comparison with "du -xB1 --max-depth=DEPTH". */
 
-#include "src/du-scanner.h"
+#include "thunar-plugin/du-scanner.h"
 
 #include <stdlib.h>
 

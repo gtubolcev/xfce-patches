@@ -21,7 +21,7 @@
 #include "config.h"
 #endif
 
-#include "src/du-view.h"
+#include "thunar-plugin/du-view.h"
 
 int
 main (int    argc,

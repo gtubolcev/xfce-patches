@@ -1,0 +1,34 @@
+thunar_disk_usage_sources = [
+  'du-chart.c',
+  'du-chart.h',
+  'du-rings-chart.c',
+  'du-rings-chart.h',
+  'du-scanner.c',
+  'du-scanner.h',
+  'du-view.c',
+  'du-view.h',
+  'tdu-page.c',
+  'tdu-page.h',
+  'tdu-plugin.c',
+  'tdu-provider.c',
+  'tdu-provider.h',
+  'tdu-window.c',
+  'tdu-window.h',
+]
+
+shared_module(
+  'thunar-disk-usage-plugin',
+  thunar_disk_usage_sources,
+  gnu_symbol_visibility: 'hidden',
+  include_directories: include_directories('..'),
+  dependencies: [
+    glib,
+    gio,
+    gtk,
+    libm,
+    thunarx,
+  ],
+  name_prefix: '',
+  install: true,
+  install_dir: extensionsdir,
+)

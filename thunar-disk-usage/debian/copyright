@@ -6,7 +6,7 @@ Files: *
 Copyright: 2026 Grigory Tuboltsev
 License: GPL-2+
 
-Files: src/du-chart.* src/du-rings-chart.*
+Files: thunar-plugin/du-chart.* thunar-plugin/du-rings-chart.*
 Copyright: 2006-2008 Igalia
            2013 Stefano Facchini <stefano.facchini@gmail.com>
            2026 Grigory Tuboltsev

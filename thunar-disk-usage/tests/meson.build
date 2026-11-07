@@ -1,8 +1,8 @@
 executable(
   'du-scan-test',
-  ['du-scan-test.c', '../src/du-scanner.c'],
+  ['du-scan-test.c', '../thunar-plugin/du-scanner.c'],
   include_directories: include_directories('..'),
-  dependencies: [glib_dep, gio_dep],
+  dependencies: [glib, gio],
   install: false,
 )
 
@@ -10,12 +10,12 @@ executable(
   'du-view-test',
   [
     'du-view-test.c',
-    '../src/du-chart.c',
-    '../src/du-rings-chart.c',
-    '../src/du-scanner.c',
-    '../src/du-view.c',
+    '../thunar-plugin/du-chart.c',
+    '../thunar-plugin/du-rings-chart.c',
+    '../thunar-plugin/du-scanner.c',
+    '../thunar-plugin/du-view.c',
   ],
   include_directories: include_directories('..'),
-  dependencies: [glib_dep, gio_dep, gtk_dep, libm_dep],
+  dependencies: [glib, gio, gtk, libm],
   install: false,
 )

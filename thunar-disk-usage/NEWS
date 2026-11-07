@@ -1,0 +1,7 @@
+0.1.0 (unreleased)
+=====
+- First version: a "Disk Usage" tab in the properties dialog of a folder
+  and "Show Disk Usage" (Ctrl+Alt+U) in the context menu, a ring chart
+  ported from Baobab
+- Translation Updates:
+  German, Russian

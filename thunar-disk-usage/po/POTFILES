@@ -1,6 +1,0 @@
-src/du-chart.c
-src/du-view.c
-src/tdu-page.c
-src/tdu-plugin.c
-src/tdu-provider.c
-src/tdu-window.c
