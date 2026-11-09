@@ -2,7 +2,7 @@
 # Built by scripts/build-arch.sh from the source next to this directory.
 
 pkgname=thunar-disk-usage-plugin
-_upstream=0.1.0
+_upstream=0.1.0dev  # pacman: 0.1.0dev sorts before 0.1.0
 pkgver=${_upstream}_${XFCEPATCHES_RELEASE:-0}
 pkgrel=1
 pkgdesc='Disk usage chart (like Baobab) in the folder properties of Thunar'

@@ -1,7 +1,7 @@
 project(
   'thunar-disk-usage-plugin',
   'c',
-  version : '0.1.0',
+  version : '0.1.0-dev',
   license : 'GPL-2.0-or-later',
   meson_version : '>= 0.62.0',
   default_options : ['c_std=gnu11', 'buildtype=debugoptimized', 'warning_level=2']
@@ -95,6 +95,14 @@ extra_cflags += [
 
 add_project_arguments(cc.get_supported_arguments(extra_cflags_check), language: 'c')
 add_project_arguments(extra_cflags, language: 'c')
+
+xfce_revision_h = vcs_tag(
+  command: ['git', 'rev-parse', '--short', 'HEAD'],
+  fallback: 'UNKNOWN',
+  input: 'xfce-revision.h.in',
+  output: 'xfce-revision.h',
+  replace_string: '@REVISION@',
+)
 
 subdir('icons')
 subdir('po')

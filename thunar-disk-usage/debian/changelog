@@ -1,4 +1,4 @@
-thunar-disk-usage-plugin (0.1.0) unstable; urgency=medium
+thunar-disk-usage-plugin (0.1.0~dev) unstable; urgency=medium
 
   * Initial release: Disk Usage tab in the folder properties and a window
     opened from the folder context menu, with a ring chart ported from

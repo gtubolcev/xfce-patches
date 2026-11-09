@@ -19,6 +19,7 @@ thunar_disk_usage_sources = [
 shared_module(
   'thunar-disk-usage-plugin',
   thunar_disk_usage_sources,
+  xfce_revision_h,
   gnu_symbol_visibility: 'hidden',
   include_directories: include_directories('..'),
   dependencies: [

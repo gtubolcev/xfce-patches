@@ -23,6 +23,7 @@
 #include "tdu-page.h"
 #include "tdu-provider.h"
 #include "tdu-window.h"
+#include "xfce-revision.h"
 
 #include <glib/gi18n-lib.h>
 
@@ -58,7 +59,7 @@ thunar_extension_initialize (ThunarxProviderPlugin *plugin)
   bindtextdomain (GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);
   bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
 
-  g_debug ("Initializing thunar-disk-usage-plugin %s", VERSION);
+  g_debug ("Initializing thunar-disk-usage-plugin %s", VERSION_FULL);
 
   /* the chart and view types are registered statically, and a scan may
    * still run in a worker thread, so the module must never be unloaded */
