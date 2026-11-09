@@ -15,10 +15,6 @@
  * this program; if not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include "du-scanner.h"
 
 #include <dirent.h>

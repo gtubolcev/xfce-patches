@@ -16,10 +16,6 @@
  */
 
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include "du-rings-chart.h"
 #include "du-scanner.h"
 #include "du-view.h"

@@ -17,10 +17,6 @@
 
 /* Shows the disk usage view of a folder in a window, without Thunar. */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include "thunar-plugin/du-view.h"
 
 int

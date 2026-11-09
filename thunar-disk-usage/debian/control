@@ -4,6 +4,7 @@ Priority: optional
 Maintainer: Grigory Tuboltsev <gtubolcev@gmail.com>
 Build-Depends: debhelper-compat (= 13),
                gettext,
+               gtk-update-icon-cache,
                libglib2.0-dev (>= 2.72),
                libgtk-3-dev (>= 3.24),
                libthunarx-3-dev (>= 4.18),

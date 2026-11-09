@@ -16,10 +16,6 @@
  */
 
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include "du-view.h"
 #include "tdu-window.h"
 
