@@ -10,38 +10,51 @@ Add a "Schedule" tab to the appearance dialog holding any number of rules
 - set the Gtk theme: the dark or light variant of the theme in use at the
   time of the switch (looked up case-insensitively, e.g. Greybird ->
   Greybird-dark, Orchis-Compact -> Orchis-Dark-Compact) or a fixed theme;
-- set the color scheme (GSettings org.gnome.desktop.interface color-scheme,
-  read via the settings portal by GTK 4/libadwaita, Qt 6, Firefox, Chromium);
+- set the color scheme (GSettings color-scheme of org.gnome.desktop.interface
+  and org.x.apps.portal, read via the settings portals by GTK 4/libadwaita,
+  Qt 6, Firefox, Chromium);
 - set the matching Xfwm4 theme (default follows /Xfce/SyncThemes), the icon
   theme, the cursor theme or the screen backlight brightness in percent, and
   run a shell command ("More..." dialog). The brightness is set through
   logind (Session.SetBrightness), which needs no root, preferring firmware
   over platform over raw backlight devices like GNOME.
+- set the color temperature of the screen (night light), reached gradually
+  from the one on the screen over a number of minutes after the rule time.
+  xfsettingsd computes it from the latest rules each minute (every 10
+  seconds while fading) and sets XRandR gamma ramps, multiplied onto the
+  ramps found (so color profiles stay); X11 only. The white point follows
+  the Planckian locus.
 
 Rules are stored in the xsettings channel under /Xfce/ThemeSchedule/ as
 parallel string arrays and applied by a new xfsettingsd helper, so they work
 while the dialog is closed. A rule fires when the clock crosses its time;
-a setting changed by hand stays until the next rule, and a switch missed
-while logged out is made at login.
+a setting changed by hand stays until the next rule. The switches missed
+while logged out are made at login as one switch to what the missed rules
+set in the order of their times, so the theme does not flicker and only the
+last command runs.
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01Np2p5AqKgTNgtBXcQRY3bY
 Claude-Session: https://claude.ai/code/session_015b974heChUULfSFVyi9jWe
 ---
  common/backlight.h                      |  110 ++
+ common/color-temperature.h              |  119 ++
  common/debug.c                          |    1 +
  common/debug.h                          |    1 +
- common/sun-times.h                      |  406 ++++++
+ common/sun-times.h                      |  406 +++++
+ common/theme-schedule.h                 |   66 +
  common/theme-variant.h                  |  150 ++
  dialogs/appearance-settings/Makefile.am |    3 +-
- dialogs/appearance-settings/main.c      | 1776 +++++++++++++++++++++++
+ dialogs/appearance-settings/main.c      | 1881 ++++++++++++++++++++++-
  xfsettingsd/Makefile.am                 |    7 +-
  xfsettingsd/main.c                      |    4 +
- xfsettingsd/theme-schedule.c            |  643 ++++++++
+ xfsettingsd/theme-schedule.c            | 1029 +++++++++++++
  xfsettingsd/theme-schedule.h            |   31 +
- 11 files changed, 3129 insertions(+), 3 deletions(-)
+ 13 files changed, 3773 insertions(+), 35 deletions(-)
  create mode 100644 common/backlight.h
+ create mode 100644 common/color-temperature.h
  create mode 100644 common/sun-times.h
+ create mode 100644 common/theme-schedule.h
  create mode 100644 common/theme-variant.h
  create mode 100644 xfsettingsd/theme-schedule.c
  create mode 100644 xfsettingsd/theme-schedule.h
@@ -162,6 +175,131 @@ index 00000000..094cce60
 +G_END_DECLS
 +
 +#endif /* !__BACKLIGHT_H__ */
+diff --git a/common/color-temperature.h b/common/color-temperature.h
+new file mode 100644
+index 00000000..d3de855b
+--- /dev/null
++++ b/common/color-temperature.h
+@@ -0,0 +1,119 @@
++/*
++ *  Copyright (c) 2026 Grigory Tuboltsev <gtubolcev@gmail.com>
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU Library General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License along
++ *  with this program; if not, write to the Free Software Foundation, Inc.,
++ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++ */
++
++/*
++ * Shared by the appearance dialog and xfsettingsd (header only, like
++ * theme-variant.h): the color temperature of the screen, as night light
++ * tools set it. The white point moves along the Planckian locus, so red
++ * stays, green drops a little and blue a lot.
++ *
++ * The rule value is "<kelvin>:<minutes>", the temperature reached gradually
++ * over that many minutes after the rule time.
++ */
++
++#ifndef __COLOR_TEMPERATURE_H__
++#define __COLOR_TEMPERATURE_H__
++
++#include <glib.h>
++#include <math.h>
++
++G_BEGIN_DECLS
++
++#define COLOR_TEMPERATURE_MIN 1700 /* the locus formula holds from 1667 K */
++#define COLOR_TEMPERATURE_NEUTRAL 6500
++#define COLOR_TEMPERATURE_MAX_FADE 240 /* minutes */
++
++/* linear sRGB of the Planckian white point at @kelvin, with Y = 1; CIE xy
++ * from the cubic fit of Kim et al. (2002) */
++static inline void
++color_temperature_planck_rgb (gdouble kelvin,
++                              gdouble rgb[3])
++{
++    gdouble t = 1e3 / kelvin, x, y, X, Z;
++
++    if (kelvin < 4000)
++        x = -0.2661239 * t * t * t - 0.2343589 * t * t + 0.8776956 * t + 0.179910;
++    else
++        x = -3.0258469 * t * t * t + 2.1070379 * t * t + 0.2226347 * t + 0.240390;
++
++    if (kelvin < 2222)
++        y = -1.1063814 * x * x * x - 1.34811020 * x * x + 2.18555832 * x - 0.20219683;
++    else if (kelvin < 4000)
++        y = -0.9549476 * x * x * x - 1.37418593 * x * x + 2.09137015 * x - 0.16748867;
++    else
++        y = 3.0817580 * x * x * x - 5.87338670 * x * x + 3.75112997 * x - 0.37001483;
++
++    X = x / y;
++    Z = (1 - x - y) / y;
++
++    rgb[0] = 3.2404542 * X - 1.5371385 - 0.4985314 * Z;
++    rgb[1] = -0.9692660 * X + 1.8760108 + 0.0415560 * Z;
++    rgb[2] = 0.0556434 * X - 0.2040259 + 1.0572252 * Z;
++}
++
++/* the factors for the red, green and blue output of the gamma ramps at
++ * @kelvin: 1 at the neutral temperature, the largest one always 1 */
++static inline void
++color_temperature_gains (gint kelvin,
++                         gdouble gains[3])
++{
++    gdouble rgb[3], neutral[3], max = 0;
++
++    kelvin = CLAMP (kelvin, COLOR_TEMPERATURE_MIN, COLOR_TEMPERATURE_NEUTRAL);
++    color_temperature_planck_rgb (kelvin, rgb);
++    color_temperature_planck_rgb (COLOR_TEMPERATURE_NEUTRAL, neutral);
++
++    for (guint i = 0; i < 3; i++)
++    {
++        gains[i] = MAX (rgb[i] / neutral[i], 0);
++        max = MAX (max, gains[i]);
++    }
++
++    /* linear light to the gamma-encoded output of the ramps */
++    for (guint i = 0; i < 3; i++)
++        gains[i] = pow (gains[i] / max, 1 / 2.2);
++}
++
++/* parses a rule value "<kelvin>:<minutes>" (":<minutes>" optional) */
++static inline gboolean
++color_temperature_parse (const gchar *value,
++                         gint *kelvin,
++                         gint *fade_minutes)
++{
++    gchar *end;
++    gint64 k, m = 0;
++
++    if (value == NULL || *value == '\0')
++        return FALSE;
++
++    k = g_ascii_strtoll (value, &end, 10);
++    if (*end == ':')
++        m = g_ascii_strtoll (end + 1, &end, 10);
++    if (*end != '\0' || k < COLOR_TEMPERATURE_MIN || k > COLOR_TEMPERATURE_NEUTRAL
++        || m < 0 || m > COLOR_TEMPERATURE_MAX_FADE)
++        return FALSE;
++
++    *kelvin = k;
++    *fade_minutes = m;
++
++    return TRUE;
++}
++
++G_END_DECLS
++
++#endif /* !__COLOR_TEMPERATURE_H__ */
 diff --git a/common/debug.c b/common/debug.c
 index 7ab65a1e..f97e4583 100644
 --- a/common/debug.c
@@ -598,6 +736,78 @@ index 00000000..eea51854
 +G_END_DECLS
 +
 +#endif /* !__SUN_TIMES_H__ */
+diff --git a/common/theme-schedule.h b/common/theme-schedule.h
+new file mode 100644
+index 00000000..b5d83327
+--- /dev/null
++++ b/common/theme-schedule.h
+@@ -0,0 +1,66 @@
++/*
++ *  Copyright (c) 2026 Grigory Tuboltsev <gtubolcev@gmail.com>
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU Library General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License along
++ *  with this program; if not, write to the Free Software Foundation, Inc.,
++ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++ */
++
++/*
++ * Shared by the appearance dialog and xfsettingsd (header only, the common
++ * library is not always built): the xfconf properties of the theme schedule,
++ * see xfsettingsd/theme-schedule.c for their values.
++ */
++
++#ifndef __THEME_SCHEDULE_PROPS_H__
++#define __THEME_SCHEDULE_PROPS_H__
++
++#include <glib.h>
++
++G_BEGIN_DECLS
++
++#define THEME_SCHEDULE_PROP_PREFIX "/Xfce/ThemeSchedule/"
++#define THEME_SCHEDULE_ENABLED_PROP THEME_SCHEDULE_PROP_PREFIX "Enabled"
++#define THEME_SCHEDULE_CHECKED_PROP THEME_SCHEDULE_PROP_PREFIX "CheckedUntil"
++#define THEME_SCHEDULE_LOCATION_PROP THEME_SCHEDULE_PROP_PREFIX "Location"
++
++/* the rules are stored as one string array per field */
++typedef enum
++{
++    THEME_SCHEDULE_TIME,
++    THEME_SCHEDULE_THEME,
++    THEME_SCHEDULE_COLOR_SCHEME,
++    THEME_SCHEDULE_XFWM4,
++    THEME_SCHEDULE_ICON_THEME,
++    THEME_SCHEDULE_CURSOR_THEME,
++    THEME_SCHEDULE_BRIGHTNESS,
++    THEME_SCHEDULE_COMMAND,
++    THEME_SCHEDULE_COLOR_TEMPERATURE,
++    N_THEME_SCHEDULE_FIELDS
++} ThemeScheduleField;
++
++static const gchar *const theme_schedule_properties[N_THEME_SCHEDULE_FIELDS] = {
++    THEME_SCHEDULE_PROP_PREFIX "Times",
++    THEME_SCHEDULE_PROP_PREFIX "Themes",
++    THEME_SCHEDULE_PROP_PREFIX "ColorSchemes",
++    THEME_SCHEDULE_PROP_PREFIX "Xfwm4",
++    THEME_SCHEDULE_PROP_PREFIX "IconThemes",
++    THEME_SCHEDULE_PROP_PREFIX "CursorThemes",
++    THEME_SCHEDULE_PROP_PREFIX "Brightness",
++    THEME_SCHEDULE_PROP_PREFIX "Commands",
++    THEME_SCHEDULE_PROP_PREFIX "ColorTemperatures",
++};
++
++G_END_DECLS
++
++#endif /* !__THEME_SCHEDULE_PROPS_H__ */
 diff --git a/common/theme-variant.h b/common/theme-variant.h
 new file mode 100644
 index 00000000..5f55f4c7
@@ -769,37 +979,26 @@ index 3c0e4f32..736e187d 100644
  xfce4_appearance_scriptsdir = $(HELPER_PATH_PREFIX)/xfce4/settings
  xfce4_appearance_scripts_SCRIPTS = appearance-install-theme
 diff --git a/dialogs/appearance-settings/main.c b/dialogs/appearance-settings/main.c
-index 08557643..3a084f72 100644
+index 08557643..19dce519 100644
 --- a/dialogs/appearance-settings/main.c
 +++ b/dialogs/appearance-settings/main.c
-@@ -21,6 +21,10 @@
+@@ -21,6 +21,12 @@
  #include "config.h"
  #endif
  
 +#include "common/backlight.h"
++#include "common/color-temperature.h"
 +#include "common/sun-times.h"
++#include "common/theme-schedule.h"
 +#include "common/theme-variant.h"
 +
  #include <cairo-gobject.h>
  #include <gio/gio.h>
  #include <gtk/gtk.h>
-@@ -63,6 +67,43 @@ enum
+@@ -63,6 +69,14 @@ enum
      N_RGBA_COLUMNS
  };
  
-+enum
-+{
-+    COLUMN_SCHEDULE_TIME,
-+    COLUMN_SCHEDULE_THEME,
-+    COLUMN_SCHEDULE_COLOR_SCHEME,
-+    COLUMN_SCHEDULE_XFWM4,
-+    COLUMN_SCHEDULE_ICON_THEME,
-+    COLUMN_SCHEDULE_CURSOR_THEME,
-+    COLUMN_SCHEDULE_BRIGHTNESS,
-+    COLUMN_SCHEDULE_COMMAND,
-+    N_SCHEDULE_COLUMNS
-+};
-+
 +/* the choices of the Style and Color scheme columns */
 +enum
 +{
@@ -808,26 +1007,10 @@ index 08557643..3a084f72 100644
 +    N_CHOICE_COLUMNS
 +};
 +
-+/* Theme schedule, applied by xfsettingsd */
-+#define SCHEDULE_ENABLED_PROP "/Xfce/ThemeSchedule/Enabled"
-+#define SCHEDULE_LOCATION_PROP "/Xfce/ThemeSchedule/Location"
-+
-+/* the rules are stored as one string array per column, see xfsettingsd/theme-schedule.c */
-+static const gchar *schedule_props[N_SCHEDULE_COLUMNS] = {
-+    "/Xfce/ThemeSchedule/Times",
-+    "/Xfce/ThemeSchedule/Themes",
-+    "/Xfce/ThemeSchedule/ColorSchemes",
-+    "/Xfce/ThemeSchedule/Xfwm4",
-+    "/Xfce/ThemeSchedule/IconThemes",
-+    "/Xfce/ThemeSchedule/CursorThemes",
-+    "/Xfce/ThemeSchedule/Brightness",
-+    "/Xfce/ThemeSchedule/Commands",
-+};
-+
  enum
  {
      COLOR_FG,
-@@ -97,6 +138,33 @@ static XfconfChannel *xsettings_channel;
+@@ -97,6 +111,33 @@ static XfconfChannel *xsettings_channel;
  static GSettings *desktop_interface_gsettings;
  static GSettings *xapps_portal_gsettings;
  
@@ -861,14 +1044,99 @@ index 08557643..3a084f72 100644
  typedef struct
  {
      GtkListStore *list_store;
-@@ -1670,6 +1738,1713 @@ appearance_settings_dialog_configure_widgets (GtkBuilder *builder)
+@@ -319,11 +360,38 @@ cb_icon_theme_selection_changed (GtkTreeSelection *selection)
+     theme_selection_changed (selection, "/Net/IconThemeName");
+ }
+ 
++static void
++set_gsettings_color_scheme (GSettings *settings,
++                            XfconfChannel *channel,
++                            const gchar *property_name)
++{
++    if (settings != NULL)
++    {
++        GSettingsSchema *schema;
++        g_object_get (settings, "settings-schema", &schema, NULL);
++        if (g_settings_schema_has_key (schema, "color-scheme"))
++        {
++            gchar *str = xfconf_channel_get_string (channel, property_name, NULL);
++            if (str != NULL && theme_variant_is_dark (str))
++                g_settings_set_string (settings, "color-scheme", "prefer-dark");
++            else
++                g_settings_reset (settings, "color-scheme");
++            g_free (str);
++        }
++        g_settings_schema_unref (schema);
++    }
++}
++
+ static void
+ cb_ui_theme_selection_changed (GtkTreeSelection *selection)
+ {
+     /* Set the new UI theme */
+     theme_selection_changed (selection, "/Net/ThemeName");
++
++    /* Set color scheme in gsettings, so that apps/services that read it apply the correct theme;
++     * only here, the theme schedule sets its own color scheme when it changes the theme */
++    set_gsettings_color_scheme (desktop_interface_gsettings, xsettings_channel, "/Net/ThemeName");
++    set_gsettings_color_scheme (xapps_portal_gsettings, xsettings_channel, "/Net/ThemeName");
+ }
+ 
+ static void
+@@ -984,35 +1052,6 @@ appearance_settings_load_ui_themes (gpointer user_data)
+     return FALSE;
+ }
+ 
+-static void
+-set_gsettings_color_scheme (GSettings *settings,
+-                            XfconfChannel *channel,
+-                            const gchar *property_name)
+-{
+-    if (settings != NULL)
+-    {
+-        GSettingsSchema *schema;
+-        g_object_get (settings, "settings-schema", &schema, NULL);
+-        if (g_settings_schema_has_key (schema, "color-scheme"))
+-        {
+-            gchar *str = xfconf_channel_get_string (channel, property_name, NULL);
+-            if (str != NULL)
+-            {
+-                gchar *strdown = g_ascii_strdown (str, -1);
+-                if (g_strstr_len (strdown, -1, "-dark-") || g_str_has_suffix (strdown, "-dark"))
+-                    g_settings_set_string (settings, "color-scheme", "prefer-dark");
+-                else
+-                    g_settings_reset (settings, "color-scheme");
+-                g_free (strdown);
+-                g_free (str);
+-            }
+-            else
+-                g_settings_reset (settings, "color-scheme");
+-        }
+-        g_settings_schema_unref (schema);
+-    }
+-}
+-
+ static void
+ appearance_settings_dialog_channel_property_changed (XfconfChannel *channel,
+                                                      const gchar *property_name,
+@@ -1130,9 +1169,6 @@ appearance_settings_dialog_channel_property_changed (XfconfChannel *channel,
+             g_free (new_name);
+         }
+ 
+-        /* Set color scheme in gsettings, so that apps/services that read it apply the correct theme */
+-        set_gsettings_color_scheme (desktop_interface_gsettings, channel, property_name);
+-        set_gsettings_color_scheme (xapps_portal_gsettings, channel, property_name);
+     }
+     else if (strcmp (property_name, "/Net/IconThemeName") == 0)
+     {
+@@ -1670,6 +1706,1786 @@ appearance_settings_dialog_configure_widgets (GtkBuilder *builder)
  #endif
  }
  
 +static void
 +schedule_refresh_location (void)
 +{
-+    gchar *setting = xfconf_channel_get_string (xsettings_channel, SCHEDULE_LOCATION_PROP, NULL);
++    gchar *setting = xfconf_channel_get_string (xsettings_channel, THEME_SCHEDULE_LOCATION_PROP, NULL);
 +
 +    g_free (schedule.zone);
 +    schedule.has_location = sun_times_get_location (setting, &schedule.latitude, &schedule.longitude, &schedule.zone);
@@ -951,7 +1219,7 @@ index 08557643..3a084f72 100644
 +            gchar *time_str;
 +            gint minutes;
 +
-+            gtk_tree_model_get (model, &iter, COLUMN_SCHEDULE_TIME, &time_str, -1);
++            gtk_tree_model_get (model, &iter, THEME_SCHEDULE_TIME, &time_str, -1);
 +            uses_sun = sun_times_parse (time_str, &event, &minutes) && event != SUN_TIMES_CLOCK;
 +            g_free (time_str);
 +        } while (!uses_sun && gtk_tree_model_iter_next (model, &iter));
@@ -1077,17 +1345,18 @@ index 08557643..3a084f72 100644
 +                        GtkTreeIter *iter)
 +{
 +    GPtrArray *parts = g_ptr_array_new_with_free_func (g_free);
-+    gchar *theme, *color_scheme, *icon_theme, *cursor_theme, *brightness, *command;
++    gchar *theme, *color_scheme, *icon_theme, *cursor_theme, *brightness, *command, *temperature;
 +    gint n_more = 0;
 +    gchar *text = NULL;
 +
 +    gtk_tree_model_get (model, iter,
-+                        COLUMN_SCHEDULE_THEME, &theme,
-+                        COLUMN_SCHEDULE_COLOR_SCHEME, &color_scheme,
-+                        COLUMN_SCHEDULE_ICON_THEME, &icon_theme,
-+                        COLUMN_SCHEDULE_CURSOR_THEME, &cursor_theme,
-+                        COLUMN_SCHEDULE_BRIGHTNESS, &brightness,
-+                        COLUMN_SCHEDULE_COMMAND, &command,
++                        THEME_SCHEDULE_THEME, &theme,
++                        THEME_SCHEDULE_COLOR_SCHEME, &color_scheme,
++                        THEME_SCHEDULE_ICON_THEME, &icon_theme,
++                        THEME_SCHEDULE_CURSOR_THEME, &cursor_theme,
++                        THEME_SCHEDULE_BRIGHTNESS, &brightness,
++                        THEME_SCHEDULE_COMMAND, &command,
++                        THEME_SCHEDULE_COLOR_TEMPERATURE, &temperature,
 +                        -1);
 +
 +    if (g_strcmp0 (theme, ":dark") == 0 || g_strcmp0 (theme, ":light") == 0)
@@ -1118,7 +1387,8 @@ index 08557643..3a084f72 100644
 +    n_more = (icon_theme != NULL && *icon_theme != '\0')
 +             + (cursor_theme != NULL && *cursor_theme != '\0')
 +             + (brightness != NULL && *brightness != '\0')
-+             + (command != NULL && *command != '\0');
++             + (command != NULL && *command != '\0')
++             + (temperature != NULL && *temperature != '\0');
 +    if (n_more > 0)
 +        g_ptr_array_add (parts, g_strdup_printf (g_dngettext (GETTEXT_PACKAGE, "%d more action", "%d more actions", n_more), n_more));
 +
@@ -1137,6 +1407,7 @@ index 08557643..3a084f72 100644
 +    g_free (cursor_theme);
 +    g_free (brightness);
 +    g_free (command);
++    g_free (temperature);
 +
 +    return text;
 +}
@@ -1159,7 +1430,7 @@ index 08557643..3a084f72 100644
 +    gtk_widget_set_visible (schedule.location_box, schedule_uses_sun ());
 +    schedule_update_location_label ();
 +
-+    if (!xfconf_channel_get_bool (xsettings_channel, SCHEDULE_ENABLED_PROP, FALSE))
++    if (!xfconf_channel_get_bool (xsettings_channel, THEME_SCHEDULE_ENABLED_PROP, FALSE))
 +    {
 +        gtk_label_set_text (GTK_LABEL (schedule.status_label), "");
 +        return;
@@ -1177,7 +1448,7 @@ index 08557643..3a084f72 100644
 +            gchar *time_str, *rule;
 +            gint minutes, minutes_tomorrow;
 +
-+            gtk_tree_model_get (model, &iter, COLUMN_SCHEDULE_TIME, &time_str, -1);
++            gtk_tree_model_get (model, &iter, THEME_SCHEDULE_TIME, &time_str, -1);
 +            minutes = schedule_time_on (time_str, now);
 +            minutes_tomorrow = schedule_time_on (time_str, tomorrow);
 +            rule = schedule_describe_rule (model, &iter);
@@ -1237,16 +1508,16 @@ index 08557643..3a084f72 100644
 +{
 +    GtkTreeModel *model = GTK_TREE_MODEL (schedule.store);
 +    GtkTreeIter iter;
-+    GPtrArray *values[N_SCHEDULE_COLUMNS];
++    GPtrArray *values[N_THEME_SCHEDULE_FIELDS];
 +
-+    for (guint c = 0; c < N_SCHEDULE_COLUMNS; c++)
++    for (guint c = 0; c < N_THEME_SCHEDULE_FIELDS; c++)
 +        values[c] = g_ptr_array_new_with_free_func (g_free);
 +
 +    if (gtk_tree_model_get_iter_first (model, &iter))
 +    {
 +        do
 +        {
-+            for (guint c = 0; c < N_SCHEDULE_COLUMNS; c++)
++            for (guint c = 0; c < N_THEME_SCHEDULE_FIELDS; c++)
 +            {
 +                gchar *value;
 +
@@ -1256,14 +1527,14 @@ index 08557643..3a084f72 100644
 +        } while (gtk_tree_model_iter_next (model, &iter));
 +    }
 +
-+    for (guint c = 0; c < N_SCHEDULE_COLUMNS; c++)
++    for (guint c = 0; c < N_THEME_SCHEDULE_FIELDS; c++)
 +    {
 +        if (values[c]->len == 0)
-+            xfconf_channel_reset_property (xsettings_channel, schedule_props[c], FALSE);
++            xfconf_channel_reset_property (xsettings_channel, theme_schedule_properties[c], FALSE);
 +        else
 +        {
 +            g_ptr_array_add (values[c], NULL);
-+            xfconf_channel_set_string_list (xsettings_channel, schedule_props[c], (const gchar *const *) values[c]->pdata);
++            xfconf_channel_set_string_list (xsettings_channel, theme_schedule_properties[c], (const gchar *const *) values[c]->pdata);
 +        }
 +        g_ptr_array_unref (values[c]);
 +    }
@@ -1274,33 +1545,37 @@ index 08557643..3a084f72 100644
 +static void
 +schedule_load (void)
 +{
-+    gchar **values[N_SCHEDULE_COLUMNS];
-+    guint n_values[N_SCHEDULE_COLUMNS];
++    gchar **values[N_THEME_SCHEDULE_FIELDS];
++    guint n_values[N_THEME_SCHEDULE_FIELDS];
 +
-+    for (guint c = 0; c < N_SCHEDULE_COLUMNS; c++)
++    for (guint c = 0; c < N_THEME_SCHEDULE_FIELDS; c++)
 +    {
-+        values[c] = xfconf_channel_get_string_list (xsettings_channel, schedule_props[c]);
++        values[c] = xfconf_channel_get_string_list (xsettings_channel, theme_schedule_properties[c]);
 +        n_values[c] = values[c] != NULL ? g_strv_length (values[c]) : 0;
 +    }
 +
-+    for (guint i = 0; i < n_values[COLUMN_SCHEDULE_TIME]; i++)
++    for (guint i = 0; i < n_values[THEME_SCHEDULE_TIME]; i++)
 +    {
 +        GtkTreeIter iter;
 +
 +        gtk_list_store_append (schedule.store, &iter);
-+        for (guint c = 0; c < N_SCHEDULE_COLUMNS; c++)
++        for (guint c = 0; c < N_THEME_SCHEDULE_FIELDS; c++)
 +            gtk_list_store_set (schedule.store, &iter, c, i < n_values[c] ? values[c][i] : "", -1);
 +
-+        /* rules saved before color schemes were configurable follow the theme name */
-+        if (i >= n_values[COLUMN_SCHEDULE_COLOR_SCHEME]
-+            && i < n_values[COLUMN_SCHEDULE_THEME]
-+            && *values[COLUMN_SCHEDULE_THEME][i] != '\0' && *values[COLUMN_SCHEDULE_THEME][i] != ':')
-+            gtk_list_store_set (schedule.store, &iter, COLUMN_SCHEDULE_COLOR_SCHEME,
-+                                theme_variant_is_dark (values[COLUMN_SCHEDULE_THEME][i]) ? "prefer-dark" : "default",
-+                                -1);
++        /* rules saved before color schemes were configurable follow the theme
++         * name, like in xfsettingsd */
++        if (i >= n_values[THEME_SCHEDULE_COLOR_SCHEME]
++            && i < n_values[THEME_SCHEDULE_THEME]
++            && *values[THEME_SCHEDULE_THEME][i] != '\0')
++        {
++            const gchar *theme = values[THEME_SCHEDULE_THEME][i];
++            gboolean dark = g_strcmp0 (theme, ":dark") == 0 || (*theme != ':' && theme_variant_is_dark (theme));
++
++            gtk_list_store_set (schedule.store, &iter, THEME_SCHEDULE_COLOR_SCHEME, dark ? "prefer-dark" : "default", -1);
++        }
 +    }
 +
-+    for (guint c = 0; c < N_SCHEDULE_COLUMNS; c++)
++    for (guint c = 0; c < N_THEME_SCHEDULE_FIELDS; c++)
 +        g_strfreev (values[c]);
 +}
 +
@@ -1319,7 +1594,7 @@ index 08557643..3a084f72 100644
 +        {
 +            gchar *rule_time_str, *path;
 +
-+            gtk_tree_model_get (model, &iter, COLUMN_SCHEDULE_TIME, &rule_time_str, -1);
++            gtk_tree_model_get (model, &iter, THEME_SCHEDULE_TIME, &rule_time_str, -1);
 +            path = gtk_tree_model_get_string_from_iter (model, &iter);
 +            taken = schedule_same_time (rule_time_str, time_str) && g_strcmp0 (path, except_path) != 0;
 +            g_free (rule_time_str);
@@ -1350,7 +1625,7 @@ index 08557643..3a084f72 100644
 +
 +    if (gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL (schedule.store), &iter, path))
 +    {
-+        gtk_list_store_set (schedule.store, &iter, COLUMN_SCHEDULE_TIME, time_str, -1);
++        gtk_list_store_set (schedule.store, &iter, THEME_SCHEDULE_TIME, time_str, -1);
 +        schedule_save ();
 +    }
 +}
@@ -1412,7 +1687,7 @@ index 08557643..3a084f72 100644
 +        else
 +            time_str = sun_times_to_string (event, gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (schedule.offset_spin)));
 +
-+        gtk_tree_model_get (GTK_TREE_MODEL (schedule.store), &iter, COLUMN_SCHEDULE_TIME, &old_time_str, -1);
++        gtk_tree_model_get (GTK_TREE_MODEL (schedule.store), &iter, THEME_SCHEDULE_TIME, &old_time_str, -1);
 +        if (!schedule_same_time (time_str, old_time_str))
 +            schedule_set_time (schedule.time_path, time_str);
 +        g_free (time_str);
@@ -1509,7 +1784,7 @@ index 08557643..3a084f72 100644
 +        gtk_widget_show_all (vbox);
 +    }
 +
-+    gtk_tree_model_get (GTK_TREE_MODEL (schedule.store), &iter, COLUMN_SCHEDULE_TIME, &time_str, -1);
++    gtk_tree_model_get (GTK_TREE_MODEL (schedule.store), &iter, THEME_SCHEDULE_TIME, &time_str, -1);
 +    if (!sun_times_parse (time_str, &event, &minutes))
 +    {
 +        event = SUN_TIMES_CLOCK;
@@ -1569,14 +1844,14 @@ index 08557643..3a084f72 100644
 +    if (value != NULL
 +        && gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL (schedule.store), &iter, path))
 +    {
-+        gtk_list_store_set (schedule.store, &iter, COLUMN_SCHEDULE_THEME, value, -1);
++        gtk_list_store_set (schedule.store, &iter, THEME_SCHEDULE_THEME, value, -1);
 +
 +        /* a style comes with the matching color scheme */
 +        if (g_strcmp0 (value, ":dark") == 0
 +            || (*value != '\0' && *value != ':' && theme_variant_is_dark (value)))
-+            gtk_list_store_set (schedule.store, &iter, COLUMN_SCHEDULE_COLOR_SCHEME, "prefer-dark", -1);
++            gtk_list_store_set (schedule.store, &iter, THEME_SCHEDULE_COLOR_SCHEME, "prefer-dark", -1);
 +        else if (*value != '\0')
-+            gtk_list_store_set (schedule.store, &iter, COLUMN_SCHEDULE_COLOR_SCHEME, "prefer-light", -1);
++            gtk_list_store_set (schedule.store, &iter, THEME_SCHEDULE_COLOR_SCHEME, "prefer-light", -1);
 +
 +        schedule_save ();
 +    }
@@ -1595,7 +1870,7 @@ index 08557643..3a084f72 100644
 +    if (value != NULL
 +        && gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL (schedule.store), &iter, path))
 +    {
-+        gtk_list_store_set (schedule.store, &iter, COLUMN_SCHEDULE_COLOR_SCHEME, value, -1);
++        gtk_list_store_set (schedule.store, &iter, THEME_SCHEDULE_COLOR_SCHEME, value, -1);
 +        schedule_save ();
 +    }
 +    g_free (value);
@@ -1611,7 +1886,7 @@ index 08557643..3a084f72 100644
 +{
 +    gchar *time_str, *text;
 +
-+    gtk_tree_model_get (model, iter, COLUMN_SCHEDULE_TIME, &time_str, -1);
++    gtk_tree_model_get (model, iter, THEME_SCHEDULE_TIME, &time_str, -1);
 +    text = schedule_describe_time (time_str);
 +    g_object_set (renderer, "text", text, NULL);
 +    g_free (text);
@@ -1629,8 +1904,8 @@ index 08557643..3a084f72 100644
 +    gchar *time_a, *time_b;
 +    gint minutes_a, minutes_b, result;
 +
-+    gtk_tree_model_get (model, a, COLUMN_SCHEDULE_TIME, &time_a, -1);
-+    gtk_tree_model_get (model, b, COLUMN_SCHEDULE_TIME, &time_b, -1);
++    gtk_tree_model_get (model, a, THEME_SCHEDULE_TIME, &time_a, -1);
++    gtk_tree_model_get (model, b, THEME_SCHEDULE_TIME, &time_b, -1);
 +    minutes_a = schedule_time_on (time_a, now);
 +    minutes_b = schedule_time_on (time_b, now);
 +    result = minutes_a != minutes_b ? minutes_a - minutes_b : g_strcmp0 (time_a, time_b);
@@ -1739,15 +2014,16 @@ index 08557643..3a084f72 100644
 +    /* the typical evening rule: dark variant of the current style, dark colors */
 +    time_str = sun_times_to_string (SUN_TIMES_CLOCK, minutes);
 +    gtk_list_store_insert_with_values (schedule.store, &iter, -1,
-+                                       COLUMN_SCHEDULE_TIME, time_str,
-+                                       COLUMN_SCHEDULE_THEME, ":dark",
-+                                       COLUMN_SCHEDULE_COLOR_SCHEME, "prefer-dark",
-+                                       COLUMN_SCHEDULE_XFWM4,
++                                       THEME_SCHEDULE_TIME, time_str,
++                                       THEME_SCHEDULE_THEME, ":dark",
++                                       THEME_SCHEDULE_COLOR_SCHEME, "prefer-dark",
++                                       THEME_SCHEDULE_XFWM4,
 +                                       xfconf_channel_get_bool (xsettings_channel, "/Xfce/SyncThemes", FALSE) ? "true" : "false",
-+                                       COLUMN_SCHEDULE_ICON_THEME, "",
-+                                       COLUMN_SCHEDULE_CURSOR_THEME, "",
-+                                       COLUMN_SCHEDULE_BRIGHTNESS, "",
-+                                       COLUMN_SCHEDULE_COMMAND, "",
++                                       THEME_SCHEDULE_ICON_THEME, "",
++                                       THEME_SCHEDULE_CURSOR_THEME, "",
++                                       THEME_SCHEDULE_BRIGHTNESS, "",
++                                       THEME_SCHEDULE_COMMAND, "",
++                                       THEME_SCHEDULE_COLOR_TEMPERATURE, "",
 +                                       -1);
 +    g_free (time_str);
 +
@@ -1872,8 +2148,11 @@ index 08557643..3a084f72 100644
 +    GtkTreeIter iter;
 +    GtkWidget *dialog, *grid, *label, *xfwm4_check, *icon_check, *icon_combo;
 +    GtkWidget *cursor_check, *cursor_combo, *brightness_check, *brightness_spin, *box, *command_entry;
++    GtkWidget *temperature_check, *temperature_spin, *fade_label, *fade_spin, *fade_box;
 +    gchar *time_str, *theme, *xfwm4, *icon_theme, *cursor_theme, *brightness, *command, *title, *current;
-+    gchar *backlight;
++    gchar *backlight, *temperature;
++    gint kelvin = 4500, fade_minutes = 60;
++    gboolean has_temperature;
 +    GPtrArray *cursor_themes;
 +    gint row = 0;
 +
@@ -1881,14 +2160,16 @@ index 08557643..3a084f72 100644
 +        return;
 +
 +    gtk_tree_model_get (model, &iter,
-+                        COLUMN_SCHEDULE_TIME, &time_str,
-+                        COLUMN_SCHEDULE_THEME, &theme,
-+                        COLUMN_SCHEDULE_XFWM4, &xfwm4,
-+                        COLUMN_SCHEDULE_ICON_THEME, &icon_theme,
-+                        COLUMN_SCHEDULE_CURSOR_THEME, &cursor_theme,
-+                        COLUMN_SCHEDULE_BRIGHTNESS, &brightness,
-+                        COLUMN_SCHEDULE_COMMAND, &command,
++                        THEME_SCHEDULE_TIME, &time_str,
++                        THEME_SCHEDULE_THEME, &theme,
++                        THEME_SCHEDULE_XFWM4, &xfwm4,
++                        THEME_SCHEDULE_ICON_THEME, &icon_theme,
++                        THEME_SCHEDULE_CURSOR_THEME, &cursor_theme,
++                        THEME_SCHEDULE_BRIGHTNESS, &brightness,
++                        THEME_SCHEDULE_COMMAND, &command,
++                        THEME_SCHEDULE_COLOR_TEMPERATURE, &temperature,
 +                        -1);
++    has_temperature = color_temperature_parse (temperature, &kelvin, &fade_minutes);
 +
 +    title = g_strdup_printf (_("Rule at %s"), time_str);
 +    dialog = gtk_dialog_new_with_buttons (title, GTK_WINDOW (gtk_widget_get_toplevel (schedule.treeview)),
@@ -1973,6 +2254,47 @@ index 08557643..3a084f72 100644
 +    }
 +    g_free (backlight);
 +
++    /* night light: a warmer screen, reached gradually after the rule time */
++    temperature_check = gtk_check_button_new_with_mnemonic (_("Set the color _temperature to:"));
++    gtk_grid_attach (GTK_GRID (grid), temperature_check, 0, row, 1, 1);
++    box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
++    temperature_spin = gtk_spin_button_new_with_range (COLOR_TEMPERATURE_MIN, COLOR_TEMPERATURE_NEUTRAL, 100);
++    gtk_spin_button_set_value (GTK_SPIN_BUTTON (temperature_spin), kelvin);
++    gtk_entry_set_activates_default (GTK_ENTRY (temperature_spin), TRUE);
++    gtk_box_pack_start (GTK_BOX (box), temperature_spin, FALSE, FALSE, 0);
++    /* TRANSLATORS: kelvin, the unit of the color temperature */
++    gtk_box_pack_start (GTK_BOX (box), gtk_label_new (_("K")), FALSE, FALSE, 0);
++    g_object_bind_property (temperature_check, "active", box, "sensitive", G_BINDING_SYNC_CREATE);
++    gtk_widget_set_tooltip_text (box, _("6500 K is the normal color of the screen, lower values are warmer: "
++                                        "about 4500 K for the evening, 3000 K or less for the night. "
++                                        "The temperature stays until a later rule sets another one, "
++                                        "so set 6500 K in the morning rule."));
++    gtk_grid_attach (GTK_GRID (grid), box, 1, row++, 1, 1);
++
++    fade_label = gtk_label_new_with_mnemonic (_("Change it _gradually over:"));
++    gtk_label_set_xalign (GTK_LABEL (fade_label), 0.0);
++    gtk_widget_set_margin_start (fade_label, 24);
++    gtk_grid_attach (GTK_GRID (grid), fade_label, 0, row, 1, 1);
++    fade_box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
++    fade_spin = gtk_spin_button_new_with_range (0, COLOR_TEMPERATURE_MAX_FADE, 5);
++    gtk_spin_button_set_value (GTK_SPIN_BUTTON (fade_spin), fade_minutes);
++    gtk_entry_set_activates_default (GTK_ENTRY (fade_spin), TRUE);
++    gtk_label_set_mnemonic_widget (GTK_LABEL (fade_label), fade_spin);
++    gtk_box_pack_start (GTK_BOX (fade_box), fade_spin, FALSE, FALSE, 0);
++    gtk_box_pack_start (GTK_BOX (fade_box), gtk_label_new (_("min")), FALSE, FALSE, 0);
++    g_object_bind_property (temperature_check, "active", fade_label, "sensitive", G_BINDING_SYNC_CREATE);
++    g_object_bind_property (temperature_check, "active", fade_box, "sensitive", G_BINDING_SYNC_CREATE);
++    gtk_grid_attach (GTK_GRID (grid), fade_box, 1, row++, 1, 1);
++    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (temperature_check), has_temperature);
++#ifdef ENABLE_X11
++    if (!GDK_IS_X11_DISPLAY (gdk_display_get_default ()))
++#endif
++    {
++        /* gamma ramps are set through XRandR */
++        gtk_widget_set_sensitive (temperature_check, has_temperature);
++        gtk_widget_set_tooltip_text (temperature_check, _("The color temperature can only be set on X11."));
++    }
++
 +    /* shell command */
 +    label = gtk_label_new_with_mnemonic (_("Run co_mmand:"));
 +    gtk_label_set_xalign (GTK_LABEL (label), 0.0);
@@ -2001,7 +2323,16 @@ index 08557643..3a084f72 100644
 +        gchar *new_command = g_strstrip (g_strdup (gtk_entry_get_text (GTK_ENTRY (command_entry))));
 +        gboolean icons = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (icon_check));
 +        gboolean cursors = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (cursor_check));
-+        gchar *new_brightness = NULL;
++        gchar *new_brightness = NULL, *new_temperature = NULL;
++
++        if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (temperature_check)))
++        {
++            gtk_spin_button_update (GTK_SPIN_BUTTON (temperature_spin));
++            gtk_spin_button_update (GTK_SPIN_BUTTON (fade_spin));
++            new_temperature = g_strdup_printf ("%d:%d",
++                                               gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (temperature_spin)),
++                                               gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (fade_spin)));
++        }
 +
 +        if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (brightness_check)))
 +        {
@@ -2010,15 +2341,17 @@ index 08557643..3a084f72 100644
 +        }
 +
 +        gtk_list_store_set (schedule.store, &iter,
-+                            COLUMN_SCHEDULE_XFWM4,
++                            THEME_SCHEDULE_XFWM4,
 +                            gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (xfwm4_check)) ? "true" : "false",
-+                            COLUMN_SCHEDULE_ICON_THEME,
++                            THEME_SCHEDULE_ICON_THEME,
 +                            icons ? gtk_combo_box_get_active_id (GTK_COMBO_BOX (icon_combo)) : "",
-+                            COLUMN_SCHEDULE_CURSOR_THEME,
++                            THEME_SCHEDULE_CURSOR_THEME,
 +                            cursors ? gtk_combo_box_get_active_id (GTK_COMBO_BOX (cursor_combo)) : "",
-+                            COLUMN_SCHEDULE_BRIGHTNESS, new_brightness != NULL ? new_brightness : "",
-+                            COLUMN_SCHEDULE_COMMAND, new_command,
++                            THEME_SCHEDULE_BRIGHTNESS, new_brightness != NULL ? new_brightness : "",
++                            THEME_SCHEDULE_COMMAND, new_command,
++                            THEME_SCHEDULE_COLOR_TEMPERATURE, new_temperature != NULL ? new_temperature : "",
 +                            -1);
++        g_free (new_temperature);
 +        g_free (new_brightness);
 +        g_free (new_command);
 +        schedule_save ();
@@ -2033,6 +2366,7 @@ index 08557643..3a084f72 100644
 +    g_free (cursor_theme);
 +    g_free (brightness);
 +    g_free (command);
++    g_free (temperature);
 +}
 +
 +static gboolean
@@ -2051,13 +2385,15 @@ index 08557643..3a084f72 100644
 +                         gpointer user_data)
 +{
 +    GPtrArray *parts = g_ptr_array_new_with_free_func (g_free);
-+    gchar *icon_theme, *cursor_theme, *brightness, *command, *text;
++    gchar *icon_theme, *cursor_theme, *brightness, *command, *temperature, *text;
++    gint kelvin, fade_minutes;
 +
 +    gtk_tree_model_get (model, iter,
-+                        COLUMN_SCHEDULE_ICON_THEME, &icon_theme,
-+                        COLUMN_SCHEDULE_CURSOR_THEME, &cursor_theme,
-+                        COLUMN_SCHEDULE_BRIGHTNESS, &brightness,
-+                        COLUMN_SCHEDULE_COMMAND, &command,
++                        THEME_SCHEDULE_ICON_THEME, &icon_theme,
++                        THEME_SCHEDULE_CURSOR_THEME, &cursor_theme,
++                        THEME_SCHEDULE_BRIGHTNESS, &brightness,
++                        THEME_SCHEDULE_COMMAND, &command,
++                        THEME_SCHEDULE_COLOR_TEMPERATURE, &temperature,
 +                        -1);
 +
 +    if (icon_theme != NULL && *icon_theme != '\0')
@@ -2067,6 +2403,9 @@ index 08557643..3a084f72 100644
 +    if (brightness != NULL && *brightness != '\0')
 +        /* TRANSLATORS: the screen brightness set by a rule, in the More column, e.g. "brightness 40%" */
 +        g_ptr_array_add (parts, g_strdup_printf (_("brightness %s%%"), brightness));
++    if (color_temperature_parse (temperature, &kelvin, &fade_minutes))
++        /* TRANSLATORS: the color temperature set by a rule, in the More column, e.g. "4500 K" */
++        g_ptr_array_add (parts, g_strdup_printf (_("%d K"), kelvin));
 +    if (command != NULL && *command != '\0')
 +        g_ptr_array_add (parts, g_strdup (_("command")));
 +    g_ptr_array_add (parts, NULL);
@@ -2080,6 +2419,7 @@ index 08557643..3a084f72 100644
 +    g_free (cursor_theme);
 +    g_free (brightness);
 +    g_free (command);
++    g_free (temperature);
 +}
 +
 +/* a click into the Time column opens the time picker, into the More column
@@ -2262,7 +2602,7 @@ index 08557643..3a084f72 100644
 +        gtk_spin_button_set_value (GTK_SPIN_BUTTON (spins[0]), schedule.latitude);
 +        gtk_spin_button_set_value (GTK_SPIN_BUTTON (spins[1]), schedule.longitude);
 +    }
-+    setting = xfconf_channel_get_string (xsettings_channel, SCHEDULE_LOCATION_PROP, NULL);
++    setting = xfconf_channel_get_string (xsettings_channel, THEME_SCHEDULE_LOCATION_PROP, NULL);
 +    if (setting == NULL || *setting == '\0')
 +        gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (zone_radio), TRUE);
 +    else if (g_ascii_isalpha (*setting))
@@ -2283,7 +2623,7 @@ index 08557643..3a084f72 100644
 +            done = TRUE;
 +        else if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (zone_radio)))
 +        {
-+            xfconf_channel_reset_property (xsettings_channel, SCHEDULE_LOCATION_PROP, FALSE);
++            xfconf_channel_reset_property (xsettings_channel, THEME_SCHEDULE_LOCATION_PROP, FALSE);
 +            done = TRUE;
 +        }
 +        else if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (city_radio)))
@@ -2293,7 +2633,7 @@ index 08557643..3a084f72 100644
 +            /* only a time zone of the list has coordinates */
 +            done = sun_times_zone_location (city, &latitude, &longitude);
 +            if (done)
-+                xfconf_channel_set_string (xsettings_channel, SCHEDULE_LOCATION_PROP, city);
++                xfconf_channel_set_string (xsettings_channel, THEME_SCHEDULE_LOCATION_PROP, city);
 +            else
 +            {
 +                gtk_widget_error_bell (dialog);
@@ -2311,7 +2651,7 @@ index 08557643..3a084f72 100644
 +            g_ascii_formatd (longitude_str, sizeof (longitude_str), "%.4f",
 +                             gtk_spin_button_get_value (GTK_SPIN_BUTTON (spins[1])));
 +            setting = g_strconcat (latitude_str, ",", longitude_str, NULL);
-+            xfconf_channel_set_string (xsettings_channel, SCHEDULE_LOCATION_PROP, setting);
++            xfconf_channel_set_string (xsettings_channel, THEME_SCHEDULE_LOCATION_PROP, setting);
 +            g_free (setting);
 +            done = TRUE;
 +        }
@@ -2328,7 +2668,7 @@ index 08557643..3a084f72 100644
 +    schedule_refresh_location ();
 +
 +    /* the rules at sunrise or sunset may move */
-+    gtk_tree_sortable_set_sort_func (GTK_TREE_SORTABLE (schedule.store), COLUMN_SCHEDULE_TIME,
++    gtk_tree_sortable_set_sort_func (GTK_TREE_SORTABLE (schedule.store), THEME_SCHEDULE_TIME,
 +                                     schedule_compare_times, NULL, NULL);
 +    gtk_widget_queue_draw (schedule.treeview);
 +    schedule_update_status ();
@@ -2357,8 +2697,9 @@ index 08557643..3a084f72 100644
 +        _("Color scheme: the dark or light preference of the desktop, read by GTK 4 and libadwaita, "
 +          "Qt 6, Firefox, Chromium and Electron applications. Firefox follows it if Website appearance "
 +          "is set to Automatic, Chromium if Mode is set to Device."),
-+        _("More: also set the window manager theme, the icon theme, the mouse cursor theme or the "
-+          "brightness of a laptop screen, or run a command of your own."));
++        _("More: also set the window manager theme, the icon theme, the mouse cursor theme, the "
++          "brightness of a laptop screen or a warmer color temperature (night light, gradually over some "
++          "minutes), or run a command of your own. Do not use redshift or a similar tool at the same time."));
 +    gtk_dialog_run (GTK_DIALOG (dialog));
 +    gtk_widget_destroy (dialog);
 +}
@@ -2381,17 +2722,17 @@ index 08557643..3a084f72 100644
 +    GObject *notebook;
 +
 +    schedule.themes = gtk_tree_view_get_model (GTK_TREE_VIEW (gtk_builder_get_object (builder, "gtk_theme_treeview")));
-+    GType column_types[N_SCHEDULE_COLUMNS];
++    GType column_types[N_THEME_SCHEDULE_FIELDS];
 +
-+    for (guint c = 0; c < N_SCHEDULE_COLUMNS; c++)
++    for (guint c = 0; c < N_THEME_SCHEDULE_FIELDS; c++)
 +        column_types[c] = G_TYPE_STRING;
 +
 +    schedule.icon_themes = gtk_tree_view_get_model (GTK_TREE_VIEW (gtk_builder_get_object (builder, "icon_theme_treeview")));
-+    schedule.store = gtk_list_store_newv (N_SCHEDULE_COLUMNS, column_types);
++    schedule.store = gtk_list_store_newv (N_THEME_SCHEDULE_FIELDS, column_types);
 +    schedule_refresh_location ();
-+    gtk_tree_sortable_set_sort_func (GTK_TREE_SORTABLE (schedule.store), COLUMN_SCHEDULE_TIME,
++    gtk_tree_sortable_set_sort_func (GTK_TREE_SORTABLE (schedule.store), THEME_SCHEDULE_TIME,
 +                                     schedule_compare_times, NULL, NULL);
-+    gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (schedule.store), COLUMN_SCHEDULE_TIME, GTK_SORT_ASCENDING);
++    gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (schedule.store), THEME_SCHEDULE_TIME, GTK_SORT_ASCENDING);
 +    schedule_load ();
 +
 +    schedule.theme_choices = gtk_list_store_new (N_CHOICE_COLUMNS, G_TYPE_STRING, G_TYPE_STRING);
@@ -2429,7 +2770,7 @@ index 08557643..3a084f72 100644
 +    gtk_box_pack_end (GTK_BOX (box), toggle, FALSE, FALSE, 0);
 +    gtk_box_pack_start (GTK_BOX (page), box, FALSE, FALSE, 0);
 +
-+    xfconf_g_property_bind (xsettings_channel, SCHEDULE_ENABLED_PROP, G_TYPE_BOOLEAN, G_OBJECT (toggle), "active");
++    xfconf_g_property_bind (xsettings_channel, THEME_SCHEDULE_ENABLED_PROP, G_TYPE_BOOLEAN, G_OBJECT (toggle), "active");
 +    g_signal_connect (toggle, "notify::active", G_CALLBACK (cb_schedule_enabled_changed), NULL);
 +
 +    /* Rules */
@@ -2460,7 +2801,7 @@ index 08557643..3a084f72 100644
 +                  "editable", TRUE,
 +                  "ellipsize", PANGO_ELLIPSIZE_END,
 +                  NULL);
-+    g_object_set_data (G_OBJECT (renderer), "schedule-column", GINT_TO_POINTER (COLUMN_SCHEDULE_THEME));
++    g_object_set_data (G_OBJECT (renderer), "schedule-column", GINT_TO_POINTER (THEME_SCHEDULE_THEME));
 +    g_signal_connect (renderer, "edited", G_CALLBACK (cb_schedule_theme_edited), NULL);
 +    column = gtk_tree_view_column_new_with_attributes (_("Theme"), renderer, NULL);
 +    gtk_tree_view_column_set_cell_data_func (column, renderer, schedule_choice_cell_data, schedule.theme_choices, NULL);
@@ -2474,7 +2815,7 @@ index 08557643..3a084f72 100644
 +                  "has-entry", FALSE,
 +                  "editable", TRUE,
 +                  NULL);
-+    g_object_set_data (G_OBJECT (renderer), "schedule-column", GINT_TO_POINTER (COLUMN_SCHEDULE_COLOR_SCHEME));
++    g_object_set_data (G_OBJECT (renderer), "schedule-column", GINT_TO_POINTER (THEME_SCHEDULE_COLOR_SCHEME));
 +    g_signal_connect (renderer, "edited", G_CALLBACK (cb_schedule_color_scheme_edited), NULL);
 +    column = gtk_tree_view_column_new_with_attributes (_("Color scheme"), renderer, NULL);
 +    gtk_tree_view_column_set_cell_data_func (column, renderer, schedule_choice_cell_data, schedule.color_scheme_choices, NULL);
@@ -2565,7 +2906,7 @@ index 08557643..3a084f72 100644
 +    /* the variants in the status line depend on the current theme */
 +    g_signal_connect (xsettings_channel, "property-changed::/Net/ThemeName",
 +                      G_CALLBACK (cb_schedule_current_theme_changed), NULL);
-+    g_signal_connect (xsettings_channel, "property-changed::" SCHEDULE_LOCATION_PROP,
++    g_signal_connect (xsettings_channel, "property-changed::" THEME_SCHEDULE_LOCATION_PROP,
 +                      G_CALLBACK (cb_schedule_location_changed), NULL);
 +
 +    schedule_update_status ();
@@ -2575,7 +2916,7 @@ index 08557643..3a084f72 100644
  static void
  appearance_settings_dialog_response (GtkWidget *dialog,
                                       gint response_id)
-@@ -1772,6 +3547,7 @@ main (gint argc,
+@@ -1772,6 +3588,7 @@ main (gint argc,
                                G_CALLBACK (appearance_settings_dialog_channel_property_changed), builder);
  
              appearance_settings_dialog_configure_widgets (builder);
@@ -2646,10 +2987,10 @@ index 1951a792..347fe8a1 100644
  #endif
 diff --git a/xfsettingsd/theme-schedule.c b/xfsettingsd/theme-schedule.c
 new file mode 100644
-index 00000000..69eb3078
+index 00000000..2f86c20c
 --- /dev/null
 +++ b/xfsettingsd/theme-schedule.c
-@@ -0,0 +1,643 @@
+@@ -0,0 +1,1029 @@
 +/*
 + *  Copyright (c) 2026 Grigory Tuboltsev <gtubolcev@gmail.com>
 + *
@@ -2688,6 +3029,11 @@ index 00000000..69eb3078
 + *   /Xfce/ThemeSchedule/CursorThemes  cursor theme name, "" to keep it
 + *   /Xfce/ThemeSchedule/Brightness    screen backlight in percent (1-100),
 + *                                     "" to keep it
++ *   /Xfce/ThemeSchedule/ColorTemperatures
++ *                                     "<kelvin>:<minutes>", the color temperature
++ *                                     of the screen (1700-6500, 6500 = neutral)
++ *                                     reached gradually over that many minutes,
++ *                                     "" to keep it
 + *   /Xfce/ThemeSchedule/Commands      shell command run after switching, with
 + *                                     the new values in XFCE_SCHEDULE_GTK_THEME,
 + *                                     XFCE_SCHEDULE_ICON_THEME and
@@ -2699,8 +3045,14 @@ index 00000000..69eb3078
 + *
 + *   /Xfce/ThemeSchedule/CheckedUntil  Unix time
 + *
-+ * so that a switch missed while logged out is caught up at login. Sunrise and
-+ * sunset are computed for
++ * so that the switches missed while logged out are caught up at login, as
++ * one switch to what the missed rules set in the order of their times. The
++ * color temperature does not fire like that: it is always the one of the
++ * latest rule with a temperature, on the way from the one on the screen
++ * during its fade (like KDE's Night Light with custom times). It is set in
++ * the gamma ramps of the CRTCs (X11 only), on top of the ramps found there
++ * (e.g. of a color profile), which are put back when it is neutral again.
++ * Sunrise and sunset are computed for
 + *
 + *   /Xfce/ThemeSchedule/Location      a time zone ("Europe/Paris") or
 + *                                     "latitude,longitude" in degrees, if
@@ -2714,43 +3066,28 @@ index 00000000..69eb3078
 +#include "theme-schedule.h"
 +
 +#include "common/backlight.h"
++#include "common/color-temperature.h"
 +#include "common/debug.h"
 +#include "common/sun-times.h"
++#include "common/theme-schedule.h"
 +#include "common/theme-variant.h"
 +
 +#include <gio/gio.h>
 +#include <libxfce4util/libxfce4util.h>
++#include <string.h>
 +#include <xfconf/xfconf.h>
 +
-+#define SCHEDULE_ENABLED_PROP "/Xfce/ThemeSchedule/Enabled"
-+#define SCHEDULE_CHECKED_PROP "/Xfce/ThemeSchedule/CheckedUntil"
-+#define SCHEDULE_LOCATION_PROP "/Xfce/ThemeSchedule/Location"
-+#define SCHEDULE_PROP_PREFIX "/Xfce/ThemeSchedule/"
++#if defined(ENABLE_X11) && defined(HAVE_XRANDR)
++#include <X11/extensions/Xrandr.h>
++#include <gdk/gdkx.h>
++#define HAVE_GAMMA_RAMPS 1
++#endif
 +
-+/* the parallel arrays of the rules */
-+enum
-+{
-+    RULE_TIME,
-+    RULE_THEME,
-+    RULE_COLOR_SCHEME,
-+    RULE_XFWM4,
-+    RULE_ICON_THEME,
-+    RULE_CURSOR_THEME,
-+    RULE_BRIGHTNESS,
-+    RULE_COMMAND,
-+    N_RULE_FIELDS
-+};
++/* seconds between the steps of a color temperature fade */
++#define FADE_STEP_SECONDS 10
 +
-+static const gchar *rule_props[N_RULE_FIELDS] = {
-+    SCHEDULE_PROP_PREFIX "Times",
-+    SCHEDULE_PROP_PREFIX "Themes",
-+    SCHEDULE_PROP_PREFIX "ColorSchemes",
-+    SCHEDULE_PROP_PREFIX "Xfwm4",
-+    SCHEDULE_PROP_PREFIX "IconThemes",
-+    SCHEDULE_PROP_PREFIX "CursorThemes",
-+    SCHEDULE_PROP_PREFIX "Brightness",
-+    SCHEDULE_PROP_PREFIX "Commands",
-+};
++/* the dialog writes the rules as several properties, so wait for the last */
++#define RULES_CHANGED_DELAY_MS 250
 +
 +/* where to look up a theme of some kind */
 +typedef struct
@@ -2775,6 +3112,9 @@ index 00000000..69eb3078
 +static void
 +xfce_theme_schedule_helper_update (XfceThemeScheduleHelper *helper,
 +                                   gboolean rules_changed);
++static void
++xfce_theme_schedule_helper_set_color_temperature (XfceThemeScheduleHelper *helper,
++                                                  gint kelvin);
 +
 +
 +
@@ -2783,9 +3123,27 @@ index 00000000..69eb3078
 +    GObject parent;
 +
 +    XfconfChannel *channel;
-+    GSettings *desktop_interface_gsettings;
++    /* org.gnome.desktop.interface and org.x.apps.portal, as far as installed
++     * with a color-scheme key */
++    GSettings *color_scheme_gsettings[2];
 +
 +    guint timer_id;
++    guint rules_changed_id;
++
++    /* the location for the sun times and the setting or time zone it is for,
++     * so that the zone tables are only read when that changes */
++    gchar *location_key;
++    gboolean has_location;
++    gdouble latitude, longitude;
++
++    /* RRCrtc -> CrtcGamma, for the CRTCs whose ramps we changed */
++    GHashTable *crtc_gamma;
++    gint kelvin;
++
++    /* the start of the fade in progress (0 if none, -1 before the first
++     * update) and the color temperature it started from */
++    gint64 fade_at;
++    gint fade_from;
 +};
 +
 +
@@ -2808,19 +3166,26 @@ index 00000000..69eb3078
 +xfce_theme_schedule_helper_init (XfceThemeScheduleHelper *helper)
 +{
 +    GSettingsSchemaSource *source;
++    const gchar *schema_ids[] = { "org.gnome.desktop.interface", "org.x.apps.portal" };
 +
-+    /* to keep the color-scheme in sync for GTK4 and the settings portal */
++    G_STATIC_ASSERT (G_N_ELEMENTS (schema_ids) == G_N_ELEMENTS (helper->color_scheme_gsettings));
++
++    /* to keep the color-scheme in sync for GTK4 and the settings portals */
 +    source = g_settings_schema_source_get_default ();
-+    if (source != NULL)
++    for (guint i = 0; source != NULL && i < G_N_ELEMENTS (schema_ids); i++)
 +    {
-+        GSettingsSchema *schema = g_settings_schema_source_lookup (source, "org.gnome.desktop.interface", TRUE);
++        GSettingsSchema *schema = g_settings_schema_source_lookup (source, schema_ids[i], TRUE);
 +        if (schema != NULL)
 +        {
 +            if (g_settings_schema_has_key (schema, "color-scheme"))
-+                helper->desktop_interface_gsettings = g_settings_new ("org.gnome.desktop.interface");
++                helper->color_scheme_gsettings[i] = g_settings_new (schema_ids[i]);
 +            g_settings_schema_unref (schema);
 +        }
 +    }
++
++    helper->crtc_gamma = g_hash_table_new_full (NULL, NULL, NULL, g_free);
++    helper->kelvin = COLOR_TEMPERATURE_NEUTRAL;
++    helper->fade_at = -1;
 +
 +    helper->channel = xfconf_channel_get ("xsettings");
 +    g_signal_connect (helper->channel, "property-changed",
@@ -2839,11 +3204,16 @@ index 00000000..69eb3078
 +    g_signal_handlers_disconnect_by_func (helper->channel,
 +                                          xfce_theme_schedule_helper_channel_property_changed, helper);
 +
-+    if (helper->timer_id != 0)
-+        g_source_remove (helper->timer_id);
++    g_clear_handle_id (&helper->timer_id, g_source_remove);
++    g_clear_handle_id (&helper->rules_changed_id, g_source_remove);
++    g_free (helper->location_key);
 +
-+    if (helper->desktop_interface_gsettings != NULL)
-+        g_object_unref (helper->desktop_interface_gsettings);
++    /* put the gamma ramps back */
++    xfce_theme_schedule_helper_set_color_temperature (helper, COLOR_TEMPERATURE_NEUTRAL);
++    g_hash_table_destroy (helper->crtc_gamma);
++
++    for (guint i = 0; i < G_N_ELEMENTS (helper->color_scheme_gsettings); i++)
++        g_clear_object (&helper->color_scheme_gsettings[i]);
 +
 +    G_OBJECT_CLASS (xfce_theme_schedule_helper_parent_class)->finalize (object);
 +}
@@ -3041,6 +3411,137 @@ index 00000000..69eb3078
 +
 +
 +
++#ifdef HAVE_GAMMA_RAMPS
++
++/* the gamma ramps of a CRTC, red, green and blue one after another */
++typedef struct
++{
++    gint size;
++    guint16 *base; /* found there, e.g. of a color profile */
++    guint16 *set; /* what we set */
++} CrtcGamma;
++
++/* whether @gamma holds the ramps @set, give or take what a driver may round */
++static gboolean
++xfce_theme_schedule_ramps_match (XRRCrtcGamma *gamma,
++                                 const guint16 *set)
++{
++    const gushort *channels[3] = { gamma->red, gamma->green, gamma->blue };
++
++    for (gint c = 0; c < 3; c++)
++        for (gint i = 0; i < gamma->size; i++)
++            if (ABS ((gint) channels[c][i] - (gint) set[c * gamma->size + i]) > 512)
++                return FALSE;
++
++    return TRUE;
++}
++
++
++
++static void
++xfce_theme_schedule_set_crtc_gamma (Display *xdisplay,
++                                    RRCrtc crtc,
++                                    gint size,
++                                    const guint16 *ramps)
++{
++    XRRCrtcGamma *gamma = XRRAllocGamma (size);
++
++    memcpy (gamma->red, ramps, size * sizeof (guint16));
++    memcpy (gamma->green, ramps + size, size * sizeof (guint16));
++    memcpy (gamma->blue, ramps + 2 * size, size * sizeof (guint16));
++    XRRSetCrtcGamma (xdisplay, crtc, gamma);
++    XRRFreeGamma (gamma);
++}
++
++#endif
++
++
++
++/* sets the color temperature of all screens, or puts their gamma ramps back
++ * for COLOR_TEMPERATURE_NEUTRAL; also called every minute, to take over the
++ * ramps that something else set meanwhile (a new color profile, a monitor
++ * plugged in) */
++static void
++xfce_theme_schedule_helper_set_color_temperature (XfceThemeScheduleHelper *helper,
++                                                  gint kelvin)
++{
++#ifdef HAVE_GAMMA_RAMPS
++    GdkDisplay *display = gdk_display_get_default ();
++    Display *xdisplay;
++    XRRScreenResources *resources;
++    gdouble gains[3];
++
++    if (kelvin != helper->kelvin)
++        xfsettings_dbg (XFSD_DEBUG_THEME_SCHEDULE, "Color temperature %d K", kelvin);
++    helper->kelvin = kelvin;
++
++    if (!GDK_IS_X11_DISPLAY (display)
++        || (kelvin == COLOR_TEMPERATURE_NEUTRAL && g_hash_table_size (helper->crtc_gamma) == 0))
++        return;
++
++    xdisplay = GDK_DISPLAY_XDISPLAY (display);
++    color_temperature_gains (kelvin, gains);
++
++    gdk_x11_display_error_trap_push (display);
++
++    resources = XRRGetScreenResourcesCurrent (xdisplay, DefaultRootWindow (xdisplay));
++    for (gint n = 0; resources != NULL && n < resources->ncrtc; n++)
++    {
++        RRCrtc crtc = resources->crtcs[n];
++        gint size = XRRGetCrtcGammaSize (xdisplay, crtc);
++        CrtcGamma *saved = g_hash_table_lookup (helper->crtc_gamma, GSIZE_TO_POINTER (crtc));
++        XRRCrtcGamma *gamma;
++        guint16 *ramps;
++
++        if (size <= 1 || (gamma = XRRGetCrtcGamma (xdisplay, crtc)) == NULL)
++            continue;
++
++        /* new, or someone else set the ramps since */
++        if (saved == NULL || saved->size != size || !xfce_theme_schedule_ramps_match (gamma, saved->set))
++        {
++            saved = g_malloc (sizeof (CrtcGamma) + 6 * size * sizeof (guint16));
++            saved->size = size;
++            saved->base = (guint16 *) (saved + 1);
++            saved->set = saved->base + 3 * size;
++            memcpy (saved->base, gamma->red, size * sizeof (guint16));
++            memcpy (saved->base + size, gamma->green, size * sizeof (guint16));
++            memcpy (saved->base + 2 * size, gamma->blue, size * sizeof (guint16));
++            memcpy (saved->set, saved->base, 3 * size * sizeof (guint16));
++            g_hash_table_replace (helper->crtc_gamma, GSIZE_TO_POINTER (crtc), saved);
++        }
++        XRRFreeGamma (gamma);
++
++        if (kelvin == COLOR_TEMPERATURE_NEUTRAL)
++        {
++            xfce_theme_schedule_set_crtc_gamma (xdisplay, crtc, size, saved->base);
++            continue;
++        }
++
++        ramps = g_new (guint16, 3 * size);
++        for (gint c = 0; c < 3; c++)
++            for (gint i = 0; i < size; i++)
++                ramps[c * size + i] = saved->base[c * size + i] * gains[c] + 0.5;
++        if (memcmp (ramps, saved->set, 3 * size * sizeof (guint16)) != 0)
++        {
++            xfce_theme_schedule_set_crtc_gamma (xdisplay, crtc, size, ramps);
++            memcpy (saved->set, ramps, 3 * size * sizeof (guint16));
++        }
++        g_free (ramps);
++    }
++
++    if (resources != NULL)
++        XRRFreeScreenResources (resources);
++
++    if (kelvin == COLOR_TEMPERATURE_NEUTRAL)
++        g_hash_table_remove_all (helper->crtc_gamma);
++
++    XFlush (xdisplay);
++    gdk_x11_display_error_trap_pop_ignored (display);
++#endif
++}
++
++
++
 +static void
 +xfce_theme_schedule_helper_run_command (XfceThemeScheduleHelper *helper,
 +                                        const gchar *command)
@@ -3059,8 +3560,8 @@ index 00000000..69eb3078
 +    envp = g_environ_setenv (envp, "XFCE_SCHEDULE_ICON_THEME", value, TRUE);
 +    g_free (value);
 +
-+    value = helper->desktop_interface_gsettings != NULL
-+                ? g_settings_get_string (helper->desktop_interface_gsettings, "color-scheme")
++    value = helper->color_scheme_gsettings[0] != NULL
++                ? g_settings_get_string (helper->color_scheme_gsettings[0], "color-scheme")
 +                : g_strdup ("");
 +    envp = g_environ_setenv (envp, "XFCE_SCHEDULE_COLOR_SCHEME", value, TRUE);
 +    g_free (value);
@@ -3076,64 +3577,75 @@ index 00000000..69eb3078
 +
 +
 +
++/* sets @color_scheme in all the color-scheme settings, resetting it for "default" */
++static void
++xfce_theme_schedule_helper_set_color_scheme (XfceThemeScheduleHelper *helper,
++                                             const gchar *color_scheme)
++{
++    for (guint i = 0; i < G_N_ELEMENTS (helper->color_scheme_gsettings); i++)
++    {
++        if (helper->color_scheme_gsettings[i] == NULL)
++            continue;
++        if (g_strcmp0 (color_scheme, "default") == 0)
++            g_settings_reset (helper->color_scheme_gsettings[i], "color-scheme");
++        else
++            g_settings_set_string (helper->color_scheme_gsettings[i], "color-scheme", color_scheme);
++    }
++}
++
++
++
 +/* @rule holds the fields of a rule, NULL where missing */
 +static void
 +xfce_theme_schedule_helper_apply (XfceThemeScheduleHelper *helper,
 +                                  const gchar **rule)
 +{
 +    gchar *current, *theme_name, *icon_theme_name;
++    const gchar *color_scheme;
 +    gboolean xfwm4;
 +
 +    /* Gtk theme */
 +    current = xfconf_channel_get_string (helper->channel, "/Net/ThemeName", "Default");
-+    theme_name = xfce_theme_schedule_resolve_theme (rule[RULE_THEME], current, &gtk_theme_kind);
++    theme_name = xfce_theme_schedule_resolve_theme (rule[THEME_SCHEDULE_THEME], current, &gtk_theme_kind);
 +    if (theme_name != NULL && g_strcmp0 (theme_name, current) != 0)
 +        xfconf_channel_set_string (helper->channel, "/Net/ThemeName", theme_name);
 +    g_free (current);
 +
 +    /* Xfwm4 theme */
-+    if (rule[RULE_XFWM4] == NULL || *rule[RULE_XFWM4] == '\0')
++    if (rule[THEME_SCHEDULE_XFWM4] == NULL || *rule[THEME_SCHEDULE_XFWM4] == '\0')
 +        xfwm4 = xfconf_channel_get_bool (helper->channel, "/Xfce/SyncThemes", FALSE);
 +    else
-+        xfwm4 = g_strcmp0 (rule[RULE_XFWM4], "true") == 0;
++        xfwm4 = g_strcmp0 (rule[THEME_SCHEDULE_XFWM4], "true") == 0;
 +    if (xfwm4 && theme_name != NULL)
 +        xfce_theme_schedule_helper_set_xfwm4_theme (helper, theme_name);
 +
-+    /* the preferred color scheme for GTK4, libadwaita and the settings portal */
-+    if (helper->desktop_interface_gsettings != NULL)
++    /* the preferred color scheme for GTK4, libadwaita and the settings portals */
++    color_scheme = rule[THEME_SCHEDULE_COLOR_SCHEME];
++    if (color_scheme == NULL)
 +    {
-+        const gchar *color_scheme = rule[RULE_COLOR_SCHEME];
-+
-+        if (color_scheme == NULL)
-+        {
-+            /* rules saved before color schemes were configurable */
-+            if (theme_name != NULL && theme_variant_is_dark (theme_name))
-+                g_settings_set_string (helper->desktop_interface_gsettings, "color-scheme", "prefer-dark");
-+            else if (theme_name != NULL)
-+                g_settings_reset (helper->desktop_interface_gsettings, "color-scheme");
-+        }
-+        else if (g_strcmp0 (color_scheme, "default") == 0)
-+            g_settings_reset (helper->desktop_interface_gsettings, "color-scheme");
-+        else if (*color_scheme != '\0')
-+            g_settings_set_string (helper->desktop_interface_gsettings, "color-scheme", color_scheme);
++        /* rules saved before color schemes were configurable */
++        if (theme_name != NULL)
++            xfce_theme_schedule_helper_set_color_scheme (helper, theme_variant_is_dark (theme_name) ? "prefer-dark" : "default");
 +    }
++    else if (*color_scheme != '\0')
++        xfce_theme_schedule_helper_set_color_scheme (helper, color_scheme);
 +
 +    /* icon theme */
 +    current = xfconf_channel_get_string (helper->channel, "/Net/IconThemeName", "Rodent");
-+    icon_theme_name = xfce_theme_schedule_resolve_theme (rule[RULE_ICON_THEME], current, &icon_theme_kind);
++    icon_theme_name = xfce_theme_schedule_resolve_theme (rule[THEME_SCHEDULE_ICON_THEME], current, &icon_theme_kind);
 +    if (icon_theme_name != NULL && g_strcmp0 (icon_theme_name, current) != 0)
 +        xfconf_channel_set_string (helper->channel, "/Net/IconThemeName", icon_theme_name);
 +    g_free (current);
 +
 +    /* cursor theme */
-+    if (rule[RULE_CURSOR_THEME] != NULL && *rule[RULE_CURSOR_THEME] != '\0')
-+        xfconf_channel_set_string (helper->channel, "/Gtk/CursorThemeName", rule[RULE_CURSOR_THEME]);
++    if (rule[THEME_SCHEDULE_CURSOR_THEME] != NULL && *rule[THEME_SCHEDULE_CURSOR_THEME] != '\0')
++        xfconf_channel_set_string (helper->channel, "/Gtk/CursorThemeName", rule[THEME_SCHEDULE_CURSOR_THEME]);
 +
-+    if (rule[RULE_BRIGHTNESS] != NULL && *rule[RULE_BRIGHTNESS] != '\0')
-+        xfce_theme_schedule_helper_set_brightness (helper, rule[RULE_BRIGHTNESS]);
++    if (rule[THEME_SCHEDULE_BRIGHTNESS] != NULL && *rule[THEME_SCHEDULE_BRIGHTNESS] != '\0')
++        xfce_theme_schedule_helper_set_brightness (helper, rule[THEME_SCHEDULE_BRIGHTNESS]);
 +
-+    if (rule[RULE_COMMAND] != NULL && *rule[RULE_COMMAND] != '\0')
-+        xfce_theme_schedule_helper_run_command (helper, rule[RULE_COMMAND]);
++    if (rule[THEME_SCHEDULE_COMMAND] != NULL && *rule[THEME_SCHEDULE_COMMAND] != '\0')
++        xfce_theme_schedule_helper_run_command (helper, rule[THEME_SCHEDULE_COMMAND]);
 +
 +    g_free (theme_name);
 +    g_free (icon_theme_name);
@@ -3150,6 +3662,73 @@ index 00000000..69eb3078
 +    xfce_theme_schedule_helper_update (helper, FALSE);
 +
 +    return G_SOURCE_REMOVE;
++}
++
++
++
++/* the rule whose time passed at @at, to sort them */
++typedef struct
++{
++    gint64 at;
++    guint index;
++} PassedRule;
++
++static gint
++xfce_theme_schedule_compare_passed_rules (gconstpointer a,
++                                          gconstpointer b)
++{
++    const PassedRule *rule_a = a, *rule_b = b;
++
++    return rule_a->at < rule_b->at ? -1 : rule_a->at > rule_b->at;
++}
++
++
++
++/*
++ * Merges @rule into @merged as if it was applied after it: what @rule sets
++ * replaces the value in @merged, and the Xfwm4 setting and a missing color
++ * scheme go with the Gtk theme. ":dark" and ":light" are resolved against the
++ * theme set by the rules before, or else against @current_theme and
++ * @current_icon_theme; @merged points to the resolved names in @theme_name
++ * and @icon_theme_name.
++ */
++static void
++xfce_theme_schedule_merge_rule (const gchar **merged,
++                                const gchar **rule,
++                                const gchar *current_theme,
++                                const gchar *current_icon_theme,
++                                gchar **theme_name,
++                                gchar **icon_theme_name)
++{
++    gchar *resolved;
++
++    resolved = xfce_theme_schedule_resolve_theme (rule[THEME_SCHEDULE_THEME],
++                                                  *theme_name != NULL ? *theme_name : current_theme,
++                                                  &gtk_theme_kind);
++    if (resolved != NULL)
++    {
++        g_free (*theme_name);
++        *theme_name = resolved;
++        merged[THEME_SCHEDULE_THEME] = resolved;
++        merged[THEME_SCHEDULE_XFWM4] = rule[THEME_SCHEDULE_XFWM4];
++        if (rule[THEME_SCHEDULE_COLOR_SCHEME] == NULL)
++            merged[THEME_SCHEDULE_COLOR_SCHEME] = NULL;
++    }
++
++    resolved = xfce_theme_schedule_resolve_theme (rule[THEME_SCHEDULE_ICON_THEME],
++                                                  *icon_theme_name != NULL ? *icon_theme_name : current_icon_theme,
++                                                  &icon_theme_kind);
++    if (resolved != NULL)
++    {
++        g_free (*icon_theme_name);
++        *icon_theme_name = resolved;
++        merged[THEME_SCHEDULE_ICON_THEME] = resolved;
++    }
++
++    for (guint f = THEME_SCHEDULE_COLOR_SCHEME; f < N_THEME_SCHEDULE_FIELDS; f++)
++        if (f != THEME_SCHEDULE_XFWM4 && f != THEME_SCHEDULE_ICON_THEME && f != THEME_SCHEDULE_COLOR_TEMPERATURE
++            && rule[f] != NULL && *rule[f] != '\0')
++            merged[f] = rule[f];
 +}
 +
 +
@@ -3198,87 +3777,232 @@ index 00000000..69eb3078
 +
 +
 +
++/* the color temperature the rules give at @now; *@fading is set when it is
++ * on the way from one value to the next */
++static gint
++xfce_theme_schedule_helper_color_temperature (XfceThemeScheduleHelper *helper,
++                                              GDateTime *now,
++                                              gchar **times,
++                                              gchar **values,
++                                              gboolean *fading)
++{
++    gboolean has_location = helper->has_location;
++    gdouble latitude = helper->latitude, longitude = helper->longitude;
++    gint64 now_unix = g_date_time_to_unix (now), latest = 0, before = 0;
++    gint kelvin = COLOR_TEMPERATURE_NEUTRAL, previous = COLOR_TEMPERATURE_NEUTRAL, fade = 0;
++
++    *fading = FALSE;
++
++    for (guint i = 0; times != NULL && values != NULL && times[i] != NULL && values[i] != NULL; i++)
++    {
++        SunTimesEvent event;
++        gint minutes, k, m;
++        gint64 at[2];
++        GDateTime *earlier;
++
++        if (!color_temperature_parse (values[i], &k, &m)
++            || !sun_times_parse (times[i], &event, &minutes))
++            continue;
++
++        /* the last occurrence of the rule and the one before */
++        at[0] = xfce_theme_schedule_last_occurrence (now, event, minutes, has_location, latitude, longitude);
++        if (at[0] == 0)
++            continue;
++        earlier = g_date_time_new_from_unix_local (at[0] - 1);
++        at[1] = xfce_theme_schedule_last_occurrence (earlier, event, minutes, has_location, latitude, longitude);
++        g_date_time_unref (earlier);
++
++        /* keep the latest and the one before */
++        for (guint j = 0; j < G_N_ELEMENTS (at); j++)
++        {
++            if (at[j] > latest)
++            {
++                before = latest;
++                previous = latest > 0 ? kelvin : previous;
++                latest = at[j];
++                kelvin = k;
++                fade = m;
++            }
++            else if (at[j] > before && at[j] < latest)
++            {
++                before = at[j];
++                previous = k;
++            }
++        }
++    }
++
++    if (latest > 0 && now_unix < latest + fade * 60)
++    {
++        /* a fade starts from the temperature on the screen, which is not the
++         * one of the rule before while that one is still fading; only when
++         * the daemon starts during a fade, from that of the rule before */
++        if (helper->fade_at != latest)
++            helper->fade_from = helper->fade_at < 0 ? previous : helper->kelvin;
++        helper->fade_at = latest;
++
++        *fading = TRUE;
++        kelvin = helper->fade_from + (kelvin - helper->fade_from) * (gdouble) (now_unix - latest) / (fade * 60);
++    }
++    else
++        helper->fade_at = 0;
++
++    return kelvin;
++}
++
++
++
++/* looks up the location for the sun times again if the setting or, without
++ * one, the system time zone changed */
++static void
++xfce_theme_schedule_helper_update_location (XfceThemeScheduleHelper *helper)
++{
++    gchar *setting, *key;
++
++    setting = xfconf_channel_get_string (helper->channel, THEME_SCHEDULE_LOCATION_PROP, "");
++    key = *setting != '\0' ? g_strdup (setting) : sun_times_get_zone ();
++    if (key == NULL)
++        key = g_strdup ("");
++
++    if (helper->location_key == NULL || strcmp (key, helper->location_key) != 0)
++    {
++        helper->has_location = sun_times_get_location (setting, &helper->latitude, &helper->longitude, NULL);
++        g_free (helper->location_key);
++        helper->location_key = g_steal_pointer (&key);
++    }
++
++    g_free (key);
++    g_free (setting);
++}
++
++
++
 +static void
 +xfce_theme_schedule_helper_update (XfceThemeScheduleHelper *helper,
 +                                   gboolean rules_changed)
 +{
-+    gchar **fields[N_RULE_FIELDS];
-+    guint n_fields[N_RULE_FIELDS];
-+    const gchar *rule[N_RULE_FIELDS];
++    gchar **fields[N_THEME_SCHEDULE_FIELDS];
++    guint n_fields[N_THEME_SCHEDULE_FIELDS];
++    const gchar *rule[N_THEME_SCHEDULE_FIELDS];
++    const gchar *merged[N_THEME_SCHEDULE_FIELDS] = { NULL };
++    GArray *passed;
 +    GDateTime *now;
-+    gint64 now_unix, checked, best_unix;
-+    gint best = -1;
-+    gchar *location;
-+    gdouble latitude = 0, longitude = 0;
-+    gboolean has_location;
++    gint64 now_unix, checked;
++    gboolean fading;
 +
 +    g_clear_handle_id (&helper->timer_id, g_source_remove);
 +
-+    if (!xfconf_channel_get_bool (helper->channel, SCHEDULE_ENABLED_PROP, FALSE))
++    if (!xfconf_channel_get_bool (helper->channel, THEME_SCHEDULE_ENABLED_PROP, FALSE))
++    {
++        xfce_theme_schedule_helper_set_color_temperature (helper, COLOR_TEMPERATURE_NEUTRAL);
 +        return;
++    }
 +
 +    now = g_date_time_new_now_local ();
 +    now_unix = g_date_time_to_unix (now);
-+    checked = xfconf_channel_get_uint64 (helper->channel, SCHEDULE_CHECKED_PROP, 0);
++    checked = xfconf_channel_get_uint64 (helper->channel, THEME_SCHEDULE_CHECKED_PROP, 0);
 +
 +    /* edited rules only count from now on, and so does a clock set back */
 +    if (rules_changed || checked == 0 || checked > now_unix)
 +    {
 +        checked = now_unix;
-+        xfconf_channel_set_uint64 (helper->channel, SCHEDULE_CHECKED_PROP, checked);
++        xfconf_channel_set_uint64 (helper->channel, THEME_SCHEDULE_CHECKED_PROP, checked);
 +    }
 +
-+    for (guint f = 0; f < N_RULE_FIELDS; f++)
++    for (guint f = 0; f < N_THEME_SCHEDULE_FIELDS; f++)
 +    {
-+        fields[f] = xfconf_channel_get_string_list (helper->channel, rule_props[f]);
++        fields[f] = xfconf_channel_get_string_list (helper->channel, theme_schedule_properties[f]);
 +        n_fields[f] = fields[f] != NULL ? g_strv_length (fields[f]) : 0;
 +    }
 +
-+    location = xfconf_channel_get_string (helper->channel, SCHEDULE_LOCATION_PROP, NULL);
-+    has_location = sun_times_get_location (location, &latitude, &longitude, NULL);
-+    g_free (location);
++    xfce_theme_schedule_helper_update_location (helper);
 +
-+    /* the latest rule time passed since the last check */
-+    best_unix = checked;
-+    for (guint i = 0; i < n_fields[RULE_TIME]; i++)
++    /* the rules whose time passed since the last check, e.g. several while
++     * logged out, are merged in the order of their times and applied once,
++     * so that the theme does not flicker and only the last command runs */
++    passed = g_array_new (FALSE, FALSE, sizeof (PassedRule));
++    for (guint i = 0; i < n_fields[THEME_SCHEDULE_TIME]; i++)
 +    {
 +        SunTimesEvent event;
 +        gint minutes;
 +        gboolean does_something = FALSE;
 +        gint64 at;
 +
-+        for (guint f = RULE_THEME; f < N_RULE_FIELDS; f++)
-+            if (f != RULE_XFWM4 && i < n_fields[f] && *fields[f][i] != '\0')
++        /* the color temperature has a logic of its own, below */
++        for (guint f = THEME_SCHEDULE_THEME; f < N_THEME_SCHEDULE_FIELDS; f++)
++            if (f != THEME_SCHEDULE_XFWM4 && f != THEME_SCHEDULE_COLOR_TEMPERATURE && i < n_fields[f] && *fields[f][i] != '\0')
 +                does_something = TRUE;
 +
-+        if (!sun_times_parse (fields[RULE_TIME][i], &event, &minutes) || !does_something)
++        if (!sun_times_parse (fields[THEME_SCHEDULE_TIME][i], &event, &minutes) || !does_something)
 +            continue;
 +
-+        at = xfce_theme_schedule_last_occurrence (now, event, minutes, has_location, latitude, longitude);
-+        if (at > best_unix)
++        at = xfce_theme_schedule_last_occurrence (now, event, minutes,
++                                                  helper->has_location, helper->latitude, helper->longitude);
++        if (at > checked)
 +        {
-+            best = i;
-+            best_unix = at;
++            PassedRule passed_rule = { at, i };
++            g_array_append_val (passed, passed_rule);
 +        }
 +    }
 +
-+    if (best >= 0)
++    if (passed->len > 0)
 +    {
-+        for (guint f = 0; f < N_RULE_FIELDS; f++)
-+            rule[f] = (guint) best < n_fields[f] ? fields[f][best] : NULL;
++        gchar *current_theme, *current_icon_theme;
++        gchar *theme_name = NULL, *icon_theme_name = NULL;
 +
-+        xfce_theme_schedule_helper_apply (helper, rule);
-+        xfconf_channel_set_uint64 (helper->channel, SCHEDULE_CHECKED_PROP, now_unix);
++        current_theme = xfconf_channel_get_string (helper->channel, "/Net/ThemeName", "Default");
++        current_icon_theme = xfconf_channel_get_string (helper->channel, "/Net/IconThemeName", "Rodent");
++
++        /* a color scheme of "" keeps the current one */
++        merged[THEME_SCHEDULE_COLOR_SCHEME] = "";
++
++        g_array_sort (passed, xfce_theme_schedule_compare_passed_rules);
++        for (guint p = 0; p < passed->len; p++)
++        {
++            guint index = g_array_index (passed, PassedRule, p).index;
++
++            for (guint f = 0; f < N_THEME_SCHEDULE_FIELDS; f++)
++                rule[f] = index < n_fields[f] ? fields[f][index] : NULL;
++            xfce_theme_schedule_merge_rule (merged, rule, current_theme, current_icon_theme,
++                                            &theme_name, &icon_theme_name);
++        }
++
++        xfce_theme_schedule_helper_apply (helper, merged);
++        xfconf_channel_set_uint64 (helper->channel, THEME_SCHEDULE_CHECKED_PROP, now_unix);
++
++        g_free (current_theme);
++        g_free (current_icon_theme);
++        g_free (theme_name);
++        g_free (icon_theme_name);
 +    }
++    g_array_free (passed, TRUE);
 +
-+    /* re-check at the start of the next minute; this also copes with clock
-+     * changes, DST and suspend without tracking them explicitly */
-+    helper->timer_id = g_timeout_add_seconds (60 - g_date_time_get_second (now),
++    xfce_theme_schedule_helper_set_color_temperature (
++        helper,
++        xfce_theme_schedule_helper_color_temperature (helper, now, fields[THEME_SCHEDULE_TIME],
++                                                      fields[THEME_SCHEDULE_COLOR_TEMPERATURE], &fading));
++
++    /* re-check at the start of the next minute, or in a few seconds during a
++     * fade; this also copes with clock changes, DST and suspend without
++     * tracking them explicitly */
++    helper->timer_id = g_timeout_add_seconds (fading ? FADE_STEP_SECONDS : 60 - g_date_time_get_second (now),
 +                                              xfce_theme_schedule_helper_timeout, helper);
 +
 +    g_date_time_unref (now);
-+    for (guint f = 0; f < N_RULE_FIELDS; f++)
++    for (guint f = 0; f < N_THEME_SCHEDULE_FIELDS; f++)
 +        g_strfreev (fields[f]);
++}
++
++
++
++static gboolean
++xfce_theme_schedule_helper_rules_changed (gpointer user_data)
++{
++    XfceThemeScheduleHelper *helper = user_data;
++
++    helper->rules_changed_id = 0;
++    xfce_theme_schedule_helper_update (helper, TRUE);
++
++    return G_SOURCE_REMOVE;
 +}
 +
 +
@@ -3289,9 +4013,12 @@ index 00000000..69eb3078
 +                                                     const GValue *value,
 +                                                     XfceThemeScheduleHelper *helper)
 +{
-+    if (g_str_has_prefix (property, SCHEDULE_PROP_PREFIX)
-+        && g_strcmp0 (property, SCHEDULE_CHECKED_PROP) != 0)
-+        xfce_theme_schedule_helper_update (helper, TRUE);
++    if (g_str_has_prefix (property, THEME_SCHEDULE_PROP_PREFIX)
++        && g_strcmp0 (property, THEME_SCHEDULE_CHECKED_PROP) != 0)
++    {
++        g_clear_handle_id (&helper->rules_changed_id, g_source_remove);
++        helper->rules_changed_id = g_timeout_add (RULES_CHANGED_DELAY_MS, xfce_theme_schedule_helper_rules_changed, helper);
++    }
 +}
 diff --git a/xfsettingsd/theme-schedule.h b/xfsettingsd/theme-schedule.h
 new file mode 100644
