@@ -23,7 +23,16 @@ Each rule can change:
   Chromium and Electron apps read through the settings portal.
 - **More…** — the matching xfwm4 theme (follows "Set matching Xfwm4 theme" by default),
   the icon theme, the cursor theme, the screen brightness of a laptop (in percent,
-  set through logind, no root needed), or a shell command to run.
+  set through logind, no root needed), a warmer **color temperature** of the screen
+  ("night light", e.g. 4500 K, reached gradually over a number of minutes), or a shell
+  command to run.
+
+The color temperature works on X11 only. It is set through XRandR gamma ramps,
+multiplied onto the ones already loaded, so a color profile stays in effect. It
+stays until a later rule sets another temperature: set 6500 K (normal) in the
+morning rule. Several rules give any curve, e.g. 5000 K at sunset, 3500 K at
+22:00, 6500 K at sunrise. Don't run redshift, gammastep or a similar tool at the
+same time, they would overwrite each other.
 
 ![Schedule tab](docs/theme-schedule.png)
 
@@ -36,7 +45,7 @@ while logged out is applied at login. Translated into all Xfce languages
 ### Disk usage in Thunar (plugin)
 
 A **Disk Usage** tab in the *Properties* dialog of a folder, and **Show Disk
-Usage** (Ctrl+Alt+D) in the folder's context menu: a ring chart of what takes up
+Usage** (Ctrl+Alt+U) in the folder's context menu: a ring chart of what takes up
 the space, ported from GNOME's Disk Usage Analyzer (Baobab). A plugin, not a
 patch — it installs next to the stock Thunar 4.18+. See
 [thunar-disk-usage/README.md](thunar-disk-usage/README.md).
@@ -153,6 +162,51 @@ the Ubuntu builds.
 
 A manual run (Actions → build → Run workflow) with a package name builds any
 source package, patched or not.
+
+## Prior art
+
+The theme schedule borrows ideas, not code, from these projects. Thanks to
+their authors and contributors.
+
+Sunrise and sunset:
+
+- [NOAA Solar Calculator](https://gml.noaa.gov/grad/solcalc/calcdetails.html)
+  formulas (NOAA Global Monitoring Laboratory). `common/sun-times.h` in xfce4-settings is our own
+  implementation of them. GNOME Night Light uses the same method
+  ([gnome-settings-daemon](https://gitlab.gnome.org/GNOME/gnome-settings-daemon),
+  © Richard Hughes and others).
+- [Night Theme Switcher](https://gitlab.com/rmnvgr/nightthemeswitcher-gnome-shell-extension),
+  a GNOME Shell extension (© Romain Vigier and others). We compared its
+  features with ours.
+- [Auto Dark Mode for Windows](https://github.com/AutoDarkMode/Windows-Auto-Night-Mode)
+  (© Armin Osaj, Sam Spiritreader and others). We compared its features with
+  ours.
+
+Rules and theme switching:
+
+- [xfce4-night-mode](https://github.com/bimlas/xfce4-night-mode), a genmon
+  script for Xfce (© Bimba László and others). It was the main source of ideas:
+  a temporary manual switch, a dark panel, commands for the wallpaper, and
+  working together with Redshift.
+- [Redshift](https://github.com/jonls/redshift) (© Jon Lund Steffensen and
+  others) and its fork
+  [Gammastep](https://gitlab.com/chinstrap/gammastep) (© Cameron Nemo and
+  others). Users ran period-changed hooks to switch the theme before this
+  patch existed.
+- [darkman](https://gitlab.com/WhyNotHugo/darkman) (© Hugo Osvaldo Barrera
+  and others). Its scripts run on each switch.
+- KDE Plasma:
+  - automatic day/night switching of the Global Theme in Plasma 6.5
+    (Vlad Zahorodnii,
+    [announcement](https://blogs.kde.org/2025/08/02/this-week-in-plasma-day/night-theme-switching/));
+  - Night Light with custom times (KWin).
+
+Related requests: gnome-control-center
+[#308](https://gitlab.gnome.org/GNOME/gnome-control-center/-/issues/308),
+GTK [#5700](https://gitlab.gnome.org/GNOME/gtk/-/issues/5700),
+xfce4-settings [#111](https://gitlab.xfce.org/xfce/xfce4-settings/-/issues/111)
+and [#482](https://gitlab.xfce.org/xfce/xfce4-settings/-/issues/482),
+xfce4-panel [#771](https://gitlab.xfce.org/xfce/xfce4-panel/-/issues/771).
 
 ## License
 
