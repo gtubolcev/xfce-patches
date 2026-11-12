@@ -226,3 +226,10 @@
   Moonshine, GigaAM-v3 for Russian, streaming). It is STT only, nothing for synthesis.
   On the Vega 8 check the iGPU device type first (the ZONOS3 trap: IGPU ≠ GPU in ggml).
 - GNOME port as a prototype (the backend `speechd-config.c` is toolkit-independent).
+- **Firefox: later** (user, 2026-11-12). Firefox just lists every voice it gets from
+  speechd and ignores the default module, voice, rate, pitch and volume set in this dialog
+  ("криво это сделано"). Bilingual texts work badly: a Russian voice skips the English
+  words. Plan: rewrite the Read Aloud extension or write our own — pick the voice per
+  language (default from speechd.conf / LanguageDefaultModule), split mixed text into
+  language runs and speak each run with the matching voice. Check Firefox's speechd
+  backend (dom/media/webspeech/synth/speechd) for what it overrides.
