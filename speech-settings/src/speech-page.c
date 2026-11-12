@@ -358,31 +358,32 @@ speech_page_grid_add (GtkWidget   *grid,
 
 
 
-/* one "Label: [spin]" pair of the Speech row; the tooltip explains the
- * range, 0 is what the synthesizer does by default, not silence */
+/* "Label: [spin]" in columns 2 and 3 of a row, right of the combos; the
+ * tooltip explains the range, 0 is what the synthesizer does by default,
+ * not silence */
 static void
-speech_page_box_add_percent (GtkWidget   *box,
-                             const gchar *text,
-                             GtkWidget   *spin,
-                             const gchar *low,
-                             const gchar *high)
+speech_page_grid_add_percent (GtkWidget   *grid,
+                              gint         row,
+                              const gchar *text,
+                              GtkWidget   *spin,
+                              const gchar *low,
+                              const gchar *high)
 {
   GtkWidget *label;
   gchar     *tip;
 
-  /* text NULL: the label is in the grid's label column */
-  if (text != NULL)
-    {
-      label = gtk_label_new_with_mnemonic (text);
-      gtk_label_set_mnemonic_widget (GTK_LABEL (label), spin);
-      /* a wider gap between the pairs than inside them */
-      gtk_widget_set_margin_start (label, 18);
-      gtk_box_pack_start (GTK_BOX (box), label, FALSE, FALSE, 0);
-    }
-  gtk_box_pack_start (GTK_BOX (box), spin, FALSE, FALSE, 0);
+  label = gtk_label_new_with_mnemonic (text);
+  gtk_label_set_xalign (GTK_LABEL (label), 0.0);
+  gtk_label_set_mnemonic_widget (GTK_LABEL (label), spin);
+  /* a wider gap to the combos than between a label and its widget */
+  gtk_widget_set_margin_start (label, 12);
+  gtk_grid_attach (GTK_GRID (grid), label, 2, row, 1, 1);
+  gtk_widget_set_halign (spin, GTK_ALIGN_START);
+  gtk_grid_attach (GTK_GRID (grid), spin, 3, row, 1, 1);
 
   tip = g_strdup_printf ("−100 %%: %s\n0 %%: %s\n+100 %%: %s",
                          low, _("Normal"), high);
+  gtk_widget_set_tooltip_text (label, tip);
   gtk_widget_set_tooltip_text (spin, tip);
   g_free (tip);
 }
@@ -1547,36 +1548,16 @@ speech_page_new (void)
                            voice_types, G_N_ELEMENTS (voice_types), "MALE1");
   speech_page_update_voices (page);
 
-  /* rate, pitch, volume: one row under the voice, the rate label in the
-   * label column like the rows above */
-  {
-    GtkWidget *row = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
-
-    page->rate_spin = speech_page_bind_percent (page, "DefaultRate", 0);
-    speech_page_box_add_percent (row, NULL, page->rate_spin,
-                                 _("Slower"), _("Faster"));
-    page->pitch_spin = speech_page_bind_percent (page, "DefaultPitch", 0);
-    speech_page_box_add_percent (row, _("_Pitch:"), page->pitch_spin,
-                                 _("Lower"), _("Higher"));
-    page->volume_spin = speech_page_bind_percent (page, "DefaultVolume", 0);
-    speech_page_box_add_percent (row, _("_Volume:"), page->volume_spin,
-                                 _("Quieter"), _("Louder"));
-    speech_page_grid_add (grid, 4, _("_Rate:"), row);
-    gtk_label_set_mnemonic_widget (GTK_LABEL (gtk_grid_get_child_at (GTK_GRID (grid), 0, 4)),
-                                   page->rate_spin);
-    /* the row is wider than the combos: let it run into an expanding
-     * empty column, so it does not widen the combos' column */
-    g_object_ref (row);
-    gtk_container_remove (GTK_CONTAINER (grid), row);
-    gtk_grid_attach (GTK_GRID (grid), row, 1, 4, 2, 1);
-    g_object_unref (row);
-    {
-      GtkWidget *filler = gtk_label_new (NULL);
-
-      gtk_widget_set_hexpand (filler, TRUE);
-      gtk_grid_attach (GTK_GRID (grid), filler, 2, 0, 1, 1);
-    }
-  }
+  /* rate, pitch, volume: a column right of language, synthesizer, voice */
+  page->rate_spin = speech_page_bind_percent (page, "DefaultRate", 0);
+  speech_page_grid_add_percent (grid, 0, _("_Rate:"), page->rate_spin,
+                                _("Slower"), _("Faster"));
+  page->pitch_spin = speech_page_bind_percent (page, "DefaultPitch", 0);
+  speech_page_grid_add_percent (grid, 1, _("_Pitch:"), page->pitch_spin,
+                                _("Lower"), _("Higher"));
+  page->volume_spin = speech_page_bind_percent (page, "DefaultVolume", 0);
+  speech_page_grid_add_percent (grid, 2, _("_Volume:"), page->volume_spin,
+                                _("Quieter"), _("Louder"));
 
   /* Reading */
   grid = speech_page_frame_new (box, _("Reading"));

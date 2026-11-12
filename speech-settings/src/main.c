@@ -123,8 +123,6 @@ main (gint    argc,
                                                       _("_Close"),
                                                       GTK_RESPONSE_CLOSE,
                                                       NULL);
-  xfce_titled_dialog_set_subtitle (XFCE_TITLED_DIALOG (dialog),
-                                   _("Configure text-to-speech"));
   gtk_window_set_icon_name (GTK_WINDOW (dialog), "audio-speakers");
   gtk_window_set_default_size (GTK_WINDOW (dialog), 560, -1);
   gtk_box_pack_start (GTK_BOX (gtk_dialog_get_content_area (GTK_DIALOG (dialog))),
