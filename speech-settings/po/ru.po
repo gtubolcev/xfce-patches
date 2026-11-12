@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: xfce4-speech-settings\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-11-09 00:07+0000\n"
-"PO-Revision-Date: 2026-11-08 20:41+0000\n"
+"PO-Revision-Date: 2026-11-12 01:40+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
@@ -19,8 +19,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#. Speech
-#: data/xfce4-speech-settings.desktop.in:3 src/main.c:121 src/speech-page.c:726
+#: data/xfce4-speech-settings.desktop.in:3 src/main.c:121
 msgid "Speech"
 msgstr "Речь"
 
@@ -58,113 +57,139 @@ msgstr "Введите «%s --help» для получения справки."
 msgid "_Close"
 msgstr "_Закрыть"
 
-#: src/speech-page.c:46
+#: src/speech-page.c:50
 msgid "Male 1"
 msgstr "Мужской 1"
 
-#: src/speech-page.c:47
+#: src/speech-page.c:51
 msgid "Male 2"
 msgstr "Мужской 2"
 
-#: src/speech-page.c:48
+#: src/speech-page.c:52
 msgid "Male 3"
 msgstr "Мужской 3"
 
-#: src/speech-page.c:49
+#: src/speech-page.c:53
 msgid "Female 1"
 msgstr "Женский 1"
 
-#: src/speech-page.c:50
+#: src/speech-page.c:54
 msgid "Female 2"
 msgstr "Женский 2"
 
-#: src/speech-page.c:51
+#: src/speech-page.c:55
 msgid "Female 3"
 msgstr "Женский 3"
 
-#: src/speech-page.c:52
+#: src/speech-page.c:56
 msgid "Child, male"
 msgstr "Детский, мужской"
 
-#: src/speech-page.c:53
+#: src/speech-page.c:57
 msgid "Child, female"
 msgstr "Детский, женский"
 
-#: src/speech-page.c:58
+#: src/speech-page.c:62
 msgid "None"
 msgstr "Не произносить"
 
-#: src/speech-page.c:59
+#: src/speech-page.c:63
 msgid "Some"
 msgstr "Некоторые"
 
-#: src/speech-page.c:60
+#: src/speech-page.c:64
 msgid "Most"
 msgstr "Большинство"
 
-#: src/speech-page.c:61
+#: src/speech-page.c:65
 msgid "All"
 msgstr "Все"
 
-#: src/speech-page.c:71
+#: src/speech-page.c:75
 msgid "Do nothing"
 msgstr "Ничего не делать"
 
-#: src/speech-page.c:72
+#: src/speech-page.c:76
 msgid "Say “capital”"
 msgstr "Говорить «заглавная»"
 
-#: src/speech-page.c:73
+#: src/speech-page.c:77
 msgid "Play a sound"
 msgstr "Подавать звуковой сигнал"
 
-#: src/speech-page.c:84 src/speech-page.c:313
+#: src/speech-page.c:88 src/speech-page.c:592
 msgid "Automatic"
 msgstr "Автоматически"
 
-#: src/speech-page.c:148
+#: src/speech-page.c:203 src/speech-page.c:1245
 #, c-format
 msgid "Failed to apply the settings: %s"
 msgstr "Не удалось применить настройки: %s"
 
-#: src/speech-page.c:222
+#: src/speech-page.c:380
 msgid "Normal"
 msgstr "Обычно"
 
-#: src/speech-page.c:289
+#: src/speech-page.c:421
 #, c-format
 msgid "Cannot connect to Speech Dispatcher: %s"
 msgstr "Не удаётся подключиться к Speech Dispatcher: %s"
 
-#: src/speech-page.c:290
+#: src/speech-page.c:422
 msgid "unknown error"
 msgstr "неизвестная ошибка"
 
-#: src/speech-page.c:553
+#. TRANSLATORS: a synthesizer without a voice for the language
+#: src/speech-page.c:610
+#, c-format
+msgid "%s (no voice for this language)"
+msgstr "%s (нет голоса для этого языка)"
+
+#: src/speech-page.c:911
+msgid "The synthesizer has no voice for this language"
+msgstr "У синтезатора нет голоса для этого языка"
+
+#: src/speech-page.c:915
+msgid "This synthesizer chooses its voice by the voice type"
+msgstr "Этот синтезатор выбирает голос по типу голоса"
+
+#: src/speech-page.c:919
+msgid "The voice for this language, kept in the synthesizer's settings"
+msgstr "Голос для этого языка, хранится в настройках синтезатора"
+
+#: src/speech-page.c:962
+#, c-format
+msgid "Failed to save the voice: %s"
+msgstr "Не удалось сохранить голос: %s"
+
+#: src/speech-page.c:1318
 msgid "Speech Dispatcher did not accept the text."
 msgstr "Speech Dispatcher не принял текст."
 
-#: src/speech-page.c:680
+#: src/speech-page.c:1459
 #, c-format
 msgid "Failed to read the settings: %s"
 msgstr "Не удалось прочитать настройки: %s"
 
+#: src/speech-page.c:1469
+msgid "_Use All"
+msgstr "_Использовать все"
+
+#: src/speech-page.c:1473
+msgid ""
+"Your settings list the synthesizers to load, so synthesizers installed later "
+"are not offered. Use all installed synthesizers?"
+msgstr ""
+"В ваших настройках перечислены загружаемые синтезаторы, поэтому "
+"установленные позже не предлагаются. Использовать все установленные "
+"синтезаторы?"
+
 #. Voice
-#: src/speech-page.c:691
+#: src/speech-page.c:1493
 msgid "Voice"
 msgstr "Голос"
 
-#: src/speech-page.c:695
-msgid ""
-"The speech synthesizer used when an application does not ask for another one"
-msgstr ""
-"Синтезатор речи, который используется, если приложение не выбрало другой"
-
-#: src/speech-page.c:697
-msgid "_Synthesizer:"
-msgstr "_Синтезатор:"
-
-#: src/speech-page.c:706
+#: src/speech-page.c:1502
 msgid ""
 "Language code like “en-US” or “ru”. Most applications set the language "
 "themselves."
@@ -172,89 +197,103 @@ msgstr ""
 "Код языка, например «ru» или «en-US». Большинство приложений задают язык "
 "сами."
 
-#: src/speech-page.c:708
+#: src/speech-page.c:1504
 msgid "_Language:"
 msgstr "_Язык:"
 
-#: src/speech-page.c:719
-msgid "Each synthesizer maps these types to its own voices"
-msgstr "Каждый синтезатор сопоставляет эти типы со своими голосами"
+#: src/speech-page.c:1512
+msgid ""
+"The speech synthesizer used when an application does not ask for another "
+"one. Only the ones with a voice for the language are offered."
+msgstr ""
+"Синтезатор речи, который используется, если приложение не выбрало другой. "
+"Предлагаются только синтезаторы с голосом для этого языка."
 
-#: src/speech-page.c:721
+#: src/speech-page.c:1516
+msgid "_Synthesizer:"
+msgstr "_Синтезатор:"
+
+#: src/speech-page.c:1525
+msgid "_Voice:"
+msgstr "_Голос:"
+
+#: src/speech-page.c:1532
+msgid "The synthesizer maps these types to its own voices"
+msgstr "Синтезатор сопоставляет эти типы со своими голосами"
+
+#: src/speech-page.c:1534
 msgid "Voice _type:"
 msgstr "_Тип голоса:"
 
-#: src/speech-page.c:729
+#: src/speech-page.c:1550
 msgid "Slower"
 msgstr "Медленнее"
 
-#: src/speech-page.c:729
+#: src/speech-page.c:1550
 msgid "Faster"
 msgstr "Быстрее"
 
-#: src/speech-page.c:730
-msgid "_Rate:"
-msgstr "С_корость:"
-
-#: src/speech-page.c:733
-msgid "Lower"
-msgstr "Ниже"
-
-#: src/speech-page.c:733
-msgid "Higher"
-msgstr "Выше"
-
-#: src/speech-page.c:734
+#: src/speech-page.c:1552
 msgid "_Pitch:"
 msgstr "_Высота:"
 
-#: src/speech-page.c:737
-msgid "Quieter"
-msgstr "Тише"
+#: src/speech-page.c:1553
+msgid "Lower"
+msgstr "Ниже"
 
-#: src/speech-page.c:737
-msgid "Louder"
-msgstr "Громче"
+#: src/speech-page.c:1553
+msgid "Higher"
+msgstr "Выше"
 
-#: src/speech-page.c:738
+#: src/speech-page.c:1555
 msgid "_Volume:"
 msgstr "Гро_мкость:"
 
+#: src/speech-page.c:1556
+msgid "Quieter"
+msgstr "Тише"
+
+#: src/speech-page.c:1556
+msgid "Louder"
+msgstr "Громче"
+
+#: src/speech-page.c:1557
+msgid "_Rate:"
+msgstr "С_корость:"
+
 #. Reading
-#: src/speech-page.c:741
+#: src/speech-page.c:1563
 msgid "Reading"
 msgstr "Чтение"
 
-#: src/speech-page.c:745
+#: src/speech-page.c:1567
 msgid "P_unctuation:"
 msgstr "_Знаки препинания:"
 
-#: src/speech-page.c:752
+#: src/speech-page.c:1574
 msgid "_Capital letters:"
 msgstr "_Заглавные буквы:"
 
-#. Audio
-#: src/speech-page.c:758
-msgid "Audio"
-msgstr "Звук"
-
-#: src/speech-page.c:762
+#: src/speech-page.c:1582
 msgid "_Output:"
 msgstr "_Вывод:"
 
 #. Test
-#: src/speech-page.c:767
+#: src/speech-page.c:1587
 msgid "Test"
 msgstr "Проверка"
 
-#: src/speech-page.c:774
+#: src/speech-page.c:1594 src/speech-page.c:1596
 msgid "This is how your computer speaks."
 msgstr "Так говорит ваш компьютер."
 
-#: src/speech-page.c:778
+#: src/speech-page.c:1603
 msgid "_Speak"
 msgstr "_Произнести"
 
-#: src/speech-page.c:785
+#: src/speech-page.c:1610
 msgid "S_top"
 msgstr "_Остановить"
+
+#~ msgid "Audio"
+#~ msgstr "Звук"

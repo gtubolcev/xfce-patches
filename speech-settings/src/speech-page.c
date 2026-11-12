@@ -149,9 +149,9 @@ typedef struct
   GHashTable    *module_languages;
   /* the languages of all modules, sorted */
   GPtrArray     *languages;
-  GtkWidget     *rate_scale;
-  GtkWidget     *pitch_scale;
-  GtkWidget     *volume_scale;
+  GtkWidget     *rate_spin;
+  GtkWidget     *pitch_spin;
+  GtkWidget     *volume_spin;
   GtkWidget     *punctuation_combo;
   GtkWidget     *capital_combo;
   GtkWidget     *audio_combo;
@@ -262,30 +262,77 @@ speech_page_combo_select (GtkWidget    *combo,
 
 
 
-static GtkWidget *
-speech_page_scale_new (gint         value,
-                       const gchar *low,
-                       const gchar *high)
+/* speechd's -100 … +100 shown as a signed percentage: "+20 %" */
+static gboolean
+speech_page_percent_output (GtkSpinButton *spin,
+                            gpointer       user_data)
 {
-  GtkWidget *scale;
+  gint   value = gtk_spin_button_get_value_as_int (spin);
+  gchar *text;
 
-  scale = gtk_scale_new_with_range (GTK_ORIENTATION_HORIZONTAL, -100, 100, 1);
-  gtk_scale_set_digits (GTK_SCALE (scale), 0);
-  gtk_scale_set_draw_value (GTK_SCALE (scale), FALSE);
-  /* 0 is what the synthesizer does by default, not silence */
-  gtk_scale_add_mark (GTK_SCALE (scale), -100, GTK_POS_BOTTOM, low);
-  gtk_scale_add_mark (GTK_SCALE (scale), 0, GTK_POS_BOTTOM, _("Normal"));
-  gtk_scale_add_mark (GTK_SCALE (scale), 100, GTK_POS_BOTTOM, high);
-  gtk_range_set_value (GTK_RANGE (scale), CLAMP (value, -100, 100));
-  gtk_widget_set_hexpand (scale, TRUE);
+  text = g_strdup_printf (value > 0 ? "+%d %%" : "%d %%", value);
+  if (g_strcmp0 (text, gtk_entry_get_text (GTK_ENTRY (spin))) != 0)
+    gtk_entry_set_text (GTK_ENTRY (spin), text);
+  g_free (text);
 
-  return scale;
+  return TRUE;
+}
+
+
+
+static gint
+speech_page_percent_input (GtkSpinButton *spin,
+                           gdouble       *new_value,
+                           gpointer       user_data)
+{
+  const gchar *text = gtk_entry_get_text (GTK_ENTRY (spin));
+  gchar       *end;
+  gdouble      value;
+
+  while (g_ascii_isspace (*text) || *text == '+')
+    text++;
+  value = g_ascii_strtod (text, &end);
+  while (g_ascii_isspace (*end) || *end == '%')
+    end++;
+  if (end == text || *end != '\0')
+    return GTK_INPUT_ERROR;
+
+  *new_value = value;
+  return TRUE;
+}
+
+
+
+static GtkWidget *
+speech_page_percent_new (gint value)
+{
+  GtkWidget *spin;
+
+  spin = gtk_spin_button_new_with_range (-100, 100, 5);
+  gtk_spin_button_set_digits (GTK_SPIN_BUTTON (spin), 0);
+  /* new_with_range makes it numeric, which drops the "%" of the output */
+  gtk_spin_button_set_numeric (GTK_SPIN_BUTTON (spin), FALSE);
+  gtk_spin_button_set_increments (GTK_SPIN_BUTTON (spin), 5, 20);
+  gtk_entry_set_width_chars (GTK_ENTRY (spin), 5);
+  gtk_entry_set_max_width_chars (GTK_ENTRY (spin), 5);
+  gtk_entry_set_alignment (GTK_ENTRY (spin), 1.0);
+  g_signal_connect (spin, "output",
+                    G_CALLBACK (speech_page_percent_output), NULL);
+  g_signal_connect (spin, "input",
+                    G_CALLBACK (speech_page_percent_input), NULL);
+  gtk_spin_button_set_value (GTK_SPIN_BUTTON (spin), CLAMP (value, -100, 100));
+  /* set_value of the initial 0 emits nothing, so "output" never ran */
+  speech_page_percent_output (GTK_SPIN_BUTTON (spin), NULL);
+
+  return spin;
 }
 
 
 
 /* labels of all frames share one width, so the controls line up */
 static GtkSizeGroup *label_size_group = NULL;
+/* the combos share one width: the widest one's, not the window's */
+static GtkSizeGroup *combo_size_group = NULL;
 
 static void
 speech_page_grid_add (GtkWidget   *grid,
@@ -301,8 +348,43 @@ speech_page_grid_add (GtkWidget   *grid,
   gtk_label_set_mnemonic_widget (GTK_LABEL (label), widget);
   gtk_grid_attach (GTK_GRID (grid), label, 0, row, 1, 1);
 
-  gtk_widget_set_hexpand (widget, TRUE);
+  /* natural width, left-aligned: a full-width combo looks huge */
+  gtk_widget_set_halign (widget, GTK_IS_COMBO_BOX (widget)
+                                 ? GTK_ALIGN_FILL : GTK_ALIGN_START);
+  if (GTK_IS_COMBO_BOX (widget))
+    gtk_size_group_add_widget (combo_size_group, widget);
   gtk_grid_attach (GTK_GRID (grid), widget, 1, row, 1, 1);
+}
+
+
+
+/* one "Label: [spin]" pair of the Speech row; the tooltip explains the
+ * range, 0 is what the synthesizer does by default, not silence */
+static void
+speech_page_box_add_percent (GtkWidget   *box,
+                             const gchar *text,
+                             GtkWidget   *spin,
+                             const gchar *low,
+                             const gchar *high)
+{
+  GtkWidget *label;
+  gchar     *tip;
+
+  /* text NULL: the label is in the grid's label column */
+  if (text != NULL)
+    {
+      label = gtk_label_new_with_mnemonic (text);
+      gtk_label_set_mnemonic_widget (GTK_LABEL (label), spin);
+      /* a wider gap between the pairs than inside them */
+      gtk_widget_set_margin_start (label, 18);
+      gtk_box_pack_start (GTK_BOX (box), label, FALSE, FALSE, 0);
+    }
+  gtk_box_pack_start (GTK_BOX (box), spin, FALSE, FALSE, 0);
+
+  tip = g_strdup_printf ("−100 %%: %s\n0 %%: %s\n+100 %%: %s",
+                         low, _("Normal"), high);
+  gtk_widget_set_tooltip_text (spin, tip);
+  g_free (tip);
 }
 
 
@@ -1015,16 +1097,16 @@ speech_page_choice_changed (GtkComboBox *combo,
 
 
 static void
-speech_page_scale_changed (GtkRange   *range,
-                           SpeechPage *page)
+speech_page_percent_changed (GtkSpinButton *spin,
+                             SpeechPage    *page)
 {
-  const gchar *key = g_object_get_data (G_OBJECT (range), "speechd-key");
+  const gchar *key = g_object_get_data (G_OBJECT (spin), "speechd-key");
 
   if (page->updating)
     return;
 
   speechd_config_set_int (page->config, key,
-                          (gint) gtk_range_get_value (range));
+                          gtk_spin_button_get_value_as_int (spin));
   speech_page_queue_save (page);
 }
 
@@ -1217,11 +1299,11 @@ speech_page_test_clicked (GtkButton  *button,
                                GTK_COMBO_BOX (page->voice_combo)));
 
   spd_set_voice_rate (page->connection,
-                      gtk_range_get_value (GTK_RANGE (page->rate_scale)));
+                      gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (page->rate_spin)));
   spd_set_voice_pitch (page->connection,
-                       gtk_range_get_value (GTK_RANGE (page->pitch_scale)));
+                       gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (page->pitch_spin)));
   spd_set_volume (page->connection,
-                  gtk_range_get_value (GTK_RANGE (page->volume_scale)));
+                  gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (page->volume_spin)));
 
   i = speech_page_choice_index (page->punctuation_combo, punctuation_modes,
                                 G_N_ELEMENTS (punctuation_modes));
@@ -1318,22 +1400,19 @@ speech_page_bind_choice (SpeechPage   *page,
 
 
 static GtkWidget *
-speech_page_bind_scale (SpeechPage  *page,
-                        const gchar *key,
-                        gint         fallback,
-                        const gchar *low,
-                        const gchar *high)
+speech_page_bind_percent (SpeechPage  *page,
+                          const gchar *key,
+                          gint         fallback)
 {
-  GtkWidget *scale;
+  GtkWidget *spin;
 
-  scale = speech_page_scale_new (speechd_config_get_int (page->config, key,
-                                                         fallback),
-                                 low, high);
-  g_object_set_data (G_OBJECT (scale), "speechd-key", (gpointer) key);
-  g_signal_connect (scale, "value-changed",
-                    G_CALLBACK (speech_page_scale_changed), page);
+  spin = speech_page_percent_new (speechd_config_get_int (page->config, key,
+                                                          fallback));
+  g_object_set_data (G_OBJECT (spin), "speechd-key", (gpointer) key);
+  g_signal_connect (spin, "value-changed",
+                    G_CALLBACK (speech_page_percent_changed), page);
 
-  return scale;
+  return spin;
 }
 
 
@@ -1360,6 +1439,8 @@ speech_page_new (void)
 
   if (label_size_group == NULL)
     label_size_group = gtk_size_group_new (GTK_SIZE_GROUP_HORIZONTAL);
+  if (combo_size_group == NULL)
+    combo_size_group = gtk_size_group_new (GTK_SIZE_GROUP_HORIZONTAL);
 
   box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 12);
   gtk_container_set_border_width (GTK_CONTAINER (box), 12);
@@ -1466,20 +1547,36 @@ speech_page_new (void)
                            voice_types, G_N_ELEMENTS (voice_types), "MALE1");
   speech_page_update_voices (page);
 
-  /* Speech */
-  grid = speech_page_frame_new (box, _("Speech"));
+  /* rate, pitch, volume: one row under the voice, the rate label in the
+   * label column like the rows above */
+  {
+    GtkWidget *row = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
 
-  page->rate_scale = speech_page_bind_scale (page, "DefaultRate", 0,
-                                             _("Slower"), _("Faster"));
-  speech_page_grid_add (grid, 0, _("_Rate:"), page->rate_scale);
+    page->rate_spin = speech_page_bind_percent (page, "DefaultRate", 0);
+    speech_page_box_add_percent (row, NULL, page->rate_spin,
+                                 _("Slower"), _("Faster"));
+    page->pitch_spin = speech_page_bind_percent (page, "DefaultPitch", 0);
+    speech_page_box_add_percent (row, _("_Pitch:"), page->pitch_spin,
+                                 _("Lower"), _("Higher"));
+    page->volume_spin = speech_page_bind_percent (page, "DefaultVolume", 0);
+    speech_page_box_add_percent (row, _("_Volume:"), page->volume_spin,
+                                 _("Quieter"), _("Louder"));
+    speech_page_grid_add (grid, 4, _("_Rate:"), row);
+    gtk_label_set_mnemonic_widget (GTK_LABEL (gtk_grid_get_child_at (GTK_GRID (grid), 0, 4)),
+                                   page->rate_spin);
+    /* the row is wider than the combos: let it run into an expanding
+     * empty column, so it does not widen the combos' column */
+    g_object_ref (row);
+    gtk_container_remove (GTK_CONTAINER (grid), row);
+    gtk_grid_attach (GTK_GRID (grid), row, 1, 4, 2, 1);
+    g_object_unref (row);
+    {
+      GtkWidget *filler = gtk_label_new (NULL);
 
-  page->pitch_scale = speech_page_bind_scale (page, "DefaultPitch", 0,
-                                              _("Lower"), _("Higher"));
-  speech_page_grid_add (grid, 1, _("_Pitch:"), page->pitch_scale);
-
-  page->volume_scale = speech_page_bind_scale (page, "DefaultVolume", 0,
-                                               _("Quieter"), _("Louder"));
-  speech_page_grid_add (grid, 2, _("_Volume:"), page->volume_scale);
+      gtk_widget_set_hexpand (filler, TRUE);
+      gtk_grid_attach (GTK_GRID (grid), filler, 2, 0, 1, 1);
+    }
+  }
 
   /* Reading */
   grid = speech_page_frame_new (box, _("Reading"));
@@ -1498,12 +1595,10 @@ speech_page_new (void)
                            "DefaultCapLetRecognition", capital_modes,
                            G_N_ELEMENTS (capital_modes), "none");
 
-  /* Audio */
-  grid = speech_page_frame_new (box, _("Audio"));
-
+  /* the audio output goes with the reading settings: one frame less */
   page->audio_combo =
     speech_page_combo_new (audio_methods, G_N_ELEMENTS (audio_methods));
-  speech_page_grid_add (grid, 0, _("_Output:"), page->audio_combo);
+  speech_page_grid_add (grid, 2, _("_Output:"), page->audio_combo);
   speech_page_bind_choice (page, page->audio_combo, "AudioOutputMethod",
                            audio_methods, G_N_ELEMENTS (audio_methods), "");
 
