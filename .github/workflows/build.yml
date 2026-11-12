@@ -4,12 +4,12 @@ on:
   push:
     branches: [main]
     tags: ['v*']
-    paths: ['packages/**', 'thunar-disk-usage/**', 'scripts/**', '.github/workflows/**']
+    paths: ['packages/**', 'scripts/**', '.github/workflows/**']
   pull_request:
   workflow_dispatch:
     inputs:
       package:
-        description: 'Source package or subproject directory to build (empty = all)'
+        description: 'Source package to build (empty = all)'
         required: false
         default: ''
 
@@ -28,29 +28,20 @@ jobs:
           # one build per package for Ubuntu 26.04 and Debian 13 (both with
           # packages/<pkg>/patches, unless a port of its own exists), plus one
           # per port in packages/<pkg>/<codename>/: an older Ubuntu release,
-          # or "arch" for Arch Linux. Subprojects of our own (a directory
-          # with debian/ in the repo root) are built for 26.04, 24.04,
-          # Debian 13 and, with arch/PKGBUILD, Arch Linux.
-          native=$(for d in */debian/control; do [ -f "$d" ] && dirname "$(dirname "$d")"; done)
+          # or "arch" for Arch Linux.
           if [ -n "$INPUT_PACKAGE" ]; then
             pkgs=$INPUT_PACKAGE
           else
-            pkgs="$(find packages -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort) $native"
+            pkgs=$(find packages -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort)
           fi
-          # $3: deb (patched Ubuntu source package) or native
           target() {
             case $2 in
               arch) echo "$1 $2 archlinux:latest arch" ;;
-              bookworm|trixie|forky|sid) echo "$1 $2 debian:$2 ${3:-deb}" ;;
-              *) echo "$1 $2 ubuntu:$2 ${3:-deb}" ;;
+              bookworm|trixie|forky|sid) echo "$1 $2 debian:$2 deb" ;;
+              *) echo "$1 $2 ubuntu:$2 deb" ;;
             esac
           }
           all=$(for p in $pkgs; do
-                  if [ -f "$p/debian/control" ]; then
-                    for dist in resolute noble trixie; do target "$p" "$dist" native; done
-                    [ -f "$p/arch/PKGBUILD" ] && target "$p" arch
-                    continue
-                  fi
                   target "$p" resolute
                   [ -f "packages/$p/trixie/BASE" ] || target "$p" trixie
                   for d in packages/$p/*/BASE; do
@@ -89,14 +80,6 @@ jobs:
           RELEASE: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}
         run: scripts/build-package.sh "${{ matrix.target.package }}" out
       - name: Build ${{ matrix.target.package }}
-        if: matrix.target.kind == 'native'
-        env:
-          DEBIAN_FRONTEND: noninteractive
-          DEBFULLNAME: ${{ github.actor }}
-          DEBEMAIL: ${{ github.actor }}@users.noreply.github.com
-          RELEASE: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}
-        run: scripts/build-native.sh "${{ matrix.target.package }}" out
-      - name: Build ${{ matrix.target.package }}
         if: matrix.target.kind == 'arch'
         env:
           RELEASE: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}
@@ -123,16 +106,11 @@ jobs:
         with:
           name: pkgs-xfce4-settings-resolute
           path: debs
-      - uses: actions/download-artifact@v5
-        with:
-          name: pkgs-thunar-disk-usage-resolute
-          path: debs
       - run: scripts/screenshot.sh debs docs/theme-schedule.png
-      - run: scripts/screenshot-tdu.sh debs docs/thunar-disk-usage.png
       - name: Commit the screenshots if they changed
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          shots="docs/theme-schedule.png docs/thunar-disk-usage.png"
+          shots="docs/theme-schedule.png"
           if git diff --quiet -- $shots; then
             echo "screenshots unchanged"; exit 0
           fi
@@ -203,7 +181,7 @@ jobs:
           | Debian 13 (trixie), MX Linux 25 | 4.20 | `*_4.20.1-1+xfcepatches*` (no `ubuntu` in the name) |
           | Arch Linux, Manjaro, EndeavourOS | 4.20 | `xfce4-settings-xfcepatches-*.pkg.tar.zst` |
 
-          The Thunar disk usage plugin is a package of its own that works with the stock Thunar (4.18 and later): `thunar-disk-usage-plugin_*~resolute_amd64.deb` (26.04), `*~noble_*` (24.04, Mint 22), `*~trixie_*` (Debian 13), `thunar-disk-usage-plugin-*.pkg.tar.zst` (Arch). Install it alone with `sudo apt install ./thunar-disk-usage-plugin_*.deb` (or `pacman -U`) and run `thunar -q`.
+          The Thunar disk usage plugin has moved to [its own repository](https://github.com/gtubolcev/thunar-disk-usage).
 
           **Ubuntu, Debian:** download all `.deb` files for your release (e.g. both `xfce4-settings` and `xfce4-helpers`) into an empty folder and install them together:
 

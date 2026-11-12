@@ -3,11 +3,6 @@
 # Launchpad PPA, which then builds the .debs for amd64 and the other arches.
 #
 #   scripts/upload-ppa.sh <source-package> [codename]
-#   scripts/upload-ppa.sh <dir> [codename]
-#
-# A subproject of our own (<dir>/debian in the repo root) is uploaded as a
-# native package, versioned like build-native.sh plus the upload number
-# (0.1.0+v0.5.0~resolute~ppa1).
 #
 # codename defaults to the running release; an older one (e.g. noble) uses the
 # port in packages/<pkg>/<codename>/patches. PPA=... overrides the target
@@ -60,20 +55,6 @@ sign_and_upload() {
 rm -rf "$WORK"
 mkdir -p "$WORK"
 cd "$WORK"
-
-if [ -f "$ROOT/$PKG/debian/control" ]; then
-  mkdir src
-  tar -C "$ROOT/$PKG" --exclude=./arch --exclude=./PLAN.md -cf - . | tar -C src -xf -
-  cd src
-  SOURCE=$(dpkg-parsechangelog -S Source)
-  VERSION="$(dpkg-parsechangelog -S Version)+$RELEASE~$DIST~ppa"
-  VERSION=$VERSION$(next_upload "$VERSION" "$SOURCE")
-  dch --newversion "$VERSION" --force-bad-version --distribution "$DIST" \
-    --force-distribution "Release $RELEASE of XFCE-patches (https://github.com/gtubolcev/xfce-patches)."
-  # a native package: the tarball is the whole source and must be uploaded
-  sign_and_upload
-  exit 0
-fi
 
 PATCHDIR=$ROOT/packages/$PKG/patches
 [ -d "$ROOT/packages/$PKG/$DIST" ] && PATCHDIR=$ROOT/packages/$PKG/$DIST/patches
