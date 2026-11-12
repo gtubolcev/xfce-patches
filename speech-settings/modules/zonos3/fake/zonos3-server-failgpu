@@ -1,0 +1,4 @@
+#!/bin/sh
+# test double: dies on --gpu (like a GPU out of memory), runs the real server otherwise
+[ "$2" = --gpu ] && { sleep 1; exit 1; }
+exec /home/grigory/Storage/Claude/zonos3-build/build-vkblas/zonos3-server "$@"

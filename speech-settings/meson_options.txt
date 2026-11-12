@@ -1,0 +1,4 @@
+option('x11', type: 'feature', value: 'auto',
+       description: 'Embedding into the settings manager (X11 only)')
+option('speechd-sysconfdir', type: 'string', value: '/etc/speech-dispatcher',
+       description: 'Configuration directory of Speech Dispatcher')

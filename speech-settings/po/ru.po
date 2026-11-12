@@ -1,0 +1,260 @@
+# Russian translations for xfce4-speech-settings package
+# Английские переводы для пакета xfce4-speech-settings.
+# Copyright (C) 2026 THE xfce4-speech-settings'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the xfce4-speech-settings package.
+# Automatically generated, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xfce4-speech-settings\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-09 00:07+0000\n"
+"PO-Revision-Date: 2026-11-08 20:41+0000\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: Russian\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#. Speech
+#: data/xfce4-speech-settings.desktop.in:3 src/main.c:121 src/speech-page.c:726
+msgid "Speech"
+msgstr "Речь"
+
+#: data/xfce4-speech-settings.desktop.in:4 src/main.c:127
+msgid "Configure text-to-speech"
+msgstr "Настройка синтеза речи"
+
+#: data/xfce4-speech-settings.desktop.in:5
+msgid ""
+"speech;tts;text-to-speech;voice;synthesizer;speech-dispatcher;screen "
+"reader;accessibility;a11y;"
+msgstr ""
+"речь;синтез речи;голос;синтезатор;озвучивание;экранный диктор;чтение с "
+"экрана;специальные возможности;speech;tts;text-to-speech;voice;speech-"
+"dispatcher;a11y;"
+
+#: src/main.c:45
+msgid "Settings manager socket"
+msgstr "Сокет диспетчера настроек"
+
+#: src/main.c:45
+msgid "SOCKET ID"
+msgstr "ID СОКЕТА"
+
+#: src/main.c:48
+msgid "Version information"
+msgstr "Информация о версии"
+
+#: src/main.c:80
+#, c-format
+msgid "Type '%s --help' for usage."
+msgstr "Введите «%s --help» для получения справки."
+
+#: src/main.c:123
+msgid "_Close"
+msgstr "_Закрыть"
+
+#: src/speech-page.c:46
+msgid "Male 1"
+msgstr "Мужской 1"
+
+#: src/speech-page.c:47
+msgid "Male 2"
+msgstr "Мужской 2"
+
+#: src/speech-page.c:48
+msgid "Male 3"
+msgstr "Мужской 3"
+
+#: src/speech-page.c:49
+msgid "Female 1"
+msgstr "Женский 1"
+
+#: src/speech-page.c:50
+msgid "Female 2"
+msgstr "Женский 2"
+
+#: src/speech-page.c:51
+msgid "Female 3"
+msgstr "Женский 3"
+
+#: src/speech-page.c:52
+msgid "Child, male"
+msgstr "Детский, мужской"
+
+#: src/speech-page.c:53
+msgid "Child, female"
+msgstr "Детский, женский"
+
+#: src/speech-page.c:58
+msgid "None"
+msgstr "Не произносить"
+
+#: src/speech-page.c:59
+msgid "Some"
+msgstr "Некоторые"
+
+#: src/speech-page.c:60
+msgid "Most"
+msgstr "Большинство"
+
+#: src/speech-page.c:61
+msgid "All"
+msgstr "Все"
+
+#: src/speech-page.c:71
+msgid "Do nothing"
+msgstr "Ничего не делать"
+
+#: src/speech-page.c:72
+msgid "Say “capital”"
+msgstr "Говорить «заглавная»"
+
+#: src/speech-page.c:73
+msgid "Play a sound"
+msgstr "Подавать звуковой сигнал"
+
+#: src/speech-page.c:84 src/speech-page.c:313
+msgid "Automatic"
+msgstr "Автоматически"
+
+#: src/speech-page.c:148
+#, c-format
+msgid "Failed to apply the settings: %s"
+msgstr "Не удалось применить настройки: %s"
+
+#: src/speech-page.c:222
+msgid "Normal"
+msgstr "Обычно"
+
+#: src/speech-page.c:289
+#, c-format
+msgid "Cannot connect to Speech Dispatcher: %s"
+msgstr "Не удаётся подключиться к Speech Dispatcher: %s"
+
+#: src/speech-page.c:290
+msgid "unknown error"
+msgstr "неизвестная ошибка"
+
+#: src/speech-page.c:553
+msgid "Speech Dispatcher did not accept the text."
+msgstr "Speech Dispatcher не принял текст."
+
+#: src/speech-page.c:680
+#, c-format
+msgid "Failed to read the settings: %s"
+msgstr "Не удалось прочитать настройки: %s"
+
+#. Voice
+#: src/speech-page.c:691
+msgid "Voice"
+msgstr "Голос"
+
+#: src/speech-page.c:695
+msgid ""
+"The speech synthesizer used when an application does not ask for another one"
+msgstr ""
+"Синтезатор речи, который используется, если приложение не выбрало другой"
+
+#: src/speech-page.c:697
+msgid "_Synthesizer:"
+msgstr "_Синтезатор:"
+
+#: src/speech-page.c:706
+msgid ""
+"Language code like “en-US” or “ru”. Most applications set the language "
+"themselves."
+msgstr ""
+"Код языка, например «ru» или «en-US». Большинство приложений задают язык "
+"сами."
+
+#: src/speech-page.c:708
+msgid "_Language:"
+msgstr "_Язык:"
+
+#: src/speech-page.c:719
+msgid "Each synthesizer maps these types to its own voices"
+msgstr "Каждый синтезатор сопоставляет эти типы со своими голосами"
+
+#: src/speech-page.c:721
+msgid "Voice _type:"
+msgstr "_Тип голоса:"
+
+#: src/speech-page.c:729
+msgid "Slower"
+msgstr "Медленнее"
+
+#: src/speech-page.c:729
+msgid "Faster"
+msgstr "Быстрее"
+
+#: src/speech-page.c:730
+msgid "_Rate:"
+msgstr "С_корость:"
+
+#: src/speech-page.c:733
+msgid "Lower"
+msgstr "Ниже"
+
+#: src/speech-page.c:733
+msgid "Higher"
+msgstr "Выше"
+
+#: src/speech-page.c:734
+msgid "_Pitch:"
+msgstr "_Высота:"
+
+#: src/speech-page.c:737
+msgid "Quieter"
+msgstr "Тише"
+
+#: src/speech-page.c:737
+msgid "Louder"
+msgstr "Громче"
+
+#: src/speech-page.c:738
+msgid "_Volume:"
+msgstr "Гро_мкость:"
+
+#. Reading
+#: src/speech-page.c:741
+msgid "Reading"
+msgstr "Чтение"
+
+#: src/speech-page.c:745
+msgid "P_unctuation:"
+msgstr "_Знаки препинания:"
+
+#: src/speech-page.c:752
+msgid "_Capital letters:"
+msgstr "_Заглавные буквы:"
+
+#. Audio
+#: src/speech-page.c:758
+msgid "Audio"
+msgstr "Звук"
+
+#: src/speech-page.c:762
+msgid "_Output:"
+msgstr "_Вывод:"
+
+#. Test
+#: src/speech-page.c:767
+msgid "Test"
+msgstr "Проверка"
+
+#: src/speech-page.c:774
+msgid "This is how your computer speaks."
+msgstr "Так говорит ваш компьютер."
+
+#: src/speech-page.c:778
+msgid "_Speak"
+msgstr "_Произнести"
+
+#: src/speech-page.c:785
+msgid "S_top"
+msgstr "_Остановить"
