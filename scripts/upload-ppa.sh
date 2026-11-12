@@ -92,7 +92,7 @@ done
 VERSION="$(dpkg-parsechangelog -S Version)+xfcepatches1+$RELEASE~ppa"
 VERSION=$VERSION$(next_upload "$VERSION" "$PKG")
 dch --newversion "$VERSION" --distribution "$DIST" --force-distribution \
-  "Apply XFCE-patches (https://github.com/gtubolcev/xfce-patches): ${PATCHES[*]}"
+  "Apply XFCE-patches (https://github.com/gtubolcev/xfce4-settings-theme-schedule): ${PATCHES[*]}"
 
 # the orig tarball is not uploaded, Launchpad takes it from the archive
 sign_and_upload -sd

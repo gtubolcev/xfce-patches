@@ -1,4 +1,4 @@
-# XFCE-patches
+# xfce4-settings theme schedule
 
 Extra features for XFCE components on **Xubuntu 26.04 (resolute)** (and ports to
 **24.04 (noble)**), packaged as drop-in replacement `.deb`s built by GitHub Actions.
@@ -54,7 +54,7 @@ Moved to [gtubolcev/thunar-disk-usage](https://github.com/gtubolcev/thunar-disk-
 ## Install
 
 Download the `.deb`s for your Xubuntu release from
-[Releases](https://github.com/gtubolcev/xfce-patches/releases/latest)
+[Releases](https://github.com/gtubolcev/xfce4-settings-theme-schedule/releases/latest)
 (`*_4.20.1-1ubuntu*` for 26.04, `*_4.18.4-*` for 24.04 — the 24.04 build is untested;
 `*_4.20.1-1+xfcepatches*` for Debian 13),
 put them into an empty folder, then:
